@@ -1,1 +1,37 @@
 Assets/
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.synctex.gz
+*.bbl
+*.bcf
+*.run.xml
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.glsdefs
+*.ist
+*.fdb_latexmk
+*.fls
+
+# LaTeX output files (uncomment if you don't want to track PDFs)
+# *.pdf
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+.vscode/
+*.tmp

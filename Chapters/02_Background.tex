@@ -1,930 +1,887 @@
 % Background
 
-\chapter{Blockchain}
-\section{Blockchain Definition}
-Blockchain technology is a decentralized system that maintains a continuously growing list of records, called blocks, which are linked and secured using cryptographic techniques. Each block contains a batch of verified transactions, similar in function to entries in a traditional public ledger~\cite{lee2015handbook}. The integrity and chronological order of these transactions are enforced by linking each block to the previous one via a cryptographic hash, forming a tamper-evident chain, as illustrated in Figure~\ref{fig:blockchain_structure}.
+\chapter{Background}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/blockchain_structure.png}
-    \caption{A simplified representation of a blockchain as a sequence of linked blocks}
-    \label{fig:blockchain_structure}
-\end{figure}
+\section{Introduction to Large Language Models (LLMs)}
 
-The first block in any blockchain is known as the \textit{genesis block}, which serves as the foundational entry and has no parent block. In Ethereum, the structure is further extended by referencing \textit{uncle blocks}—those that are valid but not part of the main chain—adding robustness and aiding decentralization~\cite{wood2014ethereum}.
+Large Language Models (LLMs) have fundamentally transformed the landscape of natural language processing (NLP) and artificial intelligence applications across industries. These sophisticated neural network architectures, built upon the foundation of deep learning principles, have demonstrated unprecedented capabilities in understanding, generating, and manipulating human language at scale. The evolution from early statistical language models to contemporary transformer-based architectures represents one of the most significant breakthroughs in computational linguistics and machine learning.
 
-Each block consists of two main parts: the \textbf{block header} and the \textbf{block body}, as shown in Figure~\ref{fig:block_structure}. The block header carries metadata essential for maintaining the chain’s integrity, including:
-\begin{itemize}
-    \item The \textbf{version number}, which specifies the set of validation rules used for the block;
-    \item The \textbf{Merkle root hash}, which summarizes all transactions in the block in a tree-like structure for efficient verification;
-    \item A \textbf{timestamp} marking the creation time of the block;
-    \item A \textbf{difficulty target} (\texttt{nBits}), which defines the required threshold for a valid block hash;
-    \item A \textbf{nonce}, an arbitrary number used in the proof-of-work process;
-    \item The \textbf{parent block hash}, which links to the previous block in the chain.
-\end{itemize}
+LLMs are characterized by their massive parameter counts, often ranging from hundreds of millions to hundreds of billions of parameters, enabling them to capture intricate patterns and relationships within textual data. This scale allows them to perform diverse linguistic tasks without task-specific architectural modifications, a property known as task-agnostic performance. The versatility of LLMs has made them indispensable tools in enterprise applications, ranging from customer service automation to content generation and decision support systems.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/block_structure.png}
-    \caption{Structure of a block showing the block header and body}
-    \label{fig:block_structure}
-\end{figure}
-
-The block body contains the actual transactions and a counter indicating the number of transactions. The capacity of a block to hold transactions depends on its maximum size and the size of individual transactions.
-
-To ensure secure and verifiable transactions within an untrusted environment, blockchain utilizes \textbf{asymmetric cryptography}—specifically, \textbf{digital signatures}. Each user is assigned a \textit{key pair}: a private key (kept secret) and a public key (shared with others). When a user initiates a transaction, it is signed using their private key. This signature, along with the transaction data, is broadcast to the network. Other nodes can then verify the signature using the sender’s public key to confirm the authenticity and integrity of the message.
-
-The \textit{Elliptic Curve Digital Signature Algorithm (ECDSA)} is the predominant algorithm used in most blockchain systems, including Bitcoin and Ethereum~\cite{johnson2001ecdsa}. It provides a high level of security while maintaining efficiency in key size and computational requirements.
-\section{Key Characteristics of Blockchain}
-
-Blockchain systems offer several foundational characteristics that distinguish them from traditional centralized models.
+The fundamental capabilities of modern LLMs include:
 
 \begin{itemize}
-  \item \textbf{Decentralization}: Unlike conventional systems where a central authority (e.g., a central bank) must validate each transaction, blockchain eliminates the need for intermediaries. Through the use of consensus mechanisms, data consistency is maintained across a distributed network, reducing both cost and dependency on central servers.
-
-  \item \textbf{Persistency}: Once validated, transactions are permanently recorded on the blockchain. Invalid transactions are promptly rejected by honest participants (miners), and modifying or removing already accepted transactions is nearly impossible, ensuring data immutability~\cite{nakamoto2008bitcoin}.
-
-  \item \textbf{Anonymity}: Users interact with the blockchain using cryptographic addresses rather than real identities. Although this provides a degree of privacy, it does not guarantee complete anonymity due to structural limitations inherent in most blockchain systems~\cite{nakamoto2008bitcoin}.
-
-  \item \textbf{Auditability}: Blockchains like Bitcoin use the Unspent Transaction Output (UTXO) model to track balances~\cite{nakamoto2008bitcoin}. Every new transaction must reference previous unspent outputs, allowing the system to update their status to "spent" upon recording. This structure ensures that all transactions can be easily verified and traced.
+    \item \textbf{Multi-task Performance:} Executing a comprehensive range of NLP tasks including text generation, summarization, translation, question answering, sentiment analysis, and code generation without requiring task-specific fine-tuning.
+    \item \textbf{Few-shot Learning:} Adapting to new tasks with minimal examples, leveraging pre-trained knowledge to understand context and requirements from just a few demonstrations.
+    \item \textbf{Contextual Understanding:} Processing and maintaining coherent understanding across long sequences of text, enabling complex reasoning and discourse comprehension.
+    \item \textbf{Emergent Abilities:} Displaying capabilities that were not explicitly programmed but emerge from the scale and complexity of the training process.
+    \item \textbf{Scalable Architecture:} Benefiting from increased computational resources and data, following predictable scaling laws that relate model size to performance improvements.
 \end{itemize}
 
-\section{Types of Blockchains}
-Blockchain systems can be broadly classified into three main categories: \textbf{public blockchains}, \textbf{private blockchains}, and \textbf{consortium blockchains}~\cite{buterin2015blockchains}. Each type exhibits distinct features in terms of access control, decentralization, and consensus management.
+The enterprise adoption of LLMs has been driven by their ability to automate complex language-based tasks that previously required human expertise. Organizations across sectors including finance, healthcare, legal services, and technology have integrated LLMs into their workflows to enhance productivity, reduce operational costs, and improve service quality. However, this integration presents unique challenges related to computational efficiency, latency requirements, security considerations, and system interoperability.
 
-\textbf{Public blockchains} are completely open systems in which anyone can participate. All transaction data is publicly accessible, and every node in the network has the right to join the consensus process. Bitcoin and Ethereum are well-known examples of public blockchains. These systems rely on consensus algorithms like Proof of Work or Proof of Stake to validate transactions in a decentralized manner.
-
-\textbf{Private blockchains}, on the other hand, are restricted to a single organization. Only authorized nodes within that organization can read from or write to the blockchain and take part in the consensus process. Because control resides entirely within one entity, private blockchains are often considered centralized. They are commonly used for internal enterprise operations where efficiency and control are prioritized over decentralization.
-
-\textbf{Consortium blockchains} represent a hybrid model where consensus is managed by a selected group of organizations rather than the general public or a single authority. Participation is permissioned, and data access may be restricted based on the consortium’s governance rules. These blockchains are partially decentralized and are well-suited for scenarios where collaboration between multiple trusted parties is required. Frameworks like Hyperledger Fabric~\cite{hyperledger2015} and Ethereum’s consortium tools~\cite{ethereum2015consortium} support such architectures.
-
-Key distinctions between these blockchain types can be highlighted through several technical aspects:
-
-\begin{itemize}
-    \item \textbf{Consensus determination}: In public blockchains, all nodes can participate in the consensus process. In consortium blockchains, only a predefined set of nodes—typically from trusted organizations—are involved. In private blockchains, consensus is entirely controlled by a single organization, leading to centralized decision-making.
-
-    \item \textbf{Read permission}: Public blockchains allow unrestricted access to all transaction data. In contrast, consortium and private blockchains may implement limited read permissions, depending on the application and governance policies.
-
-    \item \textbf{Immutability}: Due to their broad and decentralized participation, public blockchains are highly resistant to tampering. Once data is validated and added to the chain, altering it would require immense computational resources and consensus across the network. However, in private and consortium blockchains—where fewer nodes are involved—modifying or rolling back data is comparatively easier, potentially compromising immutability.
-
-    \item \textbf{Efficiency}: Public blockchains often suffer from performance bottlenecks because of the large number of participating nodes and resource-intensive consensus protocols. This results in higher latency and lower transaction throughput. Private and consortium blockchains, with fewer validating nodes, can operate more efficiently, offering faster block confirmation times and improved scalability.
-
-    \item \textbf{Centralization}: Public blockchains are fully decentralized by design, with no single point of control. Consortium blockchains are partially decentralized, as control is distributed among selected organizations. In contrast, private blockchains are fully centralized and governed by a single entity.
-
-    \item \textbf{Consensus process}: In public blockchains, anyone can participate in the consensus protocol without needing approval. Consortium and private blockchains are permissioned systems, where only selected or authorized nodes can validate transactions and contribute to consensus.
-\end{itemize}
-
-Thanks to their openness and decentralized structure, public blockchains attract wide adoption and foster large, active communities. Consortium blockchains, meanwhile, are ideal for business applications requiring collaboration among multiple parties, while maintaining a degree of decentralization. For example, Hyperledger~\cite{hyperledger2015} and Ethereum-based consortium frameworks~\cite{ethereum2015consortium} are actively being developed to serve enterprise needs. The comparison between the three types is more highlighted in Table \ref{tab:blockchain_comparison}. 
-\begin{table}[H]
-\centering
-\small
-\vspace{-0.5em} % optional: reduces space after caption
-\begin{tabular}{@{}p{4cm}|p{3.2cm}p{4.1cm}p{3.2cm}@{}}
-\toprule
-\textbf{Property} & \textbf{Public blockchain} & \textbf{Consortium blockchain} & \textbf{Private blockchain} \\
-\midrule
-\textbf{Consensus determination} & All miners & Selected set of nodes & One organization \\
-\textbf{Read permission} & Public & Could be public or restricted & Could be public or restricted \\
-\textbf{Immutability} & Nearly impossible to tamper & Could be tampered & Could be tampered \\
-\textbf{Efficiency} & Low & High & High \\
-\textbf{Centralized} & No & Partial & Yes \\
-\textbf{Consensus process} & Permissionless & Permissioned & Permissioned \\
-\bottomrule
-\end{tabular}
-\caption{\centering Comparisons among \textit{public blockchain}, \textit{consortium blockchain} and \textit{private blockchain}}
-\label{tab:blockchain_comparison}
-\end{table}
-
-\section{Blockchain Consensus Algorithms }
-
-Achieving consensus in a decentralized and trustless network is one of the most critical challenges in blockchain systems. This section presents major consensus mechanisms used in modern blockchain platforms, along with a comparative analysis of their characteristics.
-
-\begin{itemize}
-\item \textbf{Proof of Work (PoW)}: A resource-intensive mechanism that requires miners to perform computationally expensive operations to solve cryptographic puzzles. Each node attempts to find a valid hash by modifying a nonce in the block header. The first to succeed broadcasts the new block, which is then verified and appended by other nodes~\cite{nakamoto2008bitcoin}. While secure, PoW is criticized for its energy consumption.
-
-In a decentralized setting, it is possible for multiple nodes to solve the hash puzzle at nearly the same time, leading to temporary forks in the blockchain. These forks are resolved when one of the chains grows longer than the others, at which point miners abandon the shorter branches and continue on the longest one. This process is illustrated in Figure~\ref{fig:pow_fork}.
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{Assets/pow_fork.png}
-    \caption{An scenario of blockchain branches}
-    \label{fig:pow_fork}
+    \includegraphics[width=0.8\textwidth]{Assets/learning_paradigms.png}
+    \caption{Learning paradigms in LLMs: supervised, unsupervised, and reinforcement learning approaches that contribute to model capabilities.}
+    \label{fig:learning_paradigms}
 \end{figure}
 
-  \item \textbf{Proof of Stake (PoS)}: Instead of relying on computational work, PoS selects validators based on their holdings or "stake" in the network. Variants like Peercoin~\cite{king2012ppcoin} and Blackcoin~\cite{vasin2014blackcoin} factor in stake age and randomness. PoS is significantly more energy-efficient but can introduce centralization risks.
+\subsection{Evolution of Language Models}
 
-  \item \textbf{Delegated Proof of Stake (DPoS)}: An enhanced PoS model where token holders elect a fixed number of delegates responsible for validating blocks. It improves transaction throughput and allows quick removal of underperforming validators~\cite{bitshares2016}.
+The development of LLMs can be traced through several key evolutionary phases. Early statistical approaches, such as n-gram models, provided foundational insights into language structure but were limited by their inability to capture long-range dependencies and semantic relationships. The introduction of neural language models marked a significant advancement, with recurrent neural networks (RNNs) and Long Short-Term Memory (LSTM) networks enabling better sequence modeling capabilities.
 
-  \item \textbf{Practical Byzantine Fault Tolerance (PBFT)}: A consensus algorithm designed to tolerate up to one-third faulty or malicious nodes~\cite{castro1999pbft}. Used in Hyperledger Fabric~\cite{hyperledger2015}, it involves a three-phase voting system (pre-prepare, prepare, commit) and is suited for permissioned blockchains.
+The transformer architecture introduced by Vaswani et al. represented a paradigm shift, replacing sequential processing with parallel attention mechanisms. This innovation not only improved training efficiency but also enhanced the model's ability to capture complex linguistic relationships across different scales. Subsequent developments, including the GPT (Generative Pre-trained Transformer) series, BERT (Bidirectional Encoder Representations from Transformers), and other transformer variants, have continued to push the boundaries of what is achievable in natural language understanding and generation.
 
-  \item \textbf{Stellar Consensus Protocol (SCP)}: Each node maintains a list of trusted nodes (quorum slices) and reaches consensus based on their agreement~\cite{mazieres2015stellar}. This flexible trust model improves scalability and decentralization.
+\subsection{Training Methodologies and Data Requirements}
 
-  \item \textbf{Delegated Byzantine Fault Tolerance (dBFT)}: Based on PBFT, dBFT elects professional validators to maintain the blockchain, as seen in Antshares~\cite{antshares2016}. It is efficient and resilient to faults in semi-centralized environments.
+Modern LLMs are trained using vast datasets compiled from diverse sources including web pages, books, academic papers, and other textual resources. The training process typically involves two main phases: pre-training and fine-tuning. During pre-training, models learn general language patterns and world knowledge through self-supervised learning objectives, such as next-token prediction. Fine-tuning, when employed, adapts these general-purpose models to specific tasks or domains using supervised learning on smaller, task-specific datasets.
 
-  \item \textbf{Ripple Protocol}: Ripple's consensus relies on subnetworks called Unique Node Lists (UNLs). Transactions are confirmed when 80\% of a server's UNL agrees, assuming that less than 20\% of them are faulty~\cite{schwartz2014ripple}.
+The scale of training data and computational resources required for state-of-the-art LLMs presents significant challenges for organizations seeking to develop custom models. This has led to the emergence of model-as-a-service offerings and the development of efficient adaptation techniques, such as parameter-efficient fine-tuning and in-context learning, which enable organizations to leverage pre-trained models for their specific use cases without requiring extensive computational resources.
 
-  \item \textbf{Tendermint}: A secure BFT consensus with a three-phase process: prevote, precommit, and commit. Validators are required to stake coins and are penalized for malicious behavior~\cite{kwon2014tendermint}.
-\end{itemize}
+\section{Transformers: The Foundation of Modern LLMs}
 
-\subsection{Consensus Algorithm Comparison Criteria}
+The Transformer architecture, introduced by Vaswani et al. in their seminal paper "Attention Is All You Need," revolutionized the field of natural language processing and established the foundation for all modern large language models. This architecture addressed fundamental limitations of previous sequence-to-sequence models, particularly the sequential processing bottleneck of recurrent neural networks, by introducing a novel attention mechanism that enables parallel processing of sequence elements.
 
-To understand the strengths and trade-offs of different consensus protocols, we evaluate them based on the following key criteria~\cite{vukolic2015scalability}:
+% TODO: ADD FIGURE FROM TRANSFORMERS PAPER - Figure 1 (The Transformer - model architecture)
+% This is the most important figure from the paper showing the complete encoder-decoder
+% architecture. Place it right here at the beginning of the section to give readers
+% a visual reference for all the technical details that follow.
 
+The core innovation of the Transformer lies in its self-attention mechanism, which computes relationships between all positions in a sequence simultaneously. This approach allows the model to capture long-range dependencies more effectively than previous architectures while enabling efficient parallelization during training. The attention mechanism operates by computing three vectors for each input position: queries (Q), keys (K), and values (V), which are then used to determine the relevance of each position to every other position in the sequence.
+
+\subsection{Attention Mechanisms}
+
+The attention function can be mathematically described as:
+
+\begin{equation}
+\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\end{equation}
+
+where $d_k$ is the dimension of the key vectors. This scaled dot-product attention mechanism computes attention weights by taking the dot product of queries and keys, scaling by the square root of the key dimension to prevent extremely small gradients, and applying a softmax function to obtain a probability distribution over the values.
+
+% TODO: ADD FIGURE FROM TRANSFORMERS PAPER - Figure 2 (Scaled Dot-Product Attention and Multi-Head Attention)
+% This figure perfectly illustrates the attention mechanism equations described above.
+% Place it right after the equation to help readers visualize how the mathematical
+% formulation translates to the actual computational structure.
+
+Multi-head attention extends this concept by applying multiple attention functions in parallel, each with different learned linear projections of the input. This allows the model to attend to information from different representation subspaces simultaneously:
+
+\begin{equation}
+\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, ..., \text{head}_h)W^O
+\end{equation}
+
+where each head is computed as:
+
+\begin{equation}
+\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+\end{equation}
+
+The multi-head mechanism enables the model to capture different types of relationships simultaneously, such as syntactic dependencies, semantic similarities, and discourse-level connections. This parallel processing of multiple attention patterns contributes significantly to the model's ability to understand complex linguistic structures and relationships.
+
+\subsection{Architectural Components}
+
+The Transformer architecture consists of an encoder-decoder structure, though many modern LLMs use only the decoder component (as in GPT models) or only the encoder component (as in BERT). Each component is built from a stack of identical layers, with the original paper using 6 layers for both encoder and decoder.
+
+\textbf{Encoder Layers:} Each encoder layer contains two main sub-layers:
 \begin{itemize}
-  \item \textbf{Node Identity Management}:  
-  PBFT and Tendermint require knowledge of validator identities for deterministic leader selection. PoW, PoS, and DPoS allow pseudonymous participation. Ripple allows nodes to define their own trusted subnetworks.
-
-  \item \textbf{Energy Efficiency}:  
-  PoW is the most energy-consuming, while PoS and DPoS significantly reduce resource requirements. PBFT, Ripple, and Tendermint eliminate mining entirely, achieving maximal energy savings.
-
-  \item \textbf{Fault Tolerance}:  
-  PoW assumes 51\% honest hash power, although selfish mining may reduce this threshold to 25\%~\cite{eyal2014majority}. PBFT and Tendermint tolerate up to 1/3 faulty nodes. Ripple can tolerate up to 20\% faulty nodes in a node’s UNL.
-
-  \item \textbf{Example Platforms}:  
-  \begin{itemize}
-    \item \textbf{PoW}: Initially used in Ethereum~\cite{wood2014ethereum}.  
-    \item \textbf{PoS}: Peercoin~\cite{king2012ppcoin}, Ethereum’s Casper transition~\cite{zamfir2015casper}.  
-    \item \textbf{DPoS}: BitShares~\cite{bitshares2016}.  
-    \item \textbf{PBFT}: Hyperledger Fabric~\cite{hyperledger2015}.  
-    \item \textbf{Ripple}: Uses its own Ripple protocol~\cite{schwartz2014ripple}.  
-    \item \textbf{Tendermint}: Used in Cosmos and enterprise blockchain networks~\cite{kwon2014tendermint}.
-  \end{itemize}
+    \item A multi-head self-attention mechanism that allows positions to attend to all positions in the input sequence
+    \item A position-wise fully connected feed-forward network that processes each position independently
 \end{itemize}
-The table \ref{tab:consensus_comparison} below highlights more about the comparison between consensus algorithms. 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.4} % for better spacing
-\begin{tabular}{|p{4.3cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{2cm}|}
-\hline
-\textbf{Property} & \textbf{PoW} & \textbf{PoS} & \textbf{PBFT} & \textbf{DPOS} & \textbf{Ripple} & \textbf{Tendermint} \\
-\hline
-\textbf{Node identity management} & open & open & permissioned & open & open & permissioned \\
-\hline
-\textbf{Energy saving} & no & partial & yes & partial & yes & yes \\
-\hline
-\textbf{Tolerated power of adversary} & $<$ 25\% computing power & $<$ 51\% stake & $<$ 33.3\% faulty replicas & $<$ 51\% validators & $<$ 20\% faulty nodes in UNL & $<$ 33.3\% byzantine voting power \\
-\hline
-\textbf{Example} & Bitcoin~\cite{nakamoto2008bitcoin} & Peercoin~\cite{king2013primecoin} & Hyperledger Fabric~\cite{hyperledger2015} & Bitshares~\cite{bitshares2016} & Ripple~\cite{schwartz2014ripple} & Tendermint~\cite{kwon2014tendermint} \\
-\hline
-\end{tabular}
-\caption{\centering Comparison of consensus algorithms based on key properties}
-\label{tab:consensus_comparison}
-\end{table}
 
-\chapter{Smart Contracts}
-\section{Definition}
-Smart contracts are self-executing computer programs that enforce the terms of an agreement automatically when predefined conditions are met~\cite{buterin2014whitepaper}. These contracts autonomously carry out the agreed-upon actions encoded within them, thereby eliminating the need for intermediaries and reducing the risk of disputes. Once the specified conditions are satisfied, the contract executes its logic and records the results accordingly.A smart contract is essentially a piece of code that:
+\textbf{Decoder Layers:} Each decoder layer contains three sub-layers:
 \begin{itemize}
-  \item Runs on the blockchain (e.g., Ethereum),
-  \item Automatically executes predefined actions when certain conditions are met,
-  \item Cannot be changed or stopped once deployed (unless specifically programmed for upgradability),
-  \item Lives at a blockchain address, just like a user~\cite{buterin2014whitepaper}.
+    \item A masked multi-head self-attention mechanism that prevents positions from attending to subsequent positions
+    \item A multi-head attention mechanism that attends to the encoder output
+    \item A position-wise fully connected feed-forward network
 \end{itemize}
 
-Blockchain technology provides an ideal foundation for smart contracts due to its decentralized structure and consensus-driven validation across the network. This ensures transparency, security, and tamper-resistance, which are essential for trustworthy autonomous execution.
+Each sub-layer employs residual connections followed by layer normalization, formulated as:
 
-On the Ethereum blockchain, smart contracts are hosted in the same address space as externally owned accounts, and they are activated by sending a transaction to their corresponding contract address. To mitigate unnecessary computational overhead and protect the network from resource abuse, Ethereum implements a mechanism called \textit{gas}. Each operation within a smart contract consumes a certain amount of gas, which is paid in Ether. This system ensures that computational resources are used efficiently and discourages malicious or overly complex executions~\cite{buterin2014whitepaper}.The figure \ref{fig:smart_contract_execution_flow} shows an execution flow of a transaction using smart contract located inside a blockchain.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/sc_execution_flow.png}
-    \caption{Smart Contract Execution Flow}
-    \label{fig:smart_contract_execution_flow}
-\end{figure}
+\begin{equation}
+\text{LayerNorm}(x + \text{Sublayer}(x))
+\end{equation}
 
-\section{Smart Contracts Use Cases}
-Smart contracts are increasingly being adopted across a wide range of domains to remove the need for intermediaries and automate complex transactional workflows. By embedding predefined conditions into blockchain-based code, these applications can execute reliably and transparently without third-party involvement. 
+This design choice helps with gradient flow during training and enables the training of deeper networks.
 
-In this study, we explore seven distinct use cases where smart contracts and blockchain technologies can be applied to enhance trust, automation, and efficiency. These applications, illustrated in Figure~\ref{fig:smart_contract_usecases}, demonstrate the versatility of blockchain as a foundational technology. 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/sm_use_cases.png}
-    \caption{Some uses cases of smart contracts ~\cite{durieux2020empirical}}
-    \label{fig:smart_contract_usecases}
-\end{figure}
-\subsection{Internet Of Things (IoT)}
-The Internet of Things (IoT) is emerging as a highly promising domain for both industrial and academic research. IoT devices typically operate under significant resource constraints, such as limited memory capacity and low computational power. According to a report by CISCO ~\cite{cisco2020internetreport}, the number of IoT-connected devices has already surpassed the global human population.
+\subsection{Positional Encoding}
 
-Recent studies have explored the integration of blockchain technology with IoT in various contexts, including smart homes, smart cities, intelligent transportation systems, and environmental monitoring applications. By incorporating smart contracts into blockchain-based IoT systems, these applications can achieve higher levels of automation and autonomy, enabling devices to operate and make decisions with minimal human intervention.
+Since the attention mechanism operates on sets rather than sequences, the Transformer requires explicit positional information to understand the order of tokens. The original paper introduced sinusoidal positional encodings:
 
-\subsection{Supply Chain}
-Supply chain management encompasses multiple layers of transactions, each governed by specific terms and conditions. It typically involves a range of interconnected systems across sectors such as food processing, transportation, and shipping. Integrating a digital ledger through blockchain enhances transparency, reliability, and trust by eliminating the need for third-party intermediaries.
+\begin{align}
+PE_{(pos, 2i)} &= \sin\left(\frac{pos}{10000^{2i/d_{model}}}\right) \\
+PE_{(pos, 2i+1)} &= \cos\left(\frac{pos}{10000^{2i/d_{model}}}\right)
+\end{align}
 
-Blockchain’s distributed and tamper-resistant architecture ensures that every transaction is traceable and accessible across the network. When combined with smart contracts, as illustrated in Figure~\ref{fig:supply_chain}, the system gains further automation and security. Smart contracts encode predefined rules and conditions as programmable logic on the blockchain. Whenever a transaction occurs, these contracts are automatically triggered and executed based on the input data.
+where $pos$ is the position, $i$ is the dimension, and $d_{model}$ is the model dimension. These encodings allow the model to learn relative positions and enable generalization to sequences longer than those seen during training.
 
-The validation and verification processes are handled by blockchain nodes. If the network reaches consensus that the contract’s conditions are satisfied, the corresponding event is executed and the transaction is recorded immutably in the blockchain. This integration of smart contracts into supply chains enhances operational efficiency, reduces delays, and fosters greater trust and transparency in trade activities.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/supply_chain.png}
-    \caption{Smart Contracts in supply chain domain ~\cite{feng2024interpretable}.}
-    \label{fig:supply_chain}
-\end{figure}
+\subsection{Computational Efficiency and Parallelization}
 
-\subsection{Health Care}
-As technology continues to advance rapidly, so too does the standard of living. Recent innovations in personal healthcare monitoring have enabled individuals to track their health conditions from the comfort of their homes. A variety of wearable and portable devices have been developed to measure various physiological parameters such as heart rate, blood pressure, glucose levels, and more. These devices can collect real-time data using low-power sensors and process it locally to provide immediate feedback~\cite{zhang2015iot}.
+One of the key advantages of the Transformer architecture is its computational efficiency compared to recurrent models. While RNNs require $O(n)$ sequential operations to process a sequence of length $n$, self-attention layers connect all positions with a constant number of sequentially executed operations. This parallelization capability has been crucial for training large-scale models efficiently.
 
-Blockchain technology plays a critical role in safeguarding the privacy and integrity of this sensitive health data by storing it in a tamper-resistant digital ledger. When integrated with smart contracts, these systems can be made even more reliable and autonomous. Smart contracts allow patients or healthcare providers to define rules and conditions for data usage, access, and response. Once the specified health data is collected, the blockchain executes the relevant smart contract and automatically triggers associated events, such as alerts to caregivers or updates to medical records. This process is illustrated in Figure~\ref{fig:health_care}.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/health_care.png}
-    \caption{Smart Contracts in health care domain ~\cite{zhang2020scvd}.}
-    \label{fig:health_care}
-\end{figure}
-
-
-\subsection{Digital Right Management}
-The digital rights industry often involves numerous stakeholders in the creation and distribution of content, making the management of payments and copyrights a complex issue. Disputes frequently arise regarding royalty distribution and ownership attribution. By leveraging a blockchain-based system integrated with smart contracts, it becomes possible to enforce transparent and tamper-proof ownership records. Smart contracts ensure that royalty payments are automatically directed to rightful recipients according to predefined terms, thereby minimizing conflicts and improving trust among all parties involved.
-
-\subsection{Insurance}
-Traditional insurance systems are often plagued by lengthy claim processing times and a lack of transparency, which can lead to disputes among stakeholders. These inefficiencies stem from the involvement of multiple intermediaries and ambiguous verification procedures. By adopting a blockchain-based infrastructure integrated with smart contracts, the claims process can be significantly streamlined. Smart contracts enable predefined conditions to be automatically verified and executed without third-party intervention. Once a claim meets the specified criteria, the smart contract triggers corresponding actions—such as claim approval or fund transfer—ensuring a transparent, secure, and efficient process. This approach is illustrated in Figure~\ref{fig:insurance}.
+The computational complexity of self-attention is $O(n^2 \cdot d)$, where $n$ is the sequence length and $d$ is the dimension. While this quadratic complexity can become problematic for very long sequences, various optimization techniques have been developed to address this limitation, including sparse attention patterns, linear attention mechanisms, and hierarchical attention structures.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{Assets/insurance.png}
-    \caption{A Smart contract based Insurance system ~\cite{zhang2020scvd}.}
-    \label{fig:insurance}
+    \includegraphics[width=0.8\textwidth]{Assets/transformer.png}
+    \caption{The Transformer architecture highlighting the encoder-decoder structure with multi-head self-attention and feed-forward layers. The parallel processing capability of attention mechanisms enables efficient training and inference.}
+    \label{fig:transformer_architecture}
 \end{figure}
 
-\subsection{Financial System}
-Originally introduced as the foundational technology behind the Bitcoin cryptocurrency, blockchain was initially applied solely within the financial domain. Traditional banking systems rely heavily on intermediaries to process and authorize money transfers between accounts, often resulting in delays, fees, and centralized control. In contrast, blockchain enables direct peer-to-peer transactions without the need for central storage or oversight. When combined with smart contracts, blockchain technology holds significant potential for transforming the financial sector by enabling automated, transparent, and secure financial operations. However, despite this potential, substantial research and development are still required to fully integrate smart contract functionality into mainstream financial systems.
+\subsection{Impact on Modern LLM Development}
 
-\subsection{Real Estate}
-Traditional real estate systems are often associated with significant risks, lengthy processes, and numerous stages of legal documentation and manual verification. Transactions typically involve multiple intermediaries and require physical signatures, making the process time-consuming and prone to errors or fraud. By integrating blockchain technology with smart contracts, many of these challenges can be addressed. A blockchain-based system enables the digital verification and validation of property documents, reducing the need for third-party involvement. Smart contracts can automate key transaction steps, such as transferring ownership upon payment confirmation. Additionally, property records and legal agreements can be securely stored in a distributed digital ledger, ensuring transparency and accessibility for all participants in the network.
+The Transformer architecture has become the de facto standard for large language models, with virtually all state-of-the-art models building upon its foundations. The scalability of the attention mechanism has enabled the development of increasingly large models, from the original Transformer with millions of parameters to contemporary models with hundreds of billions of parameters.
 
+% TODO: ADD FIGURE FROM TRANSFORMERS PAPER - Figure 3 (Results on WMT translation tasks)
+% This figure shows the empirical validation of the transformer architecture and its
+% superior performance compared to previous architectures. Place it here to demonstrate
+% the practical impact of the architectural innovations described in the previous sections.
 
-\section{Smart Contracts on Ethereum}
-\subsection{Ethereum Basics}
-Ethereum is a decentralized, open-source blockchain platform that enables developers to build and deploy smart contracts and decentralized applications (dApps). It was proposed by Vitalik Buterin in late 2013, and its development was crowdfunded in 2014. The Ethereum network officially launched in July 2015~\cite{buterin2014whitepaper,wood2014ethereum}.
+The architecture's flexibility has also led to numerous variants optimized for different use cases, including encoder-only models like BERT for understanding tasks, decoder-only models like GPT for generation tasks, and encoder-decoder models like T5 for sequence-to-sequence tasks. Each variant leverages the core attention mechanism while adapting the overall architecture to specific requirements.
 
-\subsection{Ethereum Key Features}
-\begin{enumerate}
-  \item \textbf{Smart Contracts:} Ethereum allows developers to create smart contracts—self-executing pieces of code with the terms of the agreement embedded directly into the logic. These contracts autonomously perform actions when predefined conditions are satisfied~\cite{wood2014ethereum}.
-  
-  \item \textbf{Decentralized Applications (dApps):} Built atop the Ethereum blockchain, dApps are not controlled by any single entity. This decentralized nature makes them resilient against censorship, manipulation, and fraud~\cite{buterin2014whitepaper}.
-  
-  \item \textbf{Ether (ETH):} Ether is the native cryptocurrency of the Ethereum platform. It is used to pay for transaction fees (referred to as "gas") and computational services. Users require ETH to deploy and interact with smart contracts and dApps~\cite{wood2014ethereum}.
-  
-  \item \textbf{Ethereum Virtual Machine (EVM):} The EVM serves as a runtime environment for executing smart contracts. It ensures that code behaves consistently across all nodes. Developers can write contracts in high-level languages like Solidity, which are then compiled into bytecode for EVM execution~\cite{wood2014ethereum}.
-  
-  \item \textbf{Decentralization:} Ethereum operates over a distributed network of nodes, ensuring that no single authority controls the system. This structure enhances both security and data integrity.
-  
-  \item \textbf{Proof of Stake (PoS):} Ethereum is currently transitioning from a Proof of Work (PoW) consensus algorithm to a Proof of Stake (PoS) system under Ethereum 2.0. This shift aims to reduce energy consumption and increase scalability and security~\cite{buterin2014whitepaper,wood2014ethereum}.
-  
-  \item \textbf{Interoperability and Token Standards:} Ethereum supports various token standards like ERC-20 for fungible tokens and ERC-721 for non-fungible tokens (NFTs). These standards promote interoperability and ease of asset creation on the platform.
-\end{enumerate}
+% TODO: ADD FIGURE FROM TRANSFORMERS PAPER - Table 2 (Results on English-to-German translation)
+% While this is a table, it provides important empirical evidence for the transformer's
+% effectiveness. Consider including it as a figure to show quantitative performance
+% comparisons with previous architectures.
 
-\subsection{Use Cases}
+\section{GPT-3: Scaling Laws and Few-Shot Learning Capabilities}
 
+GPT-3 (Generative Pre-trained Transformer 3), developed by OpenAI, represents a landmark achievement in the scaling of large language models and has fundamentally changed our understanding of what is possible with language AI. With 175 billion parameters, GPT-3 demonstrated that simply scaling up model size, training data, and computational resources could lead to qualitatively different capabilities, including few-shot learning, task generalization, and emergent abilities that were not explicitly programmed.
+
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 1.1 (Language model performance)
+% This figure shows the fundamental scaling law relationship between model size and
+% performance. Place it early in the GPT-3 section to establish the core principle
+% that drove GPT-3's development.
+
+The development of GPT-3 was guided by empirical observations of scaling laws in language models, which suggest that model performance improves predictably with increases in model size, dataset size, and computational budget. These scaling laws provided the theoretical foundation for investing in increasingly large models, leading to the breakthrough capabilities observed in GPT-3.
+
+\subsection{Architecture and Scale}
+
+GPT-3 employs a decoder-only transformer architecture, similar to its predecessors GPT and GPT-2, but at an unprecedented scale. The model consists of 96 transformer layers, each with 96 attention heads and a hidden dimension of 12,288. This massive architecture enables the model to capture incredibly complex patterns in language and maintain coherent context over long sequences.
+
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 1.2 (Performance on language modeling)
+% This figure demonstrates the empirical validation of scaling laws with actual
+% performance results. Place it after discussing the architecture to show how
+% the increased scale translates to improved performance.
+
+The training process utilized a diverse dataset comprising Common Crawl, WebText2, Books1, Books2, and Wikipedia, totaling approximately 570GB of text data after filtering and preprocessing. This dataset diversity is crucial for the model's broad capabilities, as it ensures exposure to various writing styles, domains, and types of knowledge.
+
+Key architectural specifications of GPT-3 include:
 \begin{itemize}
-  \item \textbf{Decentralized Finance (DeFi):} Ethereum underpins a wide array of DeFi applications, enabling users to lend, borrow, and exchange digital assets without the need for intermediaries.
-  
-  \item \textbf{Non-Fungible Tokens (NFTs):} NFTs built on Ethereum allow for the ownership and trade of unique digital assets, such as digital art and collectibles.
-  
-  \item \textbf{Decentralized Autonomous Organizations (DAOs):} Ethereum facilitates the creation of DAOs, which are governed through smart contracts and community consensus, allowing transparent and automated governance.
+    \item \textbf{Parameters:} 175 billion parameters distributed across layers
+    \item \textbf{Context Window:} 2,048 tokens, allowing for substantial context retention
+    \item \textbf{Vocabulary Size:} 50,257 tokens using byte-pair encoding
+    \item \textbf{Training Compute:} Approximately 3.14 × 10²³ FLOPs
+    \item \textbf{Model Parallelism:} Distributed training across multiple GPUs using both data and model parallelism
 \end{itemize}
 
-Overall, Ethereum has become one of the most widely adopted and influential blockchain platforms. Its robust infrastructure and innovation-friendly environment continue to foster the development of decentralized technologies across various industries.
+\subsection{Few-Shot Learning Paradigm}
 
-\subsection{Ethereum Virtual Machine (EVM)}
-The Ethereum Virtual Machine (EVM) serves as the core component of the Ethereum blockchain, providing the environment in which all smart contracts are executed. It is a quasi–Turing complete machine that allows anyone to deploy and interact with decentralized applications using smart contracts.
+One of GPT-3's most remarkable capabilities is its ability to perform few-shot learning, where the model can adapt to new tasks with just a few examples provided in the input prompt. This paradigm differs fundamentally from traditional machine learning approaches that require extensive task-specific training data and fine-tuning procedures.
 
-At its foundation, the EVM is a stack-based virtual machine that processes bytecode instructions. Smart contracts are typically written in high-level programming languages such as Solidity or Vyper and then compiled down into EVM bytecode before deployment on the blockchain. Every Ethereum node runs an instance of the EVM, ensuring that smart contract execution is consistent across the network. The architecture of the EVM, including its core components such as stack, memory, storage, and gas tracking, is illustrated in Figure~\ref{fig:evm_architecture}.
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 2.1 (Language model meta-learning)
+% This figure illustrates the few-shot learning paradigm that is central to GPT-3's
+% capabilities. Place it here to visually demonstrate how the model processes
+% examples and adapts to new tasks.
+
+GPT-3's few-shot learning operates through three main modalities:
+
+\textbf{Zero-shot Learning:} The model performs tasks based solely on natural language descriptions without any examples. For instance, when given the instruction "Translate the following English text to French," GPT-3 can perform translation without seeing any translation examples.
+
+\textbf{One-shot Learning:} The model receives a single example of the desired task format before being asked to perform the task on new input. This single example helps establish the expected input-output pattern.
+
+\textbf{Few-shot Learning:} The model is provided with a small number of examples (typically 2-64) that demonstrate the task format and expected behavior. This approach often yields the best performance across various tasks.
+
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 3.1 (Few-shot performance results)
+% This figure shows the empirical results of few-shot learning across different tasks.
+% Place it after explaining the different learning modalities to demonstrate their
+% effectiveness in practice.
+
+The few-shot learning capability emerges from the model's extensive pre-training on diverse text data, which enables it to recognize patterns and adapt to new contexts without explicit parameter updates. This in-context learning ability has significant implications for enterprise applications, as it reduces the need for task-specific model training and enables rapid deployment of AI solutions for new use cases.
+
+\subsection{Performance Across Diverse Tasks}
+
+GPT-3's evaluation across numerous NLP benchmarks demonstrated its versatility and effectiveness across a wide range of tasks. The model showed strong performance in:
+
+\textbf{Language Modeling and Text Completion:} GPT-3 achieved state-of-the-art results on several language modeling benchmarks, including a 76% accuracy on LAMBADA in zero-shot setting and 86.4% in few-shot setting, representing significant improvements over previous models.
+
+\textbf{Question Answering:} On TriviaQA, GPT-3 achieved 64.3% accuracy in zero-shot, 68.0% in one-shot, and 71.2% in few-shot settings, with the one-shot result matching state-of-the-art open-domain QA systems.
+
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 3.2 (Reading comprehension results)
+% This figure shows performance on reading comprehension tasks and demonstrates
+% the model's ability to understand and answer questions about text. Place it
+% here to support the discussion of question answering capabilities.
+
+\textbf{Translation Tasks:} While zero-shot translation performance was modest, few-shot learning with just a single example improved performance by over 7 BLEU points, approaching competitive results with specialized translation models.
+
+\textbf{Common Sense Reasoning:} GPT-3 demonstrated strong performance on tasks requiring common sense reasoning, such as the Winograd Schema Challenge (88.3% zero-shot, 89.7% one-shot) and PIQA physical reasoning tasks (82.8% few-shot).
+
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 3.3 (Common sense reasoning results)
+% This figure demonstrates GPT-3's ability to perform reasoning tasks that require
+% world knowledge and common sense. Place it after discussing reasoning capabilities
+% to provide empirical evidence for these claims.
+
+\textbf{Arithmetic and Symbolic Reasoning:} The model showed emergent mathematical abilities, performing multi-digit arithmetic and solving algebraic problems, though performance degraded with increasing complexity.
+
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 3.4 (Arithmetic reasoning results)
+% This figure shows the model's performance on mathematical reasoning tasks and
+% demonstrates both its capabilities and limitations in symbolic reasoning.
+
+\subsection{Scaling Laws and Emergent Abilities}
+
+The development of GPT-3 was informed by empirical scaling laws that describe the relationship between model performance and three key factors: model size (number of parameters), dataset size, and computational budget. These laws suggest that performance improvements follow predictable power-law relationships, enabling informed decisions about resource allocation for model development.
+
+% TODO: ADD FIGURE FROM GPT-3 PAPER - Figure 1.3 (Scaling laws for language models)
+% This is a crucial figure that shows the fundamental scaling relationships that
+% guided GPT-3's development. Place it here to illustrate the empirical basis
+% for scaling up language models.
+
+The scaling laws reveal several important insights:
+\begin{itemize}
+    \item Model performance improves smoothly and predictably with scale across multiple orders of magnitude
+    \item Larger models are more sample-efficient, achieving better performance with less training data
+    \item Computational optimal training involves scaling model size and training data proportionally
+    \item Performance gains from scaling appear to continue without obvious saturation points
+\end{itemize}
+
+GPT-3 also exhibited several emergent abilities that were not present in smaller models, including:
+\begin{itemize}
+    \item Sophisticated few-shot learning across diverse domains
+    \item Complex reasoning and problem-solving capabilities
+    \item Creative writing and storytelling abilities
+    \item Code generation and programming assistance
+    \item Multi-step logical reasoning and mathematical problem solving
+\end{itemize}
+
+These emergent abilities suggest that scale alone can lead to qualitatively new capabilities, providing a strong incentive for continued scaling of language models.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.5\textwidth]{Assets/evm_architecture.png}
-    \caption{Architecture of the Ethereum Virtual Machine (EVM), showing its main components \cite{wood2014ethereum}.}
-    \label{fig:evm_architecture}
-\end{figure}
-
-
-\subsubsection{Architecture and Operation}
-The EVM operates on a stack architecture and uses several components during execution (as shown in Figure~\ref{fig:evm_architecture}):
-\begin{itemize}
-  \item \textbf{Stack:} A last-in-first-out (LIFO) data structure with a depth of 1024 elements used for temporary values.
-  \item \textbf{Memory:} A volatile byte-array memory accessible during contract execution but not retained after execution ends.
-  \item \textbf{Storage:} A persistent key-value store unique to each contract, used to save state data across invocations.
-  \item \textbf{Program Counter (PC):} Keeps track of the next instruction to be executed.
-  \item \textbf{Gas:} Every EVM operation has an associated gas cost. Users must pay gas to execute contracts, and running out of gas halts execution.
-\end{itemize}
-
-\subsubsection{Determinism and Isolation}
-The EVM is deterministic—given the same initial state and input, it always produces the same output. Additionally, the EVM is sandboxed, meaning that code execution within one contract cannot directly affect others, ensuring fault isolation. This design is crucial for maintaining security and consistency across the decentralized network~\cite{wood2014ethereum}.
-\subsubsection{Gas Model}
-Gas in Ethereum serves both as a resource control mechanism and a fee structure. Every operation (e.g., arithmetic, storage, external call) consumes a specific amount of gas. Users must estimate and allocate gas before executing a transaction. Unused gas is refunded, while insufficient gas results in termination without state changes. This mechanism prevents infinite loops and denial-of-service attacks~\cite{buterin2014whitepaper}.
-
-\subsubsection{EVM Bytecode and Opcodes}
-The EVM executes a low-level binary instruction set known as opcodes. These include operations for arithmetic, logic, control flow, memory access, and blockchain-specific features (e.g., querying the current block number or sender address). The standardized nature of opcodes ensures compatibility and uniformity across the Ethereum ecosystem.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.5\textwidth]{Assets/evm_execution_flow.png}
-    \caption{Execution flow of the EVM, from transaction submission to state update.}
-    \label{fig:evm_execution_flow}
-\end{figure}
-
-As illustrated in Figure~\ref{fig:evm_execution_flow}, EVM execution begins when a transaction triggers a smart contract. The EVM evaluates bytecode instruction-by-instruction, updates state, and consumes gas. If any exception occurs (e.g., out-of-gas, invalid opcode), the state reverts.
-
-\subsubsection{Security and Limitations}
-Despite its robustness, the EVM has limitations. Its stack depth, gas constraints, and lack of native floating-point arithmetic pose challenges. Moreover, poor smart contract design can lead to vulnerabilities, such as reentrancy or integer overflow. These risks emphasize the importance of secure coding practices and thorough auditing~\cite{atzei2017survey}.
-
-\section{Solidity: The Smart Contracts Programming Language}
-Solidity is a statically typed, high-level programming language designed specifically for writing smart contracts that run on the Ethereum Virtual Machine (EVM). Inspired by C++, Python, and JavaScript, Solidity provides developers with familiar syntax while incorporating blockchain-specific features like gas management, immutability, and contract inheritance. Solidity enables developers to write smart contracts that define rules and interactions between decentralized applications (dApps) on the Ethereum blockchain~\cite{wood2014ethereum}. It uses Remix as a compiler. Remix is a web-based development environment specifically designed for writing and testing smart contracts directly within a browser. It provides a user-friendly interface where developers can write Solidity code, compile contracts, and deploy them either to a test environment or a real Ethereum network. One of its key features is the built-in JavaScript Virtual Machine (JSVM), which enables simulation of contract deployment and execution without requiring connection to a live blockchain. This makes it possible to interact with and test contract functions in a fully local environment before actual deployment.
-
-\subsection*{Language Features of Solidity}
-Solidity offers a wide variety of features tailored to decentralized systems:
-
-\begin{itemize}
-  \item \textbf{Contract-Oriented Structure:} Each smart contract is a self-contained unit with its own state, functions, and logic.
-  \item \textbf{Static Typing:} Variable types (e.g., \texttt{uint}, \texttt{address}, \texttt{string}, etc.) must be explicitly defined.
-  \item \textbf{Inheritance:} Solidity supports multiple inheritance, enabling code reuse across contracts.
-  \item \textbf{Event Emission:} Smart contracts can emit logs (events) to notify external listeners of specific occurrences.
-  \item \textbf{Modifiers:} Custom function wrappers (like middleware) that enforce conditions (e.g., access control).
-  \item \textbf{Payable Functions:} Special functions capable of receiving Ether.
-\end{itemize}
-
-
-\subsection*{Syntax and Key Constructs}
-Solidity provides developers with object-oriented features, inheritance, and complex user-defined types. The basic unit in Solidity is the \texttt{contract}, which encapsulates state variables, functions, constructors, events, and modifiers.
-
-\begin{itemize}
-  \item \textbf{State Variables}: Permanently stored on the blockchain and represent the contract's state.
-  \item \textbf{Functions}: Used to define logic. Can be public, private, internal, or external.
-  \item \textbf{Events}: Allow logging of data, enabling off-chain applications to listen for updates.
-  \item \textbf{Modifiers}: Restrict or enhance function behavior, commonly used for access control.
-\end{itemize}
-
-\subsection*{Example: A Simple Voting Contract}
-\begin{lstlisting}[language=Solidity, caption={A simple smart contract for voting system}, label={lst:voting_contract}, captionpos=b]
-pragma solidity ^0.8.0;
-
-contract Voting {
-    mapping (string => uint256) public votes;
-
-    function vote(string memory candidate) public {
-        votes[candidate] += 1;
-    }
-
-    function getVotes(string memory candidate) public view returns (uint256) {
-        return votes[candidate];
-    }
-}
-\end{lstlisting}
-
-This contract allows users to vote for a candidate by incrementing a counter. The \texttt{mapping} structure associates string identifiers with unsigned integers, representing vote counts. This illustrates Solidity's support for key-value pairs and user interactions with state.
-
-\subsection*{Types and Memory Management}
-
-Solidity supports both primitive types (e.g., \texttt{uint}, \texttt{bool}, \texttt{address}) and complex data types (e.g., \texttt{structs}, \texttt{arrays}). Data location specifiers such as \texttt{memory}, \texttt{storage}, and \texttt{calldata} explicitly define how data is stored and passed, an essential component for secure memory management in contract execution.
-
-\subsection*{Compilation and Execution}
-
-Before deployment, Solidity code is compiled into EVM bytecode. The compiler performs static checks for type errors and generates Application Binary Interface (ABI) definitions for external communication. Once compiled, the contract is deployed to the Ethereum network, where users can interact with it via transactions. Execution is deterministic, meaning the same input always results in the same output on all nodes.
-
-\subsection*{Gas Consumption and Optimization}
-
-Every operation in Solidity has an associated gas cost. Developers are encouraged to write optimized code to minimize gas usage, as inefficient loops or excessive storage can lead to higher transaction fees. Solidity includes constructs such as short-circuiting logical operators, in-place variable declarations, and internal function calls to help manage gas consumption~\cite{wood2014ethereum}.
-
-\section{Common Vulnerabilities in Smart Contracts}
-Smart contracts, while offering automation and trustless execution, are prone to security vulnerabilities due to their immutable and publicly accessible nature. Once deployed, flawed contracts can lead to substantial financial loss and systemic risk. In this section, we explore some of the most common vulnerabilities found in Ethereum smart contracts.
-\subsection*{1. Reentrancy Attacks}
-Reentrancy occurs when an external contract is called before the first invocation is complete, allowing the external call to re-enter the vulnerable contract.
-
-\begin{lstlisting}[language=Solidity, caption=Reentrancy vulnerability example, label={lst:reentrancy_vuln}, captionpos=b]
-pragma solidity ^0.8.0;
-
-contract VulnerableBank {
-    mapping(address => uint256) public balances;
-
-    function deposit() public payable {
-        balances[msg.sender] += msg.value;
-    }
-
-    function withdraw() public {
-        uint256 amount = balances[msg.sender];
-        if (amount > 0) {
-            (bool success, ) = msg.sender.call{value: amount}("");
-            require(success);
-            balances[msg.sender] = 0;
-        }
-    }
-}
-\end{lstlisting}
-
-\textbf{Issue:} The balance is updated after the external call, allowing a malicious contract to recursively call \texttt{withdraw()} before the balance is set to zero.
-
-\textbf{Mitigation:} Update state variables before making external calls, or use mutexes to lock functions.
-
-\subsection*{2. Integer Overflows and Underflows}
-
-Before Solidity 0.8.0, arithmetic operations did not throw errors on overflows or underflows.
-
-\begin{lstlisting}[language=Solidity, caption=Integer overflow example, label={lst:overflow}]
-pragma solidity ^0.6.0;
-
-contract OverflowExample {
-    uint8 public counter = 255;
-
-    function increment() public {
-        counter += 1; // Wraps around to 0
-    }
-}
-\end{lstlisting}
-
-\textbf{Issue:} Incrementing \texttt{counter} causes it to overflow and wrap around to zero.
-
-\textbf{Mitigation:} Use Solidity 0.8+ or import \texttt{SafeMath} from OpenZeppelin in earlier versions.
-
-\subsection*{3. Access Control Issues}
-
-Improper access control can allow unauthorized users to perform privileged operations.
-
-\begin{lstlisting}[language=Solidity, caption={Access control flaw}, label={lst:access_control}, captionpos=b]
-contract AdminOnly {
-    address public owner;
-
-    function changeOwner(address _newOwner) public {
-        owner = _newOwner; // Vulnerable: no access restriction
-    }
-}
-\end{lstlisting}
-
-\textbf{Mitigation:} Use modifiers to restrict access:
-
-\begin{lstlisting}[language=Solidity]
-modifier onlyOwner() {
-    require(msg.sender == owner, "Not authorized");
-    _;
-}
-\end{lstlisting}
-
-\subsection*{4. Denial of Service (DoS)}
-
-A contract may be unable to complete execution due to malicious input or gas exhaustion.
-
-\begin{lstlisting}[language=Solidity, caption={DoS via expensive loop}, label={lst:dos_loop}, captionpos=b]
-contract Auction {
-    address[] public bidders;
-
-    function bid() public {
-        bidders.push(msg.sender);
-    }
-
-    function refundAll() public {
-        for (uint i = 0; i < bidders.length; i++) {
-            payable(bidders[i]).transfer(1 ether); // Can fail if one transfer fails
-        }
-    }
-}
-\end{lstlisting}
-
-\textbf{Mitigation:} Avoid loops in public functions or use a pull-payment model.
-
-\subsection*{5. Unchecked External Calls}
-
-External calls that do not check for success can be dangerous.
-
-\begin{lstlisting}[language=Solidity, caption={Unchecked call}, label={lst:unchecked_call}, captionpos=b]
-(bool sent, ) = receiver.call{value: msg.value}("");
-// Vulnerable: no require(sent)
-\end{lstlisting}
-
-\textbf{Mitigation:} Always validate the success flag of low-level calls with \texttt{require()}.
-
-\subsection*{6. Unprotected Self-Destruct}
-
-The \texttt{selfdestruct} operation can be invoked by anyone if not protected.
-
-\begin{lstlisting}[language=Solidity, caption={Unprotected self-destruct}, label={lst:selfdestruct}, captionpos=b]
-contract Killable {
-    function destroy() public {
-        selfdestruct(payable(msg.sender)); // Vulnerable: anyone can destroy
-    }
-}
-\end{lstlisting}
-
-\textbf{Mitigation:} Restrict \texttt{selfdestruct()} to authorized users.
-
-\subsection*{7. Front-running}
-
-Due to transaction ordering in blocks, an attacker can front-run profitable operations.
-
-\begin{lstlisting}[language=Solidity, caption={Front-running opportunity}, label={lst:frontrun}, captionpos=b]
-contract Bidding {
-    uint public highestBid;
-
-    function bid() public payable {
-        require(msg.value > highestBid);
-        highestBid = msg.value; // Vulnerable to front-running
-    }
-}
-\end{lstlisting}
-
-\textbf{Mitigation:} Use commit-reveal schemes to hide sensitive bid data.
-
-\subsection*{8. Timestamp Dependency}
-
-Relying on block timestamp can lead to manipulation.
-
-\begin{lstlisting}[language=Solidity, caption={Timestamp dependency}, label={lst:timestamp}, captionpos=b]
-contract Lottery {
-    function drawWinner() public view returns (bool) {
-        return (block.timestamp % 2 == 0); // Vulnerable to miner manipulation
-    }
-}
-\end{lstlisting}
-
-\textbf{Mitigation:} Avoid using timestamps for critical logic or combine with other entropy sources.
-
-\subsection*{9. Improper Authorization}
-
-Using \texttt{tx.origin} for authorization is insecure.
-
-\begin{lstlisting}[language=Solidity, caption={Using tx.origin}, label={lst:txorigin}, captionpos=b]
-contract TxOrigin {
-    address owner = msg.sender;
-
-    function transfer() public {
-        require(tx.origin == owner); // Vulnerable: tx.origin may be spoofed via contract
-        // ...
-    }
-}
-\end{lstlisting}
-
-\textbf{Mitigation:} Always use \texttt{msg.sender} instead.
-\subsection*{10. Lack of Upgradeability Controls}
-
-Contracts without upgrade paths or proxies are difficult to fix after deployment.
-
-\begin{lstlisting}[language=Solidity, caption={Non-upgradable contract}, label={lst:non_upgradeable}, captionpos=b]
-contract Immutable {
-    uint public data;
-
-    function update(uint _data) public {
-        data = _data;
-    }
-    // No mechanism to upgrade logic
-}
-\end{lstlisting}
-
-\textbf{Fix:} Use proxy patterns (e.g., Transparent or UUPS proxy) to separate logic and data layers.
-
-\subsection*{Conclusion}
-Smart contracts have revolutionized the way agreements and processes are executed in decentralized environments. However, their immutability and transparency also mean that any vulnerability in the code can lead to significant financial loss and system compromise. It is therefore essential for developers to follow strict security practices, conduct thorough testing, and perform code audits before deploying contracts on the blockchain. By writing clean, modular, and well-documented code, and by staying up to date with the latest advancements in formal verification and static analysis tools, developers can greatly reduce the risk of introducing critical bugs or exploitable flaws. Ultimately, a well-secured smart contract not only protects users and assets but also fosters trust in decentralized applications and the broader blockchain ecosystem.
-
-\chapter{Artificial Intelligence}
-\section{Introduction}
-Artificial Intelligence (AI) refers to the simulation of human intelligence by machines, especially computer systems capable of learning, reasoning, and adapting to dynamic environments. As AI has matured, it has found applications across numerous domains—including finance, healthcare, manufacturing, and more recently, blockchain security.
-
-In the context of blockchain technology, particularly smart contracts, AI plays a pivotal role in enhancing security by automating the detection of vulnerabilities that could be exploited by malicious actors. Smart contracts are self-executing programs stored on a blockchain that manage the transfer of assets or data based on pre-defined rules. Due to their immutable and autonomous nature, any bugs or security flaws in smart contracts can result in irreversible financial losses, privacy breaches, or service disruptions.
-
-Traditional static and dynamic analysis tools often struggle to fully comprehend the semantic logic or edge-case behaviors of complex smart contracts. This limitation has opened up opportunities for AI-based techniques, which can learn patterns of vulnerabilities from large datasets of smart contracts and generalize across novel attack vectors.
-
-Machine learning (ML), a subset of AI, is especially promising for smart contract security. Supervised learning algorithms can be trained on labeled datasets of vulnerable and secure contracts to classify and flag potentially harmful patterns. Unsupervised learning and clustering techniques can detect anomalous contract behaviors without requiring explicit labels. Furthermore, deep learning models, such as recurrent neural networks (RNNs) and graph neural networks (GNNs), have demonstrated success in modeling the structure and control flow of smart contracts written in languages like Solidity.
-
-This chapter offers a comprehensive overview of Machine Learning and Deep Learning, introducing fundamental concepts and terminology related to these advanced technologies.
-
-\section{Definition}
-Computer science is a vast and dynamic academic field that encompasses the theoretical foundations, design principles, development processes, and practical applications of computing systems. Within this broad discipline, artificial intelligence (AI) stands out as a specialized area focused on creating systems capable of emulating human intelligence. AI systems are designed to perform tasks typically requiring human cognitive functions, such as reasoning, learning, problem-solving, understanding natural language, and interpreting sensory inputs. The overarching objective of AI is to develop autonomous and adaptable machines that can perform complex tasks without the need for explicit, step-by-step instructions.
-
-A key subfield of AI is machine learning (ML), which equips machines with the ability to learn from data and progressively enhance their performance. ML involves designing algorithms and models that can sift through large datasets, recognize patterns, make predictions, and uncover valuable insights that may not be immediately apparent.
-
-Deep learning (DL) is a further refinement of machine learning. It leverages artificial neural networks composed of multiple processing layers to analyze complex data structures. This approach has driven significant breakthroughs in areas like computer vision, speech recognition, natural language understanding, and even strategic decision-making in games.
-
-Simultaneously, data science has emerged as a multidisciplinary field that focuses on extracting actionable knowledge from data. It blends techniques from mathematics, statistics, computer science, and AI to interpret large volumes of information and generate insights that can support informed decision-making in a variety of domains. Figure ~\ref{fig:ai_fields} shows a relationship between these fields. 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/ai_fields.png}
-    \caption{A simple representation of the relationship between Artificial Intelligence, Machine Learning, Deep Learning and Data Science.}
+    \includegraphics[width=0.8\textwidth]{Assets/ai_fields.png}
+    \caption{Applications of GPT-3 across various AI fields, demonstrating the model's versatility in handling diverse tasks without task-specific training.}
     \label{fig:ai_fields}
 \end{figure}
 
-\section{Dataset}
-A dataset is an organized collection of data points used for analysis and processing in various domains, especially in machine learning and data science. It may contain different types of information, including text, numbers, images, or audio, depending on the application. Datasets are essential for training models, validating results, and extracting insights.
+\subsection{Implications for Enterprise Integration}
 
-Structured datasets follow a consistent format, typically resembling tables with rows as entries and columns as attributes. In contrast, unstructured datasets—like raw text or images—lack a clear format and require specialized processing. Semi-structured data falls between the two, featuring partial organization using formats such as XML or JSON that include tags but don’t conform to strict tables.
-\subsection{Types of Datasets}
-There are various kinds of datasets, each designed to serve specific tasks, applications, or analytical needs. Below are some commonly used types:
+GPT-3's capabilities have significant implications for enterprise applications and integration patterns. The model's few-shot learning abilities enable rapid deployment of AI solutions without extensive training procedures, making it particularly suitable for dynamic business environments where requirements change frequently.
 
-\subsubsection*{Texts Datasets}
-Text datasets contain written content such as articles, reviews, or social media posts. They are commonly used in natural language processing tasks like sentiment analysis, text classification, and language generation. 
+Key enterprise implications include:
+\begin{itemize}
+    \item \textbf{Reduced Time-to-Deployment:} Few-shot learning eliminates the need for extensive training data collection and model fine-tuning
+    \item \textbf{Versatile Applications:} A single model can handle multiple business functions, from customer service to content generation
+    \item \textbf{Cost-Effective AI Solutions:} Organizations can leverage powerful AI capabilities without investing in custom model development
+    \item \textbf{Scalable Integration:} The model's API-based access enables easy integration into existing enterprise systems
+\end{itemize}
+
+However, the scale and computational requirements of GPT-3 also present challenges for enterprise deployment, including high inference costs, latency concerns, and the need for robust integration architectures that can handle the model's resource requirements while maintaining system performance and reliability.
+
+\section{Knowledge Distillation and Model Optimization}
+
+While large language models like GPT-3 demonstrate remarkable capabilities, their computational requirements and resource consumption pose significant challenges for practical deployment, particularly in resource-constrained environments such as edge devices, mobile applications, and real-time systems. Knowledge distillation has emerged as a crucial technique for addressing these challenges by creating smaller, more efficient models that retain much of the performance of their larger counterparts.
+
+Knowledge distillation, first introduced by Hinton et al., involves training a smaller "student" model to mimic the behavior of a larger "teacher" model. This process transfers the knowledge embedded in the teacher model to the student model, often resulting in compact models that achieve comparable performance while requiring significantly fewer computational resources.
+
+\subsection{DiXtill: XAI-Driven Knowledge Distillation}
+
+DiXtill represents an innovative approach to knowledge distillation that incorporates explainable artificial intelligence (XAI) techniques to enhance both the efficiency and interpretability of distilled models. This method addresses a critical limitation of traditional distillation approaches by ensuring that the student model not only mimics the teacher's predictions but also learns to generate similar explanations for its decisions.
+
+% TODO: ADD FIGURE FROM DIXTILL PAPER - Figure 1 (DiXtill framework architecture)
+% This figure shows the overall architecture of the DiXtill framework, including
+% the teacher model, student model, and XAI components. Place it at the beginning
+% of the DiXtill section to give readers a visual overview of the methodology.
+
+The DiXtill methodology consists of several key components:
+
+\textbf{Explainer Integration:} The framework incorporates local explanation techniques to guide the distillation process. These explanations help the student model understand not just what predictions to make, but why those predictions are appropriate, leading to more robust and interpretable behavior.
+
+\textbf{Self-Explainable Architecture:} The student model is designed as a bi-directional LSTM network enhanced with masked attention mechanisms. This architecture enables the model to provide explanations for its predictions while maintaining computational efficiency.
+
+% TODO: ADD FIGURE FROM DIXTILL PAPER - Figure 2 (Student model architecture)
+% This figure shows the detailed architecture of the student model with attention
+% mechanisms. Place it after discussing the self-explainable architecture to
+% illustrate the technical implementation.
+
+\textbf{Attention-Based Learning:} The attention mechanism allows the student model to focus on the most relevant parts of the input, similar to how the teacher model processes information. This attention-based approach improves both performance and interpretability.
+
+\textbf{Multi-Objective Training:} The training process optimizes for both prediction accuracy and explanation consistency, ensuring that the distilled model maintains the teacher's reasoning patterns while achieving efficient performance.
+
+\subsection{Distillation Process and Methodology}
+
+The DiXtill distillation process follows a structured approach that combines traditional knowledge distillation with explainability constraints:
+
+\textbf{Teacher Model Preparation:} The process begins with a pre-trained teacher model (such as FinBERT) that has been fine-tuned for the target task. The teacher model serves as the source of both predictions and explanations.
+
+% TODO: ADD FIGURE FROM DIXTILL PAPER - Figure 3 (Distillation process flowchart)
+% This figure shows the step-by-step process of knowledge distillation in DiXtill.
+% Place it here to illustrate the methodology described in the text.
+
+\textbf{Explanation Generation:} Local explanation techniques are applied to the teacher model to generate word-level attributions for different classes. These explanations reveal which parts of the input are most important for the model's decisions.
+
+\textbf{Student Architecture Design:} The student model is implemented as a bi-directional LSTM with masked attention layers. This architecture is significantly more compact than transformer-based models while still capable of capturing sequential dependencies and generating attention-based explanations.
+
+\textbf{Joint Training Objective:} The student model is trained using a combined loss function that includes:
+\begin{itemize}
+    \item Traditional distillation loss to match teacher predictions
+    \item Explanation consistency loss to align attention patterns with teacher explanations
+    \item Task-specific loss for the target application
+\end{itemize}
+
+% TODO: ADD FIGURE FROM DIXTILL PAPER - Figure 4 (Training loss components)
+% This figure shows the different loss components used in the training process.
+% Place it after explaining the joint training objective to visualize how the
+% different losses are combined.
+
+\textbf{Evaluation and Refinement:} The distilled model is evaluated on both performance metrics and explanation quality, with iterative refinement to optimize the balance between efficiency and accuracy.
+
+\subsection{Performance and Efficiency Gains}
+
+Experimental results from DiXtill demonstrate significant improvements in both computational efficiency and model interpretability compared to traditional distillation approaches:
+
+% TODO: ADD FIGURE FROM DIXTILL PAPER - Figure 5 (Performance comparison results)
+% This figure shows the empirical results comparing DiXtill with other compression
+% methods. Place it at the beginning of the performance section to provide
+% visual evidence for the claims about efficiency gains.
+
+\textbf{Compression Ratios:} DiXtill achieves superior compression ratios compared to other model compression techniques such as post-training quantization (PTQ) and attention head pruning (AHP). The method can reduce model size by orders of magnitude while maintaining competitive performance.
+
+\textbf{Inference Speedup:} The lightweight architecture of the student model enables significant speedup in inference time, making it suitable for real-time applications and resource-constrained environments.
+
+% TODO: ADD FIGURE FROM DIXTILL PAPER - Figure 6 (Inference time comparison)
+% This figure demonstrates the speedup achieved by DiXtill compared to the original
+% teacher model and other compression techniques. Place it after discussing
+% inference speedup to provide quantitative evidence.
+
+\textbf{Explanation Quality:} The XAI-driven approach ensures that the student model produces explanations that are consistent with the teacher model, as measured by explanation agreement metrics. This consistency is crucial for applications requiring interpretable AI decisions.
+
+% TODO: ADD FIGURE FROM DIXTILL PAPER - Figure 7 (Explanation consistency evaluation)
+% This figure shows the quality of explanations generated by the student model
+% compared to the teacher model. Place it after discussing explanation quality
+% to demonstrate the XAI effectiveness.
+
+\textbf{Performance Retention:} Despite the significant reduction in model size, DiXtill maintains performance levels close to the teacher model across various metrics including accuracy, macro F1 score, Matthews correlation coefficient, and AUC.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{Assets/text_dataset.png}
-    \caption{Text Datasets.}
-    \label{fig:text_dataset}
+    \includegraphics[width=0.8\textwidth]{Assets/imbalanced_dataset.png}
+    \caption{Model distillation process showing the knowledge transfer from a large teacher model to a compact student model while maintaining performance and interpretability.}
+    \label{fig:model_distillation}
 \end{figure}
 
-\subsubsection*{Image Datasets}
-Image datasets consist of collections of images and are used in tasks such as image classification, object detection, and image generation. Well-known examples include MNIST for handwritten digit recognition and ImageNet for large-scale object classification.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.6\linewidth]{Assets/image_dataset.png}
-    \caption{Image Datasets.}
-    \label{fig:image_dataset}
-\end{figure}
+\subsection{Enterprise Applications and Deployment Scenarios}
 
-\subsubsection*{Tabular Datasets}
-Tabular datasets are organized in a spreadsheet-like format, where each row corresponds to a data entry and each column represents a specific feature or attribute. They are commonly used in tasks such as data analysis, regression, and classification.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/table_dataset.png}
-    \caption{Table Datasets.}
-    \label{fig:table_dataset}
-\end{figure}
+The combination of efficiency and interpretability offered by DiXtill makes it particularly suitable for enterprise applications where both performance and explainability are critical requirements:
 
-\subsection{Imbalanced Dataset}
-Imbalanced data describes a situation where the number of instances across different classes in a dataset is uneven, with some classes having significantly more samples than others. In machine learning classification tasks, each "class" represents a unique label or outcome.
+\textbf{Financial Services:} In financial sentiment analysis and risk assessment, DiXtill enables deployment of AI models that can provide both accurate predictions and clear explanations for regulatory compliance and decision transparency.
 
-This imbalance is a common issue and can severely affect model training by making it harder to identify meaningful patterns, distinguish between classes, and evaluate performance accurately. It often leads to biased predictions favoring the majority class and poor generalization for minority classes. Imbalanced datasets are particularly challenging in classification problems and are frequently encountered in a wide range of real-world applications.
+\textbf{Healthcare Applications:} Medical diagnosis and treatment recommendation systems benefit from the interpretable nature of distilled models, allowing healthcare professionals to understand and validate AI-generated insights.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/imbalanced_dataset.png}
-    \caption{Imbalanced Dataset.}
-    \label{fig:imbalanced_dataset}
-\end{figure}
+\textbf{Edge Computing:} The compact size and efficient inference of DiXtill models make them ideal for deployment on edge devices, enabling AI capabilities in IoT applications, mobile devices, and offline environments.
 
-\section{Data Preprocessing}
-Real-world data often contains imperfections such as noise, missing entries, and inconsistent formatting, largely due to data collection methods and human error. These quality issues can negatively affect the performance of machine learning models.
+\textbf{Real-time Systems:} Applications requiring low-latency responses, such as chatbots, recommendation systems, and automated customer service, can leverage the speed advantages of distilled models while maintaining quality.
 
-To address these challenges, data preprocessing is a crucial step that prepares raw data for analysis and modeling. This process includes tasks like correcting errors, handling missing values, and standardizing formats or scales to ensure reliable input for algorithms. Effective preprocessing not only improves model accuracy and efficiency but also enhances the overall quality of insights derived from the data.
+\subsection{Integration with Enterprise Protocols}
 
-\subsection{Data preprocessing steps}
-Data preprocessing refers to the process of cleaning and preparing raw data so that it can be effectively used for analysis or machine learning tasks. Below are some common steps involved in the preprocessing phase:
+The characteristics of distilled models like those produced by DiXtill have specific implications for integration with enterprise protocols:
 
-\subsubsection*{Data cleaning}
-This step tackles problems like missing data, duplicate entries, outliers, and errors. It helps ensure that the dataset is clean, consistent, and reliable, minimizing the risk of misleading results during analysis
+\textbf{REST API Integration:} The lightweight nature of distilled models makes them well-suited for REST API deployment, where stateless request-response patterns can efficiently handle model inference without significant computational overhead.
 
-\subsubsection*{Data transformation}
-This stage involves operations like scaling numerical features, converting categorical variables into numeric representations, and preparing text data for use in natural language processing. These tasks help ensure consistency across features and make the data suitable for machine learning algorithms.
+\textbf{Streaming Protocol Compatibility:} The fast inference speed of distilled models enables real-time processing in streaming applications, where continuous data processing and immediate response generation are required.
 
-\subsubsection*{Feature Selection}
-This step focuses on selecting the most relevant features while eliminating those that are unnecessary or redundant. Doing so simplifies the dataset and enhances model performance by concentrating on the variables that have the greatest impact. Additionally, dimensionality reduction methods can be employed to reduce complexity when dealing with high-dimensional data.
-\subsubsection*{Data validation}
-This stage ensures the processed data meets quality standards by verifying that it aligns with expected formats and criteria. Doing so enhances the reliability of subsequent analyses and model performance. 
+\textbf{MCP Integration:} The interpretable nature of DiXtill models aligns well with Model Context Protocol requirements, where explanation metadata can be included in model responses to provide transparency and context for AI decisions.
 
-\subsubsection*{Data splitting}
-Data splitting is a crucial step for assessing the effectiveness of machine learning models. It involves dividing the dataset into training, validation, and test sets, allowing the model to be trained and optimized on one portion while its performance is evaluated on separate, unseen data.
+\section{Enterprise Integration Protocols for LLM Systems}
 
+The integration of large language models into enterprise systems requires careful consideration of communication protocols that can effectively handle the unique characteristics and requirements of AI-powered applications. The choice of integration protocol significantly impacts system performance, scalability, maintainability, and user experience. This section examines three primary protocol approaches for LLM integration: REST (Representational State Transfer), MCP (Model Context Protocol), and Streaming Protocols.
 
-\section{Machine Learning}
-In today’s age of automation, the meaning of "manual" continues to evolve as Machine Learning (ML) algorithms take on tasks once thought to require human expertise—ranging from playing chess to assisting in surgeries. As technology advances, powerful computing tools have become widely accessible, empowering data scientists to develop sophisticated systems. The wide range of ML algorithms offers adaptable solutions to complex, real-world problems and continuously improves through experience. This progress highlights the transformative impact of modern technology.
+Each protocol offers distinct advantages and trade-offs in terms of latency, throughput, resource utilization, and architectural complexity. Understanding these characteristics is essential for making informed decisions about LLM integration strategies that align with specific enterprise requirements and constraints.
 
-\subsection{Types of Machine Learning}
-Machine learning can generally be categorized into three main types based on how the models learn: supervised learning, unsupervised learning, and semi-supervised learning.
+\subsection{REST (Representational State Transfer) Protocol}
 
-\subsubsection*{Supervised Machine Learning}
-As the name suggests, Supervised Machine Learning involves training a model with guidance using labeled datasets—where each input is paired with a known output. Through this process, the model learns to recognize patterns and relationships in the data, much like being taught correct answers during instruction.
+REST has emerged as the dominant architectural style for web services and API design, offering a standardized approach to system integration based on stateless client-server communication. In the context of LLM integration, REST provides a familiar and widely supported framework for accessing AI capabilities through well-defined API endpoints.
 
-Initially, the model is trained on input-output examples, enabling it to generalize and make predictions on new, unseen data. The effectiveness of these predictions is then assessed using a separate test set.
+\textbf{Core Principles of REST for LLM Integration:}
 
-Supervised learning is commonly divided into two main types:
+\textbf{Stateless Communication:} Each request to an LLM service contains all necessary information for processing, eliminating server-side state management. This principle simplifies deployment and scaling but may require including extensive context in each request.
+
+\textbf{Uniform Interface:} REST APIs provide standardized methods (GET, POST, PUT, DELETE) for interacting with LLM services, enabling consistent integration patterns across different applications and use cases.
+
+\textbf{Resource-Based Architecture:} LLM capabilities are exposed as resources (e.g., /completion, /translation, /summarization) that can be accessed through HTTP methods, providing intuitive and discoverable interfaces.
+
+\textbf{Cacheable Responses:} REST's caching mechanisms can be leveraged to store and reuse LLM responses for identical inputs, reducing computational costs and improving response times for repeated queries.
+
+\textbf{Advantages of REST for LLM Integration:}
 
 \begin{itemize}
-  \item \textbf{Classification:} Used when the output variable is categorical—such as predicting "yes" or "no", or classifying labels like male/female, or red/blue. Classification algorithms determine the appropriate category for each input.
-  
-  \item \textbf{Regression:} Applied when the output is continuous, and there is a measurable relationship between inputs and outputs. Regression is used in scenarios like predicting market prices, weather conditions, or sales trends.
+    \item \textbf{Simplicity and Familiarity:} REST's widespread adoption means that developers have extensive experience with the protocol, reducing integration complexity and time-to-market.
+    \item \textbf{Scalability:} The stateless nature of REST enables horizontal scaling of LLM services across multiple instances without complex coordination mechanisms.
+    \item \textbf{Tooling and Infrastructure:} Extensive ecosystem of tools for API development, testing, monitoring, and management supports REST-based LLM integrations.
+    \item \textbf{Security and Authentication:} Well-established security patterns for REST APIs, including OAuth, JWT, and API key authentication, provide robust protection for LLM services.
+    \item \textbf{Interoperability:} REST's platform-agnostic nature enables integration across diverse technology stacks and programming languages.
+\end{itemize}
+
+\textbf{Challenges and Limitations:}
+
+\begin{itemize}
+    \item \textbf{Latency Overhead:} HTTP request-response cycles introduce latency, particularly problematic for real-time applications requiring immediate LLM responses.
+    \item \textbf{Context Management:} Stateless communication requires including complete context in each request, potentially leading to large payloads and inefficient data transfer.
+    \item \textbf{Limited Real-time Capabilities:} Traditional REST is not well-suited for scenarios requiring continuous interaction or streaming responses from LLMs.
+    \item \textbf{Resource Inefficiency:} Each request establishes a new connection, leading to overhead in scenarios with frequent, small interactions with LLM services.
+\end{itemize}
+
+\subsection{Model Context Protocol (MCP)}
+
+The Model Context Protocol represents a novel approach to LLM integration specifically designed to address the unique requirements of AI-powered applications. MCP focuses on efficient context management, dynamic model interaction, and optimized communication patterns that align with the characteristics of large language models.
+
+\textbf{Key Features of MCP:}
+
+\textbf{Context-Aware Communication:} MCP maintains session state and context across multiple interactions, enabling more efficient communication for multi-turn conversations and complex reasoning tasks.
+
+\textbf{Dynamic Model Selection:} The protocol supports intelligent routing to different models based on task requirements, enabling optimization of resource utilization and response quality.
+
+\textbf{Incremental Context Updates:} Rather than sending complete context with each request, MCP supports incremental updates that reduce bandwidth usage and improve response times.
+
+\textbf{Metadata-Rich Responses:} MCP responses include extensive metadata about model confidence, reasoning steps, and alternative interpretations, supporting explainable AI requirements.
+
+\textbf{Adaptive Batching:} The protocol can intelligently batch multiple requests to optimize throughput while maintaining acceptable latency for individual requests.
+
+\textbf{Advantages of MCP for LLM Integration:}
+
+\begin{itemize}
+    \item \textbf{Optimized for AI Workloads:} MCP is specifically designed for the communication patterns and requirements of LLM applications, offering better performance characteristics than general-purpose protocols.
+    \item \textbf{Efficient Context Handling:} By maintaining state and supporting incremental updates, MCP reduces the overhead associated with context management in conversational AI applications.
+    \item \textbf{Enhanced Explainability:} The protocol's support for metadata-rich responses enables better integration with enterprise requirements for interpretable AI systems.
+    \item \textbf{Resource Optimization:} Dynamic model selection and adaptive batching help optimize computational resource utilization across different types of AI tasks.
+    \item \textbf{Flexible Interaction Patterns:} MCP supports both synchronous and asynchronous communication patterns, enabling diverse integration scenarios.
+\end{itemize}
+
+\textbf{Challenges and Considerations:}
+
+\begin{itemize}
+    \item \textbf{Novelty and Adoption:} As a newer protocol, MCP has limited ecosystem support and requires specialized knowledge for implementation and maintenance.
+    \item \textbf{Complexity:} The advanced features of MCP introduce additional complexity in system design and debugging compared to simpler protocols.
+    \item \textbf{Standardization:} The protocol is still evolving, with potential changes that could impact long-term compatibility and stability.
+    \item \textbf{Vendor Lock-in:} Limited implementations may create dependency on specific vendors or technologies.
+\end{itemize}
+
+\subsection{Streaming Protocols}
+
+Streaming protocols enable real-time, continuous data exchange between clients and LLM services, making them particularly suitable for applications requiring immediate responses and interactive experiences. These protocols support scenarios where LLM responses are generated incrementally, allowing users to see partial results as they become available.
+
+\textbf{Types of Streaming Protocols for LLM Integration:}
+
+\textbf{WebSocket-based Streaming:} Provides full-duplex communication channels that enable real-time interaction with LLM services, supporting both text input and incremental response streaming.
+
+\textbf{Server-Sent Events (SSE):} Offers a simpler alternative for scenarios where only server-to-client streaming is required, such as displaying incremental text generation from LLMs.
+
+\textbf{HTTP/2 and HTTP/3 Streaming:} Leverages modern HTTP protocols' streaming capabilities to enable efficient, multiplexed communication with LLM services.
+
+\textbf{gRPC Streaming:} Provides high-performance streaming communication with strong typing and efficient serialization, suitable for high-throughput LLM applications.
+
+\textbf{Advantages of Streaming Protocols:}
+
+\begin{itemize}
+    \item \textbf{Real-time Responsiveness:} Streaming enables immediate display of partial results, improving user experience in interactive applications.
+    \item \textbf{Reduced Perceived Latency:} Users can begin reading or processing LLM responses before the complete output is generated, reducing perceived wait times.
+    \item \textbf{Efficient Resource Utilization:} Streaming can reduce memory usage by processing and transmitting data incrementally rather than buffering complete responses.
+    \item \textbf{Interactive Experiences:} Supports conversational AI applications where continuous interaction and immediate feedback are essential.
+    \item \textbf{Scalable Communication:} Modern streaming protocols can handle many concurrent connections efficiently, supporting large-scale applications.
+\end{itemize}
+
+\textbf{Challenges and Limitations:}
+
+\begin{itemize}
+    \item \textbf{Complexity:} Streaming protocols require more sophisticated client and server implementations, including connection management and error handling.
+    \item \textbf{Infrastructure Requirements:} Supporting streaming may require additional infrastructure components such as load balancers and proxies that can handle persistent connections.
+    \item \textbf{Error Handling:} Managing errors and connection failures in streaming scenarios is more complex than in request-response patterns.
+    \item \textbf{Debugging and Monitoring:} Troubleshooting streaming applications requires specialized tools and techniques for analyzing real-time data flows.
 \end{itemize}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{Assets/supervised_learning.png}
-    \caption{Supervised Machine Learning.}
-    \label{fig:supervised_learning}
+    \includegraphics[width=0.8\textwidth]{Assets/sc_execution_flow.jpg}
+    \caption{Execution flow in streaming protocols for real-time LLM applications, showing the incremental response generation and client-server communication patterns.}
+    \label{fig:streaming_protocols}
 \end{figure}
+% this i got it from https://www.keyvalue.systems/blog/powering-ai-chatbots-with-real-time-streaming-a-developers-guide/
 
-\subsubsection*{Unsupervised Machine Learning}
-Unsupervised Machine Learning differs from the supervised approach by operating without labeled data. In this method, models are trained on datasets that do not contain predefined output labels or classifications. The algorithm explores the data on its own, identifying patterns, groupings, or relationships hidden within the dataset.
+\section{Comparative Analysis of Integration Protocols}
 
-In unsupervised learning, the model is exposed to raw, untagged input and learns to interpret the structure of the data independently. The core goal is to organize or segment the data based on underlying similarities and differences, revealing natural groupings and associations that may not be obvious.
+The selection of an appropriate integration protocol for LLM deployment significantly impacts system performance, user experience, and operational efficiency. Each protocol offers distinct advantages and trade-offs that must be carefully evaluated against specific enterprise requirements and constraints.
 
-Unsupervised learning techniques are generally divided into two main categories:
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}p{3.5cm}|p{3.5cm}p{3.5cm}p{3.5cm}@{}}
+\toprule
+\textbf{Property} & \textbf{REST} & \textbf{MCP} & \textbf{Streaming} \\
+\midrule
+\textbf{Latency} & Moderate (HTTP overhead) & Low (context-aware) & Very Low (real-time) \\
+\textbf{Throughput} & High (cacheable) & High (batched) & Moderate (persistent) \\
+\textbf{Scalability} & Excellent (stateless) & Good (session mgmt) & Good (connection pool) \\
+\textbf{State Management} & Stateless & Context-Aware & Stateful \\
+\textbf{Resource Usage} & Moderate & Optimized & Variable \\
+\textbf{Implementation Complexity} & Low & Medium & High \\
+\textbf{Ecosystem Support} & Excellent & Limited & Good \\
+\textbf{Real-time Capability} & Poor & Moderate & Excellent \\
+\textbf{Error Handling} & Simple & Advanced & Complex \\
+\textbf{Security} & Mature & Evolving & Established \\
+\bottomrule
+\end{tabular}
+\caption{Comprehensive comparison of integration protocols for LLMs in enterprise applications, evaluating key performance and operational characteristics.}
+\label{tab:protocol_comparison}
+\end{table}
+
+\subsection{Performance Characteristics Analysis}
+
+\textbf{Latency Considerations:}
+REST protocols introduce inherent latency due to HTTP request-response cycles, connection establishment overhead, and the need to include complete context in each request. For applications requiring sub-second response times, this overhead can significantly impact user experience. MCP addresses some of these limitations through persistent connections and incremental context updates, while streaming protocols offer the lowest latency for interactive applications.
+
+\textbf{Throughput and Scalability:}
+REST's stateless nature enables excellent horizontal scaling and load distribution, making it suitable for high-throughput applications. The caching capabilities of HTTP can further improve throughput for repeated queries. MCP's batching mechanisms can optimize throughput for multiple concurrent requests, while streaming protocols may have lower peak throughput due to persistent connection overhead.
+
+\textbf{Resource Utilization:}
+Different protocols have varying impacts on computational and network resources. REST's stateless design minimizes server-side resource requirements but may result in redundant data transmission. MCP's context management can reduce network traffic but requires additional memory for session state. Streaming protocols maintain persistent connections, which can be resource-intensive at scale but enable efficient real-time communication.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Assets/protocol_performance_comparison.png}
+    \caption{Performance comparison across different protocols showing latency, throughput, and resource utilization characteristics under various load conditions.}
+    \label{fig:protocol_performance_comparison}
+\end{figure}
+% i got this from claude 4 based on the previous table
+
+\section{Technical Challenges in LLM Integration}
+
+The integration of large language models into enterprise systems presents numerous technical challenges that must be addressed to ensure reliable, secure, and efficient operation. These challenges span multiple domains including computational efficiency, system reliability, security, and interoperability.
+
+\subsection{Computational and Resource Management Challenges}
+
+\textbf{Memory and Storage Requirements:}
+Modern LLMs require substantial memory resources for inference, with models like GPT-3 requiring hundreds of gigabytes of GPU memory for optimal performance. Enterprise deployments must consider:
 
 \begin{itemize}
-  \item \textbf{Clustering:} This method groups data points based on shared characteristics. Items within the same group (or cluster) are more similar to each other than to those in other groups. A common use case is customer segmentation based on buying habits.
-
-  \item \textbf{Association:} Association rule learning identifies relationships between variables in large datasets. It detects how the presence of one item relates to the presence of another, helping uncover dependencies. This technique is widely used in market basket analysis, web usage analysis, and product recommendation systems.
-  
+    \item \textbf{Memory Optimization:} Techniques such as model sharding, quantization, and gradient checkpointing to reduce memory footprint
+    \item \textbf{Storage Management:} Efficient model loading and caching strategies to minimize startup times and storage costs
+    \item \textbf{Dynamic Scaling:} Auto-scaling mechanisms that can adapt to varying demand while managing resource costs
+    \item \textbf{Multi-tenancy:} Strategies for sharing computational resources across multiple applications and users while maintaining isolation
 \end{itemize}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{Assets/unsupervised_learning.png}
-    \caption{Unsupervised Machine Learning.}
-    \label{fig:unsupervised_learning}
-\end{figure}
 
-\subsection{Common Machine Learning Algorithms}
-Several machine learning algorithms are widely used for classification, regression, and pattern recognition tasks. Each algorithm is based on a mathematical model that enables the system to learn from data and make predictions or decisions. Below are some of the most commonly used algorithms along with their core formulas.
-\subsubsection*{1.Decision Tree}
-
-Decision Trees split the dataset into branches based on feature values, using measures like Information Gain or Gini Index.
-
-\textbf{Gini Impurity:}
-\[
-Gini(t) = 1 - \sum_{i=1}^{n} p_i^2
-\]
-where \( p_i \) is the probability of class \( i \) at node \( t \).
-
-\textbf{Information Gain (Entropy):}
-\[
-IG(D, A) = Entropy(D) - \sum_{v \in Values(A)} \frac{|D_v|}{|D|} \cdot Entropy(D_v)
-\]
-\[
-Entropy(D) = - \sum_{i=1}^{n} p_i \log_2 p_i
-\]
-
-\subsubsection*{2.Support Vector Machine (SVM)}
-
-SVM aims to find the optimal hyperplane that separates classes with maximum margin.
-
-\textbf{Objective:}
-\[
-\min_{\mathbf{w}, b} \frac{1}{2} ||\mathbf{w}||^2
-\]
-subject to:
-\[
-y_i(\mathbf{w} \cdot \mathbf{x}_i + b) \geq 1 \quad \forall i
-\]
-where \( \mathbf{w} \) is the weight vector, \( b \) is the bias, and \( y_i \in \{-1, 1\} \).
-
-\subsubsection*{3.K-Nearest Neighbors (K-NN)}
-
-K-NN classifies a data point based on the majority label among its \( k \) nearest neighbors.
-
-\textbf{Distance Metric (Euclidean):}
-\[
-d(x, y) = \sqrt{\sum_{i=1}^{n}(x_i - y_i)^2}
-\]
-
-\subsubsection*{4.Naive Bayes}
-
-Naive Bayes is a probabilistic classifier based on Bayes’ theorem with an assumption of independence among features.
-
-\textbf{Bayes Theorem:}
-\[
-P(C_k | \mathbf{x}) = \frac{P(\mathbf{x} | C_k) \cdot P(C_k)}{P(\mathbf{x})}
-\]
-where \( P(C_k | \mathbf{x}) \) is the posterior, \( P(\mathbf{x} | C_k) \) is the likelihood, \( P(C_k) \) is the prior, and \( P(\mathbf{x}) \) is the evidence.
-
-\subsubsection*{5.Logistic Regression}
-
-Used for binary classification, logistic regression models the probability of class membership using the logistic function.
-
-\textbf{Hypothesis Function:}
-\[
-h_\theta(x) = \frac{1}{1 + e^{-\theta^T x}}
-\]
-
-\textbf{Cost Function:}
-\[
-J(\theta) = -\frac{1}{m} \sum_{i=1}^{m} \left[ y^{(i)} \log(h_\theta(x^{(i)})) + (1 - y^{(i)}) \log(1 - h_\theta(x^{(i)})) \right]
-\]
-
-\subsubsection*{6.Random Forest}
-
-Random Forest is an ensemble learning method that constructs multiple decision trees and aggregates their predictions.
-
-\textbf{Final Prediction (Classification):}
-\[
-\hat{y} = \text{majority\_vote}(T_1(x), T_2(x), \dots, T_k(x))
-\]
-where \( T_i \) is the \( i \)-th decision tree in the forest.
-
-\subsubsection*{7.Linear Regression}
-
-Used for predicting a continuous target value based on input features.
-
-\textbf{Prediction Function:}
-\[
-\hat{y} = \mathbf{w}^T \mathbf{x} + b
-\]
-
-\textbf{Cost Function (MSE):}
-\[
-J(\mathbf{w}, b) = \frac{1}{m} \sum_{i=1}^{m} (\hat{y}^{(i)} - y^{(i)})^2
-\]
-
-\section{Deep Learning}
-Deep learning is a branch of machine learning that uses neural networks with three or more layers to model complex patterns in data. These multi-layered networks are inspired by the human brain’s structure, although they differ significantly in capability. As they process large volumes of data, the networks learn and adjust their internal parameters to improve performance. While basic neural networks with a single layer can make rough predictions, deeper architectures allow for greater accuracy and optimization.
-
-Deep learning powers many modern artificial intelligence (AI) applications and is central to automating a wide range of analytical and physical tasks. Its widespread use can be seen in everyday technologies and has become a key driver of innovation across various industries.
-\subsection{Common Deep Learning Models and Architectures}
-Below, we present an overview of the most widely used deep learning architectures.
-\subsubsection*{1.Artificial Neural Networks (ANNs)}
-
-Artificial Neural Networks are the foundational architecture in deep learning, composed of interconnected layers of artificial neurons. Each neuron applies a transformation (typically non-linear) to its input and passes the result to the next layer. ANNs are typically used for regression and classification tasks when the input features are numerical and structured.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{Assets/ann.png}
-    \caption{Structure of a basic feedforward Artificial Neural Network (ANN).}
-    \label{fig:ann}
-\end{figure}
-
-\subsubsection*{2.Convolutional Neural Networks (CNNs)}
-Convolutional Neural Networks are specialized for processing data with a grid-like structure, such as images. CNNs apply convolutional filters to extract spatial features and patterns, making them ideal for image classification, object detection, and visual data analysis. They have also been applied in smart contract vulnerability detection through opcode or bytecode visualization.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{Assets/cnn.png}
-    \caption{Typical CNN architecture ~\cite{raj2019cnn}.}
-    \label{fig:cnn}
-\end{figure}
-
-\subsubsection*{3.Recurrent Neural Networks (RNNs)}
-
-Recurrent Neural Networks are designed to process sequential data by maintaining a hidden state that captures temporal dependencies. They are particularly effective for tasks involving time series, speech recognition, and natural language processing. In smart contract analysis, RNNs can be used to process opcode sequences or abstract syntax trees.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{Assets/rnn.png}
-    \caption{A basic RNN architecture for sequential data.}
-    \label{fig:rnn}
-\end{figure}
-
-\subsubsection*{4.Long Short-Term Memory Networks (LSTMs)}
-
-LSTM networks are a type of RNN specifically designed to overcome the limitations of standard RNNs, such as vanishing or exploding gradients. LSTMs are capable of learning long-range dependencies and are widely used in language modeling, code generation, and anomaly detection in smart contracts.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{Assets/lstm.png}
-    \caption{Structure of an LSTM cell showing input, forget, and output gates.}
-    \label{fig:lstm}
-\end{figure}
-
-\subsubsection*{5.Transformer Networks}
-
-Transformers are state-of-the-art deep learning models introduced to handle sequential data without relying on recurrence. Using mechanisms like self-attention, transformers have revolutionized natural language processing and are increasingly used in code analysis, vulnerability prediction, and contract summarization.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{Assets/transformer.png}
-    \caption{Simplified Transformer architecture~\cite{amanatulla2023transformer}.}
-    \label{fig:transformer}
-\end{figure}
-
-\subsubsection*{6.Graph Neural Networks (GNNs)}
-
-Graph Neural Networks are designed to operate on graph-structured data. In the context of smart contracts, GNNs are highly effective for analyzing control flow graphs (CFGs), dependency trees, and inter-contract relations. They capture both local and global structural information, making them ideal for modeling program logic.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{Assets/GNN.png}
-    \caption{Overview of a Graph Neural Network Architecture ~\cite{neptune2023gnn}.}
-    \label{fig:gnn}
-\end{figure}
-
-
-\section{AI for Code and Security Analysis}
-Artificial Intelligence has emerged as a powerful tool for analyzing and securing software systems, particularly in domains like malware detection, source code classification, and vulnerability discovery. In the context of smart contracts and blockchain applications, AI is increasingly used to analyze code structure, behavior, and potential security flaws that may not be obvious through traditional methods.
-
-\subsection{Understanding Source Code as Data}
-
-To apply AI techniques effectively, code must be represented in a form that can be processed by machine learning models. There are several structured ways to represent source code:
+\textbf{Inference Optimization:}
+The computational cost of LLM inference presents significant challenges for enterprise deployment:
 
 \begin{itemize}
-    \item \textbf{Abstract Syntax Trees (ASTs):} ASTs represent the syntactic structure of source code in a tree format, capturing the hierarchy of operations and expressions. This tree can be used to extract features or be fed directly into models like Graph Neural Networks (GNNs).
-    
-    \item \textbf{Opcode Sequences:} Compiled smart contracts in Solidity are converted into Ethereum Virtual Machine (EVM) opcodes. These sequences can be treated as tokens or instructions similar to text, allowing techniques from natural language processing (NLP) to be applied.
-    
-    \item \textbf{Bytecode Representation:} Bytecode is the low-level, machine-readable version of a contract deployed on-chain. It can be vectorized into numerical features or interpreted as image-like matrices for deep learning tasks.
+    \item \textbf{Batching Strategies:} Dynamic batching to optimize throughput while maintaining acceptable latency
+    \item \textbf{Model Parallelism:} Distributing model computation across multiple GPUs or nodes
+    \item \textbf{Caching and Memoization:} Intelligent caching of intermediate results and common responses
+    \item \textbf{Hardware Acceleration:} Leveraging specialized hardware such as TPUs, FPGAs, and inference-optimized chips
 \end{itemize}
 
-\subsection{Embeddings and Feature Extraction}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Assets/resource_management_architecture.jpg}
+    \caption{Enterprise resource management architecture for LLM deployment, showing distributed computing, memory optimization, and auto-scaling components.}
+    \label{fig:resource_management_architecture}
+\end{figure}
+% i got this from https://www.deepchecks.com/glossary/llm-deployment/
 
-Once code is structured appropriately, it must be transformed into numerical representations or embeddings suitable for input to learning models:
+\subsection{Latency and Real-time Performance}
+
+Enterprise applications often require real-time or near-real-time responses from LLM systems, presenting several performance challenges:
+
+\textbf{End-to-End Latency Optimization:}
+\begin{itemize}
+    \item \textbf{Network Latency:} Minimizing network overhead through edge deployment and optimized protocols
+    \item \textbf{Model Inference Time:} Reducing computational latency through model optimization and efficient serving infrastructure
+    \item \textbf{Queue Management:} Implementing intelligent request queuing and prioritization systems
+    \item \textbf{Warm-up Strategies:} Maintaining model readiness to avoid cold-start delays
+\end{itemize}
+
+\textbf{Predictive Performance Management:}
+\begin{itemize}
+    \item \textbf{Load Forecasting:} Predicting demand patterns to pre-scale resources
+    \item \textbf{Performance Monitoring:} Real-time monitoring of latency and throughput metrics
+    \item \textbf{Adaptive Optimization:} Dynamic adjustment of system parameters based on performance feedback
+    \item \textbf{SLA Management:} Ensuring consistent performance levels to meet service level agreements
+\end{itemize}
+
+\subsection{Security and Privacy Considerations}
+
+The integration of LLMs into enterprise systems raises significant security and privacy concerns that must be addressed through comprehensive security frameworks:
+
+\textbf{Data Protection and Privacy:}
+\begin{itemize}
+    \item \textbf{Input Sanitization:} Protecting against prompt injection attacks and malicious inputs
+    \item \textbf{Output Filtering:} Preventing the generation of inappropriate or sensitive content
+    \item \textbf{Data Encryption:} Ensuring end-to-end encryption of sensitive data in transit and at rest
+    \item \textbf{Privacy Preservation:} Implementing techniques such as differential privacy and federated learning
+\end{itemize}
+
+\textbf{Access Control and Authentication:}
+\begin{itemize}
+    \item \textbf{Multi-factor Authentication:} Strong authentication mechanisms for accessing LLM services
+    \item \textbf{Role-based Access Control:} Granular permissions for different user roles and applications
+    \item \textbf{API Security:} Secure API design with proper rate limiting and abuse prevention
+    \item \textbf{Audit Logging:} Comprehensive logging of all interactions for security monitoring and compliance
+\end{itemize}
+
+\textbf{Model Security:}
+\begin{itemize}
+    \item \textbf{Model Protection:} Preventing unauthorized access to model parameters and architecture
+    \item \textbf{Adversarial Robustness:} Defending against adversarial attacks designed to manipulate model behavior
+    \item \textbf{Model Versioning:} Secure model deployment and rollback mechanisms
+    \item \textbf{Compliance:} Ensuring adherence to industry regulations and data protection standards
+\end{itemize}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{Assets/security_architecture_llm.png}
+%     \caption{Comprehensive security architecture for enterprise LLM deployment, including data protection, access control, and threat mitigation layers.}
+%     \label{fig:security_architecture_llm}
+% \end{figure}
+
+\subsection{Interoperability and System Integration}
+
+Enterprise environments typically involve complex, heterogeneous technology stacks that must seamlessly integrate with LLM services:
+
+\textbf{API Design and Standardization:}
+\begin{itemize}
+    \item \textbf{Protocol Compatibility:} Supporting multiple communication protocols to accommodate diverse client applications
+    \item \textbf{Data Format Standardization:} Consistent data exchange formats across different systems and platforms
+    \item \textbf{Version Management:} Backward compatibility and graceful migration strategies for API updates
+    \item \textbf{Documentation and SDKs:} Comprehensive documentation and software development kits for multiple programming languages
+\end{itemize}
+
+\textbf{Legacy System Integration:}
+\begin{itemize}
+    \item \textbf{Adapter Patterns:} Bridging LLM capabilities with existing enterprise systems
+    \item \textbf{Data Pipeline Integration:} Seamless integration with existing data processing and analytics pipelines
+    \item \textbf{Workflow Orchestration:} Incorporating LLM services into existing business process workflows
+    \item \textbf{Monitoring Integration:} Integrating LLM monitoring with existing observability platforms
+\end{itemize}
+
+\section{Scalability and Performance Optimization}
+
+Scaling LLM services to meet enterprise demands requires sophisticated approaches to performance optimization, resource management, and system architecture. This section examines key strategies and techniques for achieving scalable LLM deployments.
+
+\subsection{Horizontal and Vertical Scaling Strategies}
+
+\textbf{Horizontal Scaling Approaches:}
+Horizontal scaling involves distributing LLM workloads across multiple compute instances or nodes:
 
 \begin{itemize}
-    \item \textbf{Token Embeddings:} Just like in NLP, tokens from source code or opcode sequences can be embedded using techniques like Word2Vec, FastText, or Transformer-based models to capture semantic meaning.
-    
-    \item \textbf{Graph-Based Features:} For ASTs and control/data flow graphs, node embeddings can be generated using Graph Neural Networks (GNNs), which preserve both local and global structural properties.
-    
-    \item \textbf{Custom Feature Engineering:} Handcrafted features—such as the number of functions, modifiers, nested loops, or storage access patterns—can be used as input for traditional machine learning algorithms.
+    \item \textbf{Model Replication:} Deploying multiple instances of the same model across different servers to handle increased request volume
+    \item \textbf{Load Balancing:} Intelligent distribution of requests across model instances using various algorithms (round-robin, least connections, weighted distribution)
+    \item \textbf{Geographic Distribution:} Deploying models across multiple regions to reduce latency and improve availability
+    \item \textbf{Auto-scaling:} Dynamic scaling based on metrics such as CPU utilization, memory usage, and request queue length
 \end{itemize}
 
-\subsection{Classification and Anomaly Detection}
-
-AI techniques can then be applied to classify contracts or detect unusual behavior:
+\textbf{Vertical Scaling Considerations:}
+Vertical scaling involves increasing the computational capacity of individual nodes:
 
 \begin{itemize}
-    \item \textbf{Binary and Multi-Class Classification:} Models can predict whether a contract is vulnerable or safe, or classify the type of vulnerability present (e.g., reentrancy, integer overflow).
-    
-    \item \textbf{Anomaly Detection:} Unsupervised models like autoencoders or clustering algorithms can flag contracts that deviate significantly from the norm, which may indicate obfuscated logic or malicious intent.
+    \item \textbf{GPU Scaling:} Adding more powerful GPUs or increasing GPU memory to handle larger models
+    \item \textbf{Memory Optimization:} Increasing system memory to support larger batch sizes and reduce I/O overhead
+    \item \textbf{Storage Performance:} Utilizing high-performance storage systems for faster model loading and data access
+    \item \textbf{Network Bandwidth:} Ensuring adequate network capacity for high-throughput applications
 \end{itemize}
 
-\subsection{Use Cases in Code Security}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{Assets/scaling_architecture_diagram.png}
+%     \caption{Enterprise LLM scaling architecture showing horizontal scaling with load balancing, auto-scaling, and geographic distribution of model instances.}
+%     \label{fig:scaling_architecture_diagram}
+% \end{figure}
 
-AI-based code analysis is already being used in a variety of real-world applications:
+\subsection{Performance Monitoring and Optimization}
 
+Effective performance monitoring is crucial for maintaining optimal LLM system performance and identifying optimization opportunities:
+
+\textbf{Key Performance Metrics:}
 \begin{itemize}
-    \item \textbf{Smart Contract Vulnerability Detection:} Deep learning models trained on labeled Solidity contracts can detect vulnerabilities with high accuracy.
-    
-    \item \textbf{Malware Analysis:} Opcode and bytecode sequences are analyzed using CNNs or RNNs to identify malicious behavior in contract logic.
-    
-    \item \textbf{Source Code Classification:} Classifying smart contracts by functionality (e.g., token contracts, DAOs, wallets) helps automate auditing workflows.
-    
-    \item \textbf{Code Summarization and Documentation:} Transformer-based models can generate human-readable descriptions of contract functions, aiding in code reviews and legal assessments.
+    \item \textbf{Latency Metrics:} P50, P95, and P99 response times for different types of requests
+    \item \textbf{Throughput Metrics:} Requests per second, tokens per second, and concurrent user capacity
+    \item \textbf{Resource Utilization:} CPU, GPU, memory, and network utilization across all system components
+    \item \textbf{Error Rates:} HTTP error rates, timeout rates, and model inference failures
+    \item \textbf{Queue Metrics:} Request queue depth, wait times, and processing times
 \end{itemize}
 
+\textbf{Optimization Techniques:}
+\begin{itemize}
+    \item \textbf{Dynamic Batching:} Optimizing batch sizes based on current load and latency requirements
+    \item \textbf{Model Warm-up:} Pre-loading models and maintaining ready instances to reduce cold-start latency
+    \item \textbf{Caching Strategies:} Implementing multi-level caching for common queries and intermediate results
+    \item \textbf{Request Prioritization:} Implementing priority queues for different types of requests and users
+\end{itemize}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{Assets/performance_monitoring_dashboard.png}
+%     \caption{Performance monitoring dashboard showing key metrics for LLM system optimization including latency, throughput, resource utilization, and error rates.}
+%     \label{fig:performance_monitoring_dashboard}
+% \end{figure}
+
+\section{Emerging Trends and Future Directions}
+
+The field of LLM integration is rapidly evolving, with several emerging trends and technologies that will shape the future of enterprise AI deployments. Understanding these trends is crucial for making strategic decisions about LLM integration architectures.
+
+\subsection{Edge Computing and Distributed Inference}
+
+The deployment of LLMs at the edge represents a significant trend toward reducing latency and improving data privacy:
+
+\textbf{Edge Deployment Strategies:}
+\begin{itemize}
+    \item \textbf{Model Compression:} Advanced techniques for reducing model size while maintaining performance
+    \item \textbf{Federated Learning:} Training models across distributed edge devices while preserving data privacy
+    \item \textbf{Hybrid Architectures:} Combining edge inference for simple tasks with cloud processing for complex queries
+    \item \textbf{Adaptive Model Selection:} Dynamically choosing between edge and cloud processing based on requirements
+\end{itemize}
+
+\textbf{Technical Challenges and Solutions:}
+\begin{itemize}
+    \item \textbf{Resource Constraints:} Developing efficient models that can run on resource-limited edge devices
+    \item \textbf{Connectivity Issues:} Designing systems that can operate effectively with intermittent connectivity
+    \item \textbf{Model Updates:} Implementing efficient mechanisms for updating edge-deployed models
+    \item \textbf{Quality Assurance:} Ensuring consistent performance across diverse edge deployment environments
+\end{itemize}
+
+\subsection{Multimodal Integration}
+
+The evolution toward multimodal LLMs that can process text, images, audio, and other data types presents new integration challenges and opportunities:
+
+\textbf{Multimodal Protocol Requirements:}
+\begin{itemize}
+    \item \textbf{Data Format Support:} Protocols must handle diverse data types efficiently
+    \item \textbf{Bandwidth Optimization:} Managing the increased bandwidth requirements of multimodal data
+    \item \textbf{Processing Coordination:} Synchronizing processing of different modalities
+    \item \textbf{Result Integration:} Combining outputs from different modalities into coherent responses
+\end{itemize}
+
+\textbf{Enterprise Applications:}
+\begin{itemize}
+    \item \textbf{Document Analysis:} Processing documents containing text, images, and tables
+    \item \textbf{Customer Service:} Handling voice, text, and visual inputs in support systems
+    \item \textbf{Content Creation:} Generating multimedia content for marketing and communication
+    \item \textbf{Data Analytics:} Analyzing complex datasets containing multiple data types
+\end{itemize}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{Assets/multimodal_integration_architecture.png}
+%     \caption{Multimodal LLM integration architecture showing the processing pipeline for text, image, and audio inputs with unified output generation.}
+%     \label{fig:multimodal_integration_architecture}
+% \end{figure}
+
+\subsection{Specialized Hardware and Acceleration}
+
+The development of specialized hardware for AI workloads is creating new opportunities for LLM optimization:
+
+\textbf{Hardware Acceleration Technologies:}
+\begin{itemize}
+    \item \textbf{AI Chips:} Purpose-built processors optimized for transformer architectures
+    \item \textbf{Neuromorphic Computing:} Hardware that mimics brain-like processing for efficiency gains
+    \item \textbf{Quantum Computing:} Potential future applications of quantum processors for certain AI tasks
+    \item \textbf{Optical Computing:} Using light-based processing for high-speed, low-power inference
+\end{itemize}
+
+\textbf{Integration Implications:}
+\begin{itemize}
+    \item \textbf{Protocol Adaptation:} Modifying protocols to leverage hardware-specific optimizations
+    \item \textbf{Deployment Strategies:} Adapting deployment architectures for heterogeneous hardware environments
+    \item \textbf{Performance Optimization:} Developing new optimization techniques for specialized hardware
+    \item \textbf{Cost Management:} Balancing performance gains with hardware acquisition and operational costs
+\end{itemize}
+
+\section{Conclusion}
+
+This comprehensive background chapter has examined the fundamental technologies, architectures, and integration challenges associated with large language models in enterprise environments. The analysis of Transformers, GPT-3, and knowledge distillation techniques provides the foundation for understanding how these powerful AI systems can be effectively integrated into business applications.
+
+% =============================================================================
+% COMPREHENSIVE FIGURE PLACEMENT GUIDE FOR SCIENTIFIC PAPERS
+% =============================================================================
+%
+% This section provides a complete mapping of where to place figures from the
+% three key scientific papers referenced in this thesis:
+%
+% 1. TRANSFORMERS PAPER ("Attention Is All You Need" - Vaswani et al.)
+%    - Figure 1 (The Transformer - model architecture): Place at the beginning 
+%      of Section 2 to introduce the overall architecture
+%    - Figure 2 (Scaled Dot-Product Attention and Multi-Head Attention): Place 
+%      after the attention mechanism equations in Section 2.1
+%    - Figure 3 (Results on WMT translation tasks): Place in Section 2.4 to 
+%      show empirical validation of the architecture
+%    - Table 2 (English-to-German translation results): Consider as a figure 
+%      in Section 2.4 for quantitative performance comparison
+%
+% 2. GPT-3 PAPER ("Language Models are Few-Shot Learners" - Brown et al.)
+%    - Figure 1.1 (Language model performance): Place early in Section 3 to 
+%      establish scaling law principles
+%    - Figure 1.2 (Performance on language modeling): Place in Section 3.1 
+%      after discussing architecture to show scale-performance relationship
+%    - Figure 1.3 (Scaling laws for language models): Place in Section 3.4 
+%      to illustrate the empirical basis for model scaling
+%    - Figure 2.1 (Language model meta-learning): Place in Section 3.2 to 
+%      illustrate few-shot learning paradigm
+%    - Figure 3.1 (Few-shot performance results): Place in Section 3.2 after 
+%      explaining learning modalities
+%    - Figure 3.2 (Reading comprehension results): Place in Section 3.3 to 
+%      support question answering discussion
+%    - Figure 3.3 (Common sense reasoning results): Place in Section 3.3 to 
+%      demonstrate reasoning capabilities
+%    - Figure 3.4 (Arithmetic reasoning results): Place in Section 3.3 to 
+%      show mathematical reasoning abilities
+%
+% 3. DIXTILL PAPER ("XAI-driven Knowledge Distillation" - Your research)
+%    - Figure 1 (DiXtill framework architecture): Place at beginning of 
+%      Section 4.1 for methodology overview
+%    - Figure 2 (Student model architecture): Place in Section 4.1 after 
+%      discussing self-explainable architecture
+%    - Figure 3 (Distillation process flowchart): Place in Section 4.2 to 
+%      illustrate methodology steps
+%    - Figure 4 (Training loss components): Place in Section 4.2 after 
+%      explaining joint training objective
+%    - Figure 5 (Performance comparison results): Place at beginning of 
+%      Section 4.3 for empirical evidence
+%    - Figure 6 (Inference time comparison): Place in Section 4.3 after 
+%      discussing speedup achievements
+%    - Figure 7 (Explanation consistency evaluation): Place in Section 4.3 
+%      after discussing explanation quality
+%    - Table 3 (Comprehensive performance metrics): Consider as figure in 
+%      Section 4.3 for detailed quantitative results
+%    - Figure 8 (Overall distillation visualization): Place at end of 
+%      Section 4 for comprehensive overview
+%
+% ADDITIONAL FIGURE CONSIDERATIONS:
+% - Attention visualization figures from any of the papers can be placed in 
+%   Section 2.1 to illustrate attention mechanisms
+% - Learning curve figures from GPT-3 paper can be placed in Section 3.1
+% - Error analysis figures from DiXtill paper can be placed in Section 4.3
+% - Computational efficiency comparisons can be placed in Section 5 
+%   (Technical Challenges)
+%
+% IMPLEMENTATION NOTES:
+% - When adding figures, ensure proper file paths in Assets/ directory
+% - Update figure captions to reflect the specific content and relevance
+% - Cross-reference figures in the text for better integration
+% - Consider figure sizing (typically 0.8\textwidth for full-width figures)
+% - Ensure figures are readable when printed in black and white
+% =============================================================================
+
+The examination of integration protocols—REST, MCP, and Streaming—reveals the complex trade-offs between performance, scalability, and implementation complexity that organizations must consider when deploying LLM solutions. Each protocol offers distinct advantages for different use cases, and the choice of integration approach significantly impacts system performance and user experience.
+
+The technical challenges discussed, including computational efficiency, security, scalability, and interoperability, highlight the multifaceted nature of enterprise LLM deployment. Addressing these challenges requires sophisticated approaches to system architecture, resource management, and performance optimization.
+
+Looking toward the future, emerging trends such as edge computing, multimodal integration, and specialized hardware acceleration will continue to reshape the landscape of LLM integration. Organizations that understand these trends and prepare for their implications will be better positioned to leverage the full potential of large language models in their enterprise applications.
+
+The subsequent chapters will build upon this foundation to present practical implementations and empirical evaluations of different integration approaches, providing concrete guidance for organizations seeking to optimize their LLM integration strategies. The comparative study of REST, MCP, and Streaming protocols will demonstrate how theoretical considerations translate into real-world performance characteristics and operational requirements.
+
+% TODO: ADD FIGURE FROM ANY PAPER - Future roadmap visualization
+% Consider creating or adapting a figure that shows the evolution and future
+% directions of LLM integration technologies, combining insights from all three papers.
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{Assets/future_integration_roadmap.png}
+%     \caption{Future roadmap for LLM integration showing the evolution of protocols, hardware, and deployment strategies over the next decade.}
+%     \label{fig:future_integration_roadmap}
+% \end{figure}

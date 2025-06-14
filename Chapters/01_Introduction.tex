@@ -1,41 +1,48 @@
 % Introduction
 \chapter{Introduction}
-Blockchain technology has gained increasing attention in both industry and academia due to its potential to transform digital systems~\cite{state2016blockchain}. At its core, blockchain is a decentralized public ledger where transactions are grouped into blocks and linked chronologically to form an immutable chain~\cite{nakamoto2008bitcoin}. This structure enables the secure recording of transactions without relying on a central authority.
+Large Language Models (LLMs) have emerged as transformative tools in natural language processing, enabling a wide range of applications across industries. From customer support chatbots to advanced decision-making systems, LLMs are increasingly integrated into enterprise applications to enhance efficiency, scalability, and user experience. However, the integration of LLMs into enterprise systems presents unique challenges, particularly in selecting the most suitable communication protocol for deployment.
 
-To ensure security and consistency across the network, blockchain systems incorporate asymmetric cryptography and distributed consensus algorithms. These elements provide critical features such as decentralization, immutability, anonymity, and auditability, which contribute to lower operational costs and improved system efficiency~\cite{nakamoto2008bitcoin}.
+Enterprise applications often rely on communication protocols to facilitate interactions between clients and servers. Among these, Representational State Transfer (REST), Model Context Protocol (MCP), and Streaming protocols have gained prominence due to their distinct characteristics and use cases. REST APIs are widely adopted for their simplicity and stateless nature, making them ideal for traditional request-response interactions. MCP, on the other hand, offers message-based communication, enabling asynchronous and context-aware interactions. Streaming protocols, such as WebSocket, provide real-time, bidirectional communication, making them suitable for applications requiring low-latency responses.
 
-These qualities have enabled blockchain to support a wide array of applications beyond financial transactions. One of the most notable uses is in smart contracts—self-executing agreements with terms encoded directly into code. Once deployed on a blockchain, these contracts are executed automatically by the network (e.g., by miners), ensuring trustless, tamper-proof enforcement of conditions~\cite{kosba2016hawk}.
+The choice of communication protocol significantly impacts the performance, scalability, and user experience of LLM-powered applications. Factors such as latency, throughput, resource utilization, and adaptability to real-time or batch processing scenarios must be carefully considered. Despite the growing adoption of LLMs, there is a lack of comprehensive studies comparing these protocols in the context of enterprise applications.
 
-In addition to smart contracts, blockchain is increasingly applied in public services, Internet of Things (IoT) environments\cite{zhang2015iot}, reputation systems\cite{sharples2015blockchain}, and security-related services~\cite{hyperledger2015}. In these domains, blockchain’s immutability assures data integrity, while its distributed nature eliminates single points of failure, making systems more resilient and transparent.
+This thesis aims to address this gap by conducting a comparative study of REST, MCP, and Streaming protocols for integrating LLMs into enterprise systems. By evaluating these protocols across key metrics and use cases, this research seeks to provide actionable insights for enterprise decision-makers. Additionally, the thesis explores the architectural foundations of LLMs, including attention mechanisms and transformer-based models, to establish a technical context for the study.
 
-However, despite its advantages, blockchain faces several technical challenges. Scalability is a primary concern, as block size limitations restrict the number of transactions processed per second. This leads to trade-offs between performance, storage, and decentralization~\cite{nakamoto2008bitcoin}. Moreover, issues such as privacy leakage have been identified even when users transact using cryptographic keys alone~\cite{biryukov2014deanonymisation}. The consensus mechanisms themselves also introduce drawbacks: proof of work consumes significant energy, while proof of stake can reinforce economic inequality among participants~\cite{biryukov2014deanonymisation}.
+The findings of this research are expected to contribute to the optimization of LLM integration patterns, enabling enterprises to leverage the full potential of LLMs while addressing the challenges associated with protocol selection. This work not only highlights the trade-offs between protocol simplicity, parallelization capabilities, and real-time responsiveness but also offers a roadmap for future developments in enterprise AI systems.
 
-In conclusion, blockchain represents a powerful infrastructure for decentralized data management and automation through smart contracts. Yet, to unlock its full capabilities, ongoing research and innovation are required to address its current limitations.
-
+% Challenges
 \chapter{Challenges}
-Smart contracts, while foundational to decentralized applications, present several inherent security challenges due to their immutable and autonomous nature. Once deployed, their code cannot be modified, meaning any vulnerability becomes permanently accessible on the blockchain. This immutability, combined with full transparency, allows attackers to analyze contract logic in detail and identify potential exploits without restriction. Many smart contracts encapsulate complex interactions and business logic, which can lead to critical errors such as reentrancy bugs, arithmetic overflows, and improper exception handling. These issues are often exacerbated by the lack of standardized development practices and the relative immaturity of tooling in the ecosystem. Furthermore, contracts frequently rely on external dependencies, including other smart contracts and off-chain data provided by oracles—each introducing additional risks that may not be fully under the developer's control. Despite efforts to improve testing and auditing tools, formal verification remains underutilized, and manual reviews are time-consuming and error-prone. As a result, even small flaws can lead to severe financial losses, making the identification and prevention of vulnerabilities a critical aspect of secure smart contract development.
+The integration of Large Language Models (LLMs) into enterprise applications introduces several challenges that must be addressed to ensure efficient and reliable deployment. One of the primary challenges is the selection of an appropriate communication protocol. Each protocol—REST, Model Context Protocol (MCP), and Streaming—has its own strengths and limitations, and the choice can significantly impact performance, scalability, and user experience.
 
+REST APIs, while simple and widely adopted, may struggle with high-latency scenarios and lack support for real-time interactions. MCP, with its message-based architecture, offers better support for asynchronous communication but introduces complexity in managing message queues and ensuring context consistency. Streaming protocols, such as WebSocket, excel in real-time, low-latency applications but require robust infrastructure to handle continuous bidirectional communication.
+
+Another challenge lies in optimizing resource utilization. LLMs are computationally intensive, and their integration can strain enterprise infrastructure, leading to increased costs and potential bottlenecks. Balancing resource allocation while maintaining high throughput and low latency is a critical concern. Additionally, ensuring the security and privacy of data exchanged between clients and servers is paramount, especially in industries like finance and healthcare where sensitive information is involved.
+
+% Motivation
 \chapter{Motivation}
-The increasing reliance on smart contracts for critical operations in finance, governance, and supply chain management introduces a growing demand for secure and dependable execution. However, the irreversible nature of smart contract deployment, combined with the complexity of their logic and the absence of centralized oversight, makes them highly susceptible to costly vulnerabilities. As demonstrated by numerous real-world exploits, even minor coding flaws can lead to severe financial and reputational consequences.
+The rapid adoption of LLMs in enterprise applications underscores the need for optimized integration patterns that can unlock their full potential. Enterprises rely on LLMs for tasks ranging from customer support and content generation to decision-making and predictive analytics. However, the lack of a clear understanding of how different communication protocols impact LLM performance and scalability creates a significant gap in the field.
 
-This thesis is driven by the need to develop a more robust and automated approach to vulnerability detection in smart contracts. Traditional manual auditing and static analysis methods, while useful, often fall short in scalability and accuracy. The integration of advanced deep learning techniques offers a promising path forward—enabling the automatic discovery of subtle and complex vulnerability patterns that may be overlooked by conventional tools. The aim of this thesis is to present a comprehensive state-of-the-art review of how deep learning techniques are being applied to the detection of vulnerabilities in smart contracts. By analyzing current research and approaches, this work seeks to provide a clear understanding of the field’s progress, challenges, and future potential. The motivation behind this study is to contribute to the development of a more secure and resilient smart contract ecosystem through intelligent, automated analysis methods.
+This thesis is motivated by the need to provide actionable insights into the trade-offs associated with REST, MCP, and Streaming protocols. By systematically evaluating these protocols, this research aims to empower enterprise decision-makers to make informed choices that align with their specific use cases and operational requirements. Furthermore, the study seeks to address the challenges of resource optimization, latency reduction, and real-time responsiveness, which are critical for the successful deployment of LLMs in enterprise environments.
 
-\chapter{Organisation And Structure}
-This document constitutes the first phase of an in-depth research project focused on the detection of vulnerabilities in smart contracts using deep learning techniques. It is structured into five main chapters, organized as follows:
+% Organisation and Structure
+\chapter{Organisation and Structure}
+This thesis is organized into five main parts, each addressing a specific aspect of the research:
 
 \begin{itemize}
-    \item \textbf{Chapter 1: Introduction} \\
-    This chapter introduces the research topic, outlines the motivation, defines the problem statement, and presents the main objectives and scope of the study.
+    \item \textbf{Part 1: Introduction} \\
+    This part introduces the research topic, outlines the challenges and motivation, and presents the objectives and scope of the study.
 
-    \item \textbf{Chapter 2: Background} \\
-    This chapter provides the necessary theoretical foundation by covering two key areas: blockchain technology and smart contracts on one hand, and deep learning principles and architectures on the other. It offers the reader a comprehensive understanding of the technical context surrounding both domains.
+    \item \textbf{Part 2: Background} \\
+    This part provides the theoretical foundation for the study, covering the architecture of LLMs, the principles of REST, MCP, and Streaming protocols, and a review of related work.
 
-    \item \textbf{Chapter 3: Related Work} \\
-    This chapter reviews existing approaches and tools for detecting vulnerabilities in smart contracts. It examines traditional analysis techniques as well as recent research leveraging machine learning and deep learning, highlighting their strengths and limitations.
+    \item \textbf{Part 3: Implementation} \\
+    This part details the design and development of a Spring Boot application that integrates a distilled LLM using REST, MCP, and Streaming protocols. It also describes the metrics collection and monitoring setup.
 
+    \item \textbf{Part 4: Results} \\
+    This part presents the experimental setup, results, and analysis, highlighting the trade-offs and performance metrics for each protocol.
 
-    \item \textbf{Chapter 4: Conclusion} \\
-    The final chapter summarizes the key contributions of the research, reflects on its limitations, and suggests potential directions for future work.
+    \item \textbf{Part 5: Conclusion} \\
+    This part summarizes the key findings, discusses the limitations of the study, and suggests directions for future research.
 \end{itemize}
 
-The document concludes with a complete list of references used throughout the thesis.
+The document concludes with a comprehensive bibliography, listing all references cited throughout the thesis.
