@@ -1,0 +1,930 @@
+% Background
+
+\chapter{Blockchain}
+\section{Blockchain Definition}
+Blockchain technology is a decentralized system that maintains a continuously growing list of records, called blocks, which are linked and secured using cryptographic techniques. Each block contains a batch of verified transactions, similar in function to entries in a traditional public ledger~\cite{lee2015handbook}. The integrity and chronological order of these transactions are enforced by linking each block to the previous one via a cryptographic hash, forming a tamper-evident chain, as illustrated in Figure~\ref{fig:blockchain_structure}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/blockchain_structure.png}
+    \caption{A simplified representation of a blockchain as a sequence of linked blocks}
+    \label{fig:blockchain_structure}
+\end{figure}
+
+The first block in any blockchain is known as the \textit{genesis block}, which serves as the foundational entry and has no parent block. In Ethereum, the structure is further extended by referencing \textit{uncle blocks}—those that are valid but not part of the main chain—adding robustness and aiding decentralization~\cite{wood2014ethereum}.
+
+Each block consists of two main parts: the \textbf{block header} and the \textbf{block body}, as shown in Figure~\ref{fig:block_structure}. The block header carries metadata essential for maintaining the chain’s integrity, including:
+\begin{itemize}
+    \item The \textbf{version number}, which specifies the set of validation rules used for the block;
+    \item The \textbf{Merkle root hash}, which summarizes all transactions in the block in a tree-like structure for efficient verification;
+    \item A \textbf{timestamp} marking the creation time of the block;
+    \item A \textbf{difficulty target} (\texttt{nBits}), which defines the required threshold for a valid block hash;
+    \item A \textbf{nonce}, an arbitrary number used in the proof-of-work process;
+    \item The \textbf{parent block hash}, which links to the previous block in the chain.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/block_structure.png}
+    \caption{Structure of a block showing the block header and body}
+    \label{fig:block_structure}
+\end{figure}
+
+The block body contains the actual transactions and a counter indicating the number of transactions. The capacity of a block to hold transactions depends on its maximum size and the size of individual transactions.
+
+To ensure secure and verifiable transactions within an untrusted environment, blockchain utilizes \textbf{asymmetric cryptography}—specifically, \textbf{digital signatures}. Each user is assigned a \textit{key pair}: a private key (kept secret) and a public key (shared with others). When a user initiates a transaction, it is signed using their private key. This signature, along with the transaction data, is broadcast to the network. Other nodes can then verify the signature using the sender’s public key to confirm the authenticity and integrity of the message.
+
+The \textit{Elliptic Curve Digital Signature Algorithm (ECDSA)} is the predominant algorithm used in most blockchain systems, including Bitcoin and Ethereum~\cite{johnson2001ecdsa}. It provides a high level of security while maintaining efficiency in key size and computational requirements.
+\section{Key Characteristics of Blockchain}
+
+Blockchain systems offer several foundational characteristics that distinguish them from traditional centralized models.
+
+\begin{itemize}
+  \item \textbf{Decentralization}: Unlike conventional systems where a central authority (e.g., a central bank) must validate each transaction, blockchain eliminates the need for intermediaries. Through the use of consensus mechanisms, data consistency is maintained across a distributed network, reducing both cost and dependency on central servers.
+
+  \item \textbf{Persistency}: Once validated, transactions are permanently recorded on the blockchain. Invalid transactions are promptly rejected by honest participants (miners), and modifying or removing already accepted transactions is nearly impossible, ensuring data immutability~\cite{nakamoto2008bitcoin}.
+
+  \item \textbf{Anonymity}: Users interact with the blockchain using cryptographic addresses rather than real identities. Although this provides a degree of privacy, it does not guarantee complete anonymity due to structural limitations inherent in most blockchain systems~\cite{nakamoto2008bitcoin}.
+
+  \item \textbf{Auditability}: Blockchains like Bitcoin use the Unspent Transaction Output (UTXO) model to track balances~\cite{nakamoto2008bitcoin}. Every new transaction must reference previous unspent outputs, allowing the system to update their status to "spent" upon recording. This structure ensures that all transactions can be easily verified and traced.
+\end{itemize}
+
+\section{Types of Blockchains}
+Blockchain systems can be broadly classified into three main categories: \textbf{public blockchains}, \textbf{private blockchains}, and \textbf{consortium blockchains}~\cite{buterin2015blockchains}. Each type exhibits distinct features in terms of access control, decentralization, and consensus management.
+
+\textbf{Public blockchains} are completely open systems in which anyone can participate. All transaction data is publicly accessible, and every node in the network has the right to join the consensus process. Bitcoin and Ethereum are well-known examples of public blockchains. These systems rely on consensus algorithms like Proof of Work or Proof of Stake to validate transactions in a decentralized manner.
+
+\textbf{Private blockchains}, on the other hand, are restricted to a single organization. Only authorized nodes within that organization can read from or write to the blockchain and take part in the consensus process. Because control resides entirely within one entity, private blockchains are often considered centralized. They are commonly used for internal enterprise operations where efficiency and control are prioritized over decentralization.
+
+\textbf{Consortium blockchains} represent a hybrid model where consensus is managed by a selected group of organizations rather than the general public or a single authority. Participation is permissioned, and data access may be restricted based on the consortium’s governance rules. These blockchains are partially decentralized and are well-suited for scenarios where collaboration between multiple trusted parties is required. Frameworks like Hyperledger Fabric~\cite{hyperledger2015} and Ethereum’s consortium tools~\cite{ethereum2015consortium} support such architectures.
+
+Key distinctions between these blockchain types can be highlighted through several technical aspects:
+
+\begin{itemize}
+    \item \textbf{Consensus determination}: In public blockchains, all nodes can participate in the consensus process. In consortium blockchains, only a predefined set of nodes—typically from trusted organizations—are involved. In private blockchains, consensus is entirely controlled by a single organization, leading to centralized decision-making.
+
+    \item \textbf{Read permission}: Public blockchains allow unrestricted access to all transaction data. In contrast, consortium and private blockchains may implement limited read permissions, depending on the application and governance policies.
+
+    \item \textbf{Immutability}: Due to their broad and decentralized participation, public blockchains are highly resistant to tampering. Once data is validated and added to the chain, altering it would require immense computational resources and consensus across the network. However, in private and consortium blockchains—where fewer nodes are involved—modifying or rolling back data is comparatively easier, potentially compromising immutability.
+
+    \item \textbf{Efficiency}: Public blockchains often suffer from performance bottlenecks because of the large number of participating nodes and resource-intensive consensus protocols. This results in higher latency and lower transaction throughput. Private and consortium blockchains, with fewer validating nodes, can operate more efficiently, offering faster block confirmation times and improved scalability.
+
+    \item \textbf{Centralization}: Public blockchains are fully decentralized by design, with no single point of control. Consortium blockchains are partially decentralized, as control is distributed among selected organizations. In contrast, private blockchains are fully centralized and governed by a single entity.
+
+    \item \textbf{Consensus process}: In public blockchains, anyone can participate in the consensus protocol without needing approval. Consortium and private blockchains are permissioned systems, where only selected or authorized nodes can validate transactions and contribute to consensus.
+\end{itemize}
+
+Thanks to their openness and decentralized structure, public blockchains attract wide adoption and foster large, active communities. Consortium blockchains, meanwhile, are ideal for business applications requiring collaboration among multiple parties, while maintaining a degree of decentralization. For example, Hyperledger~\cite{hyperledger2015} and Ethereum-based consortium frameworks~\cite{ethereum2015consortium} are actively being developed to serve enterprise needs. The comparison between the three types is more highlighted in Table \ref{tab:blockchain_comparison}. 
+\begin{table}[H]
+\centering
+\small
+\vspace{-0.5em} % optional: reduces space after caption
+\begin{tabular}{@{}p{4cm}|p{3.2cm}p{4.1cm}p{3.2cm}@{}}
+\toprule
+\textbf{Property} & \textbf{Public blockchain} & \textbf{Consortium blockchain} & \textbf{Private blockchain} \\
+\midrule
+\textbf{Consensus determination} & All miners & Selected set of nodes & One organization \\
+\textbf{Read permission} & Public & Could be public or restricted & Could be public or restricted \\
+\textbf{Immutability} & Nearly impossible to tamper & Could be tampered & Could be tampered \\
+\textbf{Efficiency} & Low & High & High \\
+\textbf{Centralized} & No & Partial & Yes \\
+\textbf{Consensus process} & Permissionless & Permissioned & Permissioned \\
+\bottomrule
+\end{tabular}
+\caption{\centering Comparisons among \textit{public blockchain}, \textit{consortium blockchain} and \textit{private blockchain}}
+\label{tab:blockchain_comparison}
+\end{table}
+
+\section{Blockchain Consensus Algorithms }
+
+Achieving consensus in a decentralized and trustless network is one of the most critical challenges in blockchain systems. This section presents major consensus mechanisms used in modern blockchain platforms, along with a comparative analysis of their characteristics.
+
+\begin{itemize}
+\item \textbf{Proof of Work (PoW)}: A resource-intensive mechanism that requires miners to perform computationally expensive operations to solve cryptographic puzzles. Each node attempts to find a valid hash by modifying a nonce in the block header. The first to succeed broadcasts the new block, which is then verified and appended by other nodes~\cite{nakamoto2008bitcoin}. While secure, PoW is criticized for its energy consumption.
+
+In a decentralized setting, it is possible for multiple nodes to solve the hash puzzle at nearly the same time, leading to temporary forks in the blockchain. These forks are resolved when one of the chains grows longer than the others, at which point miners abandon the shorter branches and continue on the longest one. This process is illustrated in Figure~\ref{fig:pow_fork}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/pow_fork.png}
+    \caption{An scenario of blockchain branches}
+    \label{fig:pow_fork}
+\end{figure}
+
+  \item \textbf{Proof of Stake (PoS)}: Instead of relying on computational work, PoS selects validators based on their holdings or "stake" in the network. Variants like Peercoin~\cite{king2012ppcoin} and Blackcoin~\cite{vasin2014blackcoin} factor in stake age and randomness. PoS is significantly more energy-efficient but can introduce centralization risks.
+
+  \item \textbf{Delegated Proof of Stake (DPoS)}: An enhanced PoS model where token holders elect a fixed number of delegates responsible for validating blocks. It improves transaction throughput and allows quick removal of underperforming validators~\cite{bitshares2016}.
+
+  \item \textbf{Practical Byzantine Fault Tolerance (PBFT)}: A consensus algorithm designed to tolerate up to one-third faulty or malicious nodes~\cite{castro1999pbft}. Used in Hyperledger Fabric~\cite{hyperledger2015}, it involves a three-phase voting system (pre-prepare, prepare, commit) and is suited for permissioned blockchains.
+
+  \item \textbf{Stellar Consensus Protocol (SCP)}: Each node maintains a list of trusted nodes (quorum slices) and reaches consensus based on their agreement~\cite{mazieres2015stellar}. This flexible trust model improves scalability and decentralization.
+
+  \item \textbf{Delegated Byzantine Fault Tolerance (dBFT)}: Based on PBFT, dBFT elects professional validators to maintain the blockchain, as seen in Antshares~\cite{antshares2016}. It is efficient and resilient to faults in semi-centralized environments.
+
+  \item \textbf{Ripple Protocol}: Ripple's consensus relies on subnetworks called Unique Node Lists (UNLs). Transactions are confirmed when 80\% of a server's UNL agrees, assuming that less than 20\% of them are faulty~\cite{schwartz2014ripple}.
+
+  \item \textbf{Tendermint}: A secure BFT consensus with a three-phase process: prevote, precommit, and commit. Validators are required to stake coins and are penalized for malicious behavior~\cite{kwon2014tendermint}.
+\end{itemize}
+
+\subsection{Consensus Algorithm Comparison Criteria}
+
+To understand the strengths and trade-offs of different consensus protocols, we evaluate them based on the following key criteria~\cite{vukolic2015scalability}:
+
+\begin{itemize}
+  \item \textbf{Node Identity Management}:  
+  PBFT and Tendermint require knowledge of validator identities for deterministic leader selection. PoW, PoS, and DPoS allow pseudonymous participation. Ripple allows nodes to define their own trusted subnetworks.
+
+  \item \textbf{Energy Efficiency}:  
+  PoW is the most energy-consuming, while PoS and DPoS significantly reduce resource requirements. PBFT, Ripple, and Tendermint eliminate mining entirely, achieving maximal energy savings.
+
+  \item \textbf{Fault Tolerance}:  
+  PoW assumes 51\% honest hash power, although selfish mining may reduce this threshold to 25\%~\cite{eyal2014majority}. PBFT and Tendermint tolerate up to 1/3 faulty nodes. Ripple can tolerate up to 20\% faulty nodes in a node’s UNL.
+
+  \item \textbf{Example Platforms}:  
+  \begin{itemize}
+    \item \textbf{PoW}: Initially used in Ethereum~\cite{wood2014ethereum}.  
+    \item \textbf{PoS}: Peercoin~\cite{king2012ppcoin}, Ethereum’s Casper transition~\cite{zamfir2015casper}.  
+    \item \textbf{DPoS}: BitShares~\cite{bitshares2016}.  
+    \item \textbf{PBFT}: Hyperledger Fabric~\cite{hyperledger2015}.  
+    \item \textbf{Ripple}: Uses its own Ripple protocol~\cite{schwartz2014ripple}.  
+    \item \textbf{Tendermint}: Used in Cosmos and enterprise blockchain networks~\cite{kwon2014tendermint}.
+  \end{itemize}
+\end{itemize}
+The table \ref{tab:consensus_comparison} below highlights more about the comparison between consensus algorithms. 
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.4} % for better spacing
+\begin{tabular}{|p{4.3cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{1.8cm}|p{2cm}|}
+\hline
+\textbf{Property} & \textbf{PoW} & \textbf{PoS} & \textbf{PBFT} & \textbf{DPOS} & \textbf{Ripple} & \textbf{Tendermint} \\
+\hline
+\textbf{Node identity management} & open & open & permissioned & open & open & permissioned \\
+\hline
+\textbf{Energy saving} & no & partial & yes & partial & yes & yes \\
+\hline
+\textbf{Tolerated power of adversary} & $<$ 25\% computing power & $<$ 51\% stake & $<$ 33.3\% faulty replicas & $<$ 51\% validators & $<$ 20\% faulty nodes in UNL & $<$ 33.3\% byzantine voting power \\
+\hline
+\textbf{Example} & Bitcoin~\cite{nakamoto2008bitcoin} & Peercoin~\cite{king2013primecoin} & Hyperledger Fabric~\cite{hyperledger2015} & Bitshares~\cite{bitshares2016} & Ripple~\cite{schwartz2014ripple} & Tendermint~\cite{kwon2014tendermint} \\
+\hline
+\end{tabular}
+\caption{\centering Comparison of consensus algorithms based on key properties}
+\label{tab:consensus_comparison}
+\end{table}
+
+\chapter{Smart Contracts}
+\section{Definition}
+Smart contracts are self-executing computer programs that enforce the terms of an agreement automatically when predefined conditions are met~\cite{buterin2014whitepaper}. These contracts autonomously carry out the agreed-upon actions encoded within them, thereby eliminating the need for intermediaries and reducing the risk of disputes. Once the specified conditions are satisfied, the contract executes its logic and records the results accordingly.A smart contract is essentially a piece of code that:
+\begin{itemize}
+  \item Runs on the blockchain (e.g., Ethereum),
+  \item Automatically executes predefined actions when certain conditions are met,
+  \item Cannot be changed or stopped once deployed (unless specifically programmed for upgradability),
+  \item Lives at a blockchain address, just like a user~\cite{buterin2014whitepaper}.
+\end{itemize}
+
+Blockchain technology provides an ideal foundation for smart contracts due to its decentralized structure and consensus-driven validation across the network. This ensures transparency, security, and tamper-resistance, which are essential for trustworthy autonomous execution.
+
+On the Ethereum blockchain, smart contracts are hosted in the same address space as externally owned accounts, and they are activated by sending a transaction to their corresponding contract address. To mitigate unnecessary computational overhead and protect the network from resource abuse, Ethereum implements a mechanism called \textit{gas}. Each operation within a smart contract consumes a certain amount of gas, which is paid in Ether. This system ensures that computational resources are used efficiently and discourages malicious or overly complex executions~\cite{buterin2014whitepaper}.The figure \ref{fig:smart_contract_execution_flow} shows an execution flow of a transaction using smart contract located inside a blockchain.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/sc_execution_flow.png}
+    \caption{Smart Contract Execution Flow}
+    \label{fig:smart_contract_execution_flow}
+\end{figure}
+
+\section{Smart Contracts Use Cases}
+Smart contracts are increasingly being adopted across a wide range of domains to remove the need for intermediaries and automate complex transactional workflows. By embedding predefined conditions into blockchain-based code, these applications can execute reliably and transparently without third-party involvement. 
+
+In this study, we explore seven distinct use cases where smart contracts and blockchain technologies can be applied to enhance trust, automation, and efficiency. These applications, illustrated in Figure~\ref{fig:smart_contract_usecases}, demonstrate the versatility of blockchain as a foundational technology. 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/sm_use_cases.png}
+    \caption{Some uses cases of smart contracts ~\cite{durieux2020empirical}}
+    \label{fig:smart_contract_usecases}
+\end{figure}
+\subsection{Internet Of Things (IoT)}
+The Internet of Things (IoT) is emerging as a highly promising domain for both industrial and academic research. IoT devices typically operate under significant resource constraints, such as limited memory capacity and low computational power. According to a report by CISCO ~\cite{cisco2020internetreport}, the number of IoT-connected devices has already surpassed the global human population.
+
+Recent studies have explored the integration of blockchain technology with IoT in various contexts, including smart homes, smart cities, intelligent transportation systems, and environmental monitoring applications. By incorporating smart contracts into blockchain-based IoT systems, these applications can achieve higher levels of automation and autonomy, enabling devices to operate and make decisions with minimal human intervention.
+
+\subsection{Supply Chain}
+Supply chain management encompasses multiple layers of transactions, each governed by specific terms and conditions. It typically involves a range of interconnected systems across sectors such as food processing, transportation, and shipping. Integrating a digital ledger through blockchain enhances transparency, reliability, and trust by eliminating the need for third-party intermediaries.
+
+Blockchain’s distributed and tamper-resistant architecture ensures that every transaction is traceable and accessible across the network. When combined with smart contracts, as illustrated in Figure~\ref{fig:supply_chain}, the system gains further automation and security. Smart contracts encode predefined rules and conditions as programmable logic on the blockchain. Whenever a transaction occurs, these contracts are automatically triggered and executed based on the input data.
+
+The validation and verification processes are handled by blockchain nodes. If the network reaches consensus that the contract’s conditions are satisfied, the corresponding event is executed and the transaction is recorded immutably in the blockchain. This integration of smart contracts into supply chains enhances operational efficiency, reduces delays, and fosters greater trust and transparency in trade activities.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/supply_chain.png}
+    \caption{Smart Contracts in supply chain domain ~\cite{feng2024interpretable}.}
+    \label{fig:supply_chain}
+\end{figure}
+
+\subsection{Health Care}
+As technology continues to advance rapidly, so too does the standard of living. Recent innovations in personal healthcare monitoring have enabled individuals to track their health conditions from the comfort of their homes. A variety of wearable and portable devices have been developed to measure various physiological parameters such as heart rate, blood pressure, glucose levels, and more. These devices can collect real-time data using low-power sensors and process it locally to provide immediate feedback~\cite{zhang2015iot}.
+
+Blockchain technology plays a critical role in safeguarding the privacy and integrity of this sensitive health data by storing it in a tamper-resistant digital ledger. When integrated with smart contracts, these systems can be made even more reliable and autonomous. Smart contracts allow patients or healthcare providers to define rules and conditions for data usage, access, and response. Once the specified health data is collected, the blockchain executes the relevant smart contract and automatically triggers associated events, such as alerts to caregivers or updates to medical records. This process is illustrated in Figure~\ref{fig:health_care}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/health_care.png}
+    \caption{Smart Contracts in health care domain ~\cite{zhang2020scvd}.}
+    \label{fig:health_care}
+\end{figure}
+
+
+\subsection{Digital Right Management}
+The digital rights industry often involves numerous stakeholders in the creation and distribution of content, making the management of payments and copyrights a complex issue. Disputes frequently arise regarding royalty distribution and ownership attribution. By leveraging a blockchain-based system integrated with smart contracts, it becomes possible to enforce transparent and tamper-proof ownership records. Smart contracts ensure that royalty payments are automatically directed to rightful recipients according to predefined terms, thereby minimizing conflicts and improving trust among all parties involved.
+
+\subsection{Insurance}
+Traditional insurance systems are often plagued by lengthy claim processing times and a lack of transparency, which can lead to disputes among stakeholders. These inefficiencies stem from the involvement of multiple intermediaries and ambiguous verification procedures. By adopting a blockchain-based infrastructure integrated with smart contracts, the claims process can be significantly streamlined. Smart contracts enable predefined conditions to be automatically verified and executed without third-party intervention. Once a claim meets the specified criteria, the smart contract triggers corresponding actions—such as claim approval or fund transfer—ensuring a transparent, secure, and efficient process. This approach is illustrated in Figure~\ref{fig:insurance}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/insurance.png}
+    \caption{A Smart contract based Insurance system ~\cite{zhang2020scvd}.}
+    \label{fig:insurance}
+\end{figure}
+
+\subsection{Financial System}
+Originally introduced as the foundational technology behind the Bitcoin cryptocurrency, blockchain was initially applied solely within the financial domain. Traditional banking systems rely heavily on intermediaries to process and authorize money transfers between accounts, often resulting in delays, fees, and centralized control. In contrast, blockchain enables direct peer-to-peer transactions without the need for central storage or oversight. When combined with smart contracts, blockchain technology holds significant potential for transforming the financial sector by enabling automated, transparent, and secure financial operations. However, despite this potential, substantial research and development are still required to fully integrate smart contract functionality into mainstream financial systems.
+
+\subsection{Real Estate}
+Traditional real estate systems are often associated with significant risks, lengthy processes, and numerous stages of legal documentation and manual verification. Transactions typically involve multiple intermediaries and require physical signatures, making the process time-consuming and prone to errors or fraud. By integrating blockchain technology with smart contracts, many of these challenges can be addressed. A blockchain-based system enables the digital verification and validation of property documents, reducing the need for third-party involvement. Smart contracts can automate key transaction steps, such as transferring ownership upon payment confirmation. Additionally, property records and legal agreements can be securely stored in a distributed digital ledger, ensuring transparency and accessibility for all participants in the network.
+
+
+\section{Smart Contracts on Ethereum}
+\subsection{Ethereum Basics}
+Ethereum is a decentralized, open-source blockchain platform that enables developers to build and deploy smart contracts and decentralized applications (dApps). It was proposed by Vitalik Buterin in late 2013, and its development was crowdfunded in 2014. The Ethereum network officially launched in July 2015~\cite{buterin2014whitepaper,wood2014ethereum}.
+
+\subsection{Ethereum Key Features}
+\begin{enumerate}
+  \item \textbf{Smart Contracts:} Ethereum allows developers to create smart contracts—self-executing pieces of code with the terms of the agreement embedded directly into the logic. These contracts autonomously perform actions when predefined conditions are satisfied~\cite{wood2014ethereum}.
+  
+  \item \textbf{Decentralized Applications (dApps):} Built atop the Ethereum blockchain, dApps are not controlled by any single entity. This decentralized nature makes them resilient against censorship, manipulation, and fraud~\cite{buterin2014whitepaper}.
+  
+  \item \textbf{Ether (ETH):} Ether is the native cryptocurrency of the Ethereum platform. It is used to pay for transaction fees (referred to as "gas") and computational services. Users require ETH to deploy and interact with smart contracts and dApps~\cite{wood2014ethereum}.
+  
+  \item \textbf{Ethereum Virtual Machine (EVM):} The EVM serves as a runtime environment for executing smart contracts. It ensures that code behaves consistently across all nodes. Developers can write contracts in high-level languages like Solidity, which are then compiled into bytecode for EVM execution~\cite{wood2014ethereum}.
+  
+  \item \textbf{Decentralization:} Ethereum operates over a distributed network of nodes, ensuring that no single authority controls the system. This structure enhances both security and data integrity.
+  
+  \item \textbf{Proof of Stake (PoS):} Ethereum is currently transitioning from a Proof of Work (PoW) consensus algorithm to a Proof of Stake (PoS) system under Ethereum 2.0. This shift aims to reduce energy consumption and increase scalability and security~\cite{buterin2014whitepaper,wood2014ethereum}.
+  
+  \item \textbf{Interoperability and Token Standards:} Ethereum supports various token standards like ERC-20 for fungible tokens and ERC-721 for non-fungible tokens (NFTs). These standards promote interoperability and ease of asset creation on the platform.
+\end{enumerate}
+
+\subsection{Use Cases}
+
+\begin{itemize}
+  \item \textbf{Decentralized Finance (DeFi):} Ethereum underpins a wide array of DeFi applications, enabling users to lend, borrow, and exchange digital assets without the need for intermediaries.
+  
+  \item \textbf{Non-Fungible Tokens (NFTs):} NFTs built on Ethereum allow for the ownership and trade of unique digital assets, such as digital art and collectibles.
+  
+  \item \textbf{Decentralized Autonomous Organizations (DAOs):} Ethereum facilitates the creation of DAOs, which are governed through smart contracts and community consensus, allowing transparent and automated governance.
+\end{itemize}
+
+Overall, Ethereum has become one of the most widely adopted and influential blockchain platforms. Its robust infrastructure and innovation-friendly environment continue to foster the development of decentralized technologies across various industries.
+
+\subsection{Ethereum Virtual Machine (EVM)}
+The Ethereum Virtual Machine (EVM) serves as the core component of the Ethereum blockchain, providing the environment in which all smart contracts are executed. It is a quasi–Turing complete machine that allows anyone to deploy and interact with decentralized applications using smart contracts.
+
+At its foundation, the EVM is a stack-based virtual machine that processes bytecode instructions. Smart contracts are typically written in high-level programming languages such as Solidity or Vyper and then compiled down into EVM bytecode before deployment on the blockchain. Every Ethereum node runs an instance of the EVM, ensuring that smart contract execution is consistent across the network. The architecture of the EVM, including its core components such as stack, memory, storage, and gas tracking, is illustrated in Figure~\ref{fig:evm_architecture}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Assets/evm_architecture.png}
+    \caption{Architecture of the Ethereum Virtual Machine (EVM), showing its main components \cite{wood2014ethereum}.}
+    \label{fig:evm_architecture}
+\end{figure}
+
+
+\subsubsection{Architecture and Operation}
+The EVM operates on a stack architecture and uses several components during execution (as shown in Figure~\ref{fig:evm_architecture}):
+\begin{itemize}
+  \item \textbf{Stack:} A last-in-first-out (LIFO) data structure with a depth of 1024 elements used for temporary values.
+  \item \textbf{Memory:} A volatile byte-array memory accessible during contract execution but not retained after execution ends.
+  \item \textbf{Storage:} A persistent key-value store unique to each contract, used to save state data across invocations.
+  \item \textbf{Program Counter (PC):} Keeps track of the next instruction to be executed.
+  \item \textbf{Gas:} Every EVM operation has an associated gas cost. Users must pay gas to execute contracts, and running out of gas halts execution.
+\end{itemize}
+
+\subsubsection{Determinism and Isolation}
+The EVM is deterministic—given the same initial state and input, it always produces the same output. Additionally, the EVM is sandboxed, meaning that code execution within one contract cannot directly affect others, ensuring fault isolation. This design is crucial for maintaining security and consistency across the decentralized network~\cite{wood2014ethereum}.
+\subsubsection{Gas Model}
+Gas in Ethereum serves both as a resource control mechanism and a fee structure. Every operation (e.g., arithmetic, storage, external call) consumes a specific amount of gas. Users must estimate and allocate gas before executing a transaction. Unused gas is refunded, while insufficient gas results in termination without state changes. This mechanism prevents infinite loops and denial-of-service attacks~\cite{buterin2014whitepaper}.
+
+\subsubsection{EVM Bytecode and Opcodes}
+The EVM executes a low-level binary instruction set known as opcodes. These include operations for arithmetic, logic, control flow, memory access, and blockchain-specific features (e.g., querying the current block number or sender address). The standardized nature of opcodes ensures compatibility and uniformity across the Ethereum ecosystem.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Assets/evm_execution_flow.png}
+    \caption{Execution flow of the EVM, from transaction submission to state update.}
+    \label{fig:evm_execution_flow}
+\end{figure}
+
+As illustrated in Figure~\ref{fig:evm_execution_flow}, EVM execution begins when a transaction triggers a smart contract. The EVM evaluates bytecode instruction-by-instruction, updates state, and consumes gas. If any exception occurs (e.g., out-of-gas, invalid opcode), the state reverts.
+
+\subsubsection{Security and Limitations}
+Despite its robustness, the EVM has limitations. Its stack depth, gas constraints, and lack of native floating-point arithmetic pose challenges. Moreover, poor smart contract design can lead to vulnerabilities, such as reentrancy or integer overflow. These risks emphasize the importance of secure coding practices and thorough auditing~\cite{atzei2017survey}.
+
+\section{Solidity: The Smart Contracts Programming Language}
+Solidity is a statically typed, high-level programming language designed specifically for writing smart contracts that run on the Ethereum Virtual Machine (EVM). Inspired by C++, Python, and JavaScript, Solidity provides developers with familiar syntax while incorporating blockchain-specific features like gas management, immutability, and contract inheritance. Solidity enables developers to write smart contracts that define rules and interactions between decentralized applications (dApps) on the Ethereum blockchain~\cite{wood2014ethereum}. It uses Remix as a compiler. Remix is a web-based development environment specifically designed for writing and testing smart contracts directly within a browser. It provides a user-friendly interface where developers can write Solidity code, compile contracts, and deploy them either to a test environment or a real Ethereum network. One of its key features is the built-in JavaScript Virtual Machine (JSVM), which enables simulation of contract deployment and execution without requiring connection to a live blockchain. This makes it possible to interact with and test contract functions in a fully local environment before actual deployment.
+
+\subsection*{Language Features of Solidity}
+Solidity offers a wide variety of features tailored to decentralized systems:
+
+\begin{itemize}
+  \item \textbf{Contract-Oriented Structure:} Each smart contract is a self-contained unit with its own state, functions, and logic.
+  \item \textbf{Static Typing:} Variable types (e.g., \texttt{uint}, \texttt{address}, \texttt{string}, etc.) must be explicitly defined.
+  \item \textbf{Inheritance:} Solidity supports multiple inheritance, enabling code reuse across contracts.
+  \item \textbf{Event Emission:} Smart contracts can emit logs (events) to notify external listeners of specific occurrences.
+  \item \textbf{Modifiers:} Custom function wrappers (like middleware) that enforce conditions (e.g., access control).
+  \item \textbf{Payable Functions:} Special functions capable of receiving Ether.
+\end{itemize}
+
+
+\subsection*{Syntax and Key Constructs}
+Solidity provides developers with object-oriented features, inheritance, and complex user-defined types. The basic unit in Solidity is the \texttt{contract}, which encapsulates state variables, functions, constructors, events, and modifiers.
+
+\begin{itemize}
+  \item \textbf{State Variables}: Permanently stored on the blockchain and represent the contract's state.
+  \item \textbf{Functions}: Used to define logic. Can be public, private, internal, or external.
+  \item \textbf{Events}: Allow logging of data, enabling off-chain applications to listen for updates.
+  \item \textbf{Modifiers}: Restrict or enhance function behavior, commonly used for access control.
+\end{itemize}
+
+\subsection*{Example: A Simple Voting Contract}
+\begin{lstlisting}[language=Solidity, caption={A simple smart contract for voting system}, label={lst:voting_contract}, captionpos=b]
+pragma solidity ^0.8.0;
+
+contract Voting {
+    mapping (string => uint256) public votes;
+
+    function vote(string memory candidate) public {
+        votes[candidate] += 1;
+    }
+
+    function getVotes(string memory candidate) public view returns (uint256) {
+        return votes[candidate];
+    }
+}
+\end{lstlisting}
+
+This contract allows users to vote for a candidate by incrementing a counter. The \texttt{mapping} structure associates string identifiers with unsigned integers, representing vote counts. This illustrates Solidity's support for key-value pairs and user interactions with state.
+
+\subsection*{Types and Memory Management}
+
+Solidity supports both primitive types (e.g., \texttt{uint}, \texttt{bool}, \texttt{address}) and complex data types (e.g., \texttt{structs}, \texttt{arrays}). Data location specifiers such as \texttt{memory}, \texttt{storage}, and \texttt{calldata} explicitly define how data is stored and passed, an essential component for secure memory management in contract execution.
+
+\subsection*{Compilation and Execution}
+
+Before deployment, Solidity code is compiled into EVM bytecode. The compiler performs static checks for type errors and generates Application Binary Interface (ABI) definitions for external communication. Once compiled, the contract is deployed to the Ethereum network, where users can interact with it via transactions. Execution is deterministic, meaning the same input always results in the same output on all nodes.
+
+\subsection*{Gas Consumption and Optimization}
+
+Every operation in Solidity has an associated gas cost. Developers are encouraged to write optimized code to minimize gas usage, as inefficient loops or excessive storage can lead to higher transaction fees. Solidity includes constructs such as short-circuiting logical operators, in-place variable declarations, and internal function calls to help manage gas consumption~\cite{wood2014ethereum}.
+
+\section{Common Vulnerabilities in Smart Contracts}
+Smart contracts, while offering automation and trustless execution, are prone to security vulnerabilities due to their immutable and publicly accessible nature. Once deployed, flawed contracts can lead to substantial financial loss and systemic risk. In this section, we explore some of the most common vulnerabilities found in Ethereum smart contracts.
+\subsection*{1. Reentrancy Attacks}
+Reentrancy occurs when an external contract is called before the first invocation is complete, allowing the external call to re-enter the vulnerable contract.
+
+\begin{lstlisting}[language=Solidity, caption=Reentrancy vulnerability example, label={lst:reentrancy_vuln}, captionpos=b]
+pragma solidity ^0.8.0;
+
+contract VulnerableBank {
+    mapping(address => uint256) public balances;
+
+    function deposit() public payable {
+        balances[msg.sender] += msg.value;
+    }
+
+    function withdraw() public {
+        uint256 amount = balances[msg.sender];
+        if (amount > 0) {
+            (bool success, ) = msg.sender.call{value: amount}("");
+            require(success);
+            balances[msg.sender] = 0;
+        }
+    }
+}
+\end{lstlisting}
+
+\textbf{Issue:} The balance is updated after the external call, allowing a malicious contract to recursively call \texttt{withdraw()} before the balance is set to zero.
+
+\textbf{Mitigation:} Update state variables before making external calls, or use mutexes to lock functions.
+
+\subsection*{2. Integer Overflows and Underflows}
+
+Before Solidity 0.8.0, arithmetic operations did not throw errors on overflows or underflows.
+
+\begin{lstlisting}[language=Solidity, caption=Integer overflow example, label={lst:overflow}]
+pragma solidity ^0.6.0;
+
+contract OverflowExample {
+    uint8 public counter = 255;
+
+    function increment() public {
+        counter += 1; // Wraps around to 0
+    }
+}
+\end{lstlisting}
+
+\textbf{Issue:} Incrementing \texttt{counter} causes it to overflow and wrap around to zero.
+
+\textbf{Mitigation:} Use Solidity 0.8+ or import \texttt{SafeMath} from OpenZeppelin in earlier versions.
+
+\subsection*{3. Access Control Issues}
+
+Improper access control can allow unauthorized users to perform privileged operations.
+
+\begin{lstlisting}[language=Solidity, caption={Access control flaw}, label={lst:access_control}, captionpos=b]
+contract AdminOnly {
+    address public owner;
+
+    function changeOwner(address _newOwner) public {
+        owner = _newOwner; // Vulnerable: no access restriction
+    }
+}
+\end{lstlisting}
+
+\textbf{Mitigation:} Use modifiers to restrict access:
+
+\begin{lstlisting}[language=Solidity]
+modifier onlyOwner() {
+    require(msg.sender == owner, "Not authorized");
+    _;
+}
+\end{lstlisting}
+
+\subsection*{4. Denial of Service (DoS)}
+
+A contract may be unable to complete execution due to malicious input or gas exhaustion.
+
+\begin{lstlisting}[language=Solidity, caption={DoS via expensive loop}, label={lst:dos_loop}, captionpos=b]
+contract Auction {
+    address[] public bidders;
+
+    function bid() public {
+        bidders.push(msg.sender);
+    }
+
+    function refundAll() public {
+        for (uint i = 0; i < bidders.length; i++) {
+            payable(bidders[i]).transfer(1 ether); // Can fail if one transfer fails
+        }
+    }
+}
+\end{lstlisting}
+
+\textbf{Mitigation:} Avoid loops in public functions or use a pull-payment model.
+
+\subsection*{5. Unchecked External Calls}
+
+External calls that do not check for success can be dangerous.
+
+\begin{lstlisting}[language=Solidity, caption={Unchecked call}, label={lst:unchecked_call}, captionpos=b]
+(bool sent, ) = receiver.call{value: msg.value}("");
+// Vulnerable: no require(sent)
+\end{lstlisting}
+
+\textbf{Mitigation:} Always validate the success flag of low-level calls with \texttt{require()}.
+
+\subsection*{6. Unprotected Self-Destruct}
+
+The \texttt{selfdestruct} operation can be invoked by anyone if not protected.
+
+\begin{lstlisting}[language=Solidity, caption={Unprotected self-destruct}, label={lst:selfdestruct}, captionpos=b]
+contract Killable {
+    function destroy() public {
+        selfdestruct(payable(msg.sender)); // Vulnerable: anyone can destroy
+    }
+}
+\end{lstlisting}
+
+\textbf{Mitigation:} Restrict \texttt{selfdestruct()} to authorized users.
+
+\subsection*{7. Front-running}
+
+Due to transaction ordering in blocks, an attacker can front-run profitable operations.
+
+\begin{lstlisting}[language=Solidity, caption={Front-running opportunity}, label={lst:frontrun}, captionpos=b]
+contract Bidding {
+    uint public highestBid;
+
+    function bid() public payable {
+        require(msg.value > highestBid);
+        highestBid = msg.value; // Vulnerable to front-running
+    }
+}
+\end{lstlisting}
+
+\textbf{Mitigation:} Use commit-reveal schemes to hide sensitive bid data.
+
+\subsection*{8. Timestamp Dependency}
+
+Relying on block timestamp can lead to manipulation.
+
+\begin{lstlisting}[language=Solidity, caption={Timestamp dependency}, label={lst:timestamp}, captionpos=b]
+contract Lottery {
+    function drawWinner() public view returns (bool) {
+        return (block.timestamp % 2 == 0); // Vulnerable to miner manipulation
+    }
+}
+\end{lstlisting}
+
+\textbf{Mitigation:} Avoid using timestamps for critical logic or combine with other entropy sources.
+
+\subsection*{9. Improper Authorization}
+
+Using \texttt{tx.origin} for authorization is insecure.
+
+\begin{lstlisting}[language=Solidity, caption={Using tx.origin}, label={lst:txorigin}, captionpos=b]
+contract TxOrigin {
+    address owner = msg.sender;
+
+    function transfer() public {
+        require(tx.origin == owner); // Vulnerable: tx.origin may be spoofed via contract
+        // ...
+    }
+}
+\end{lstlisting}
+
+\textbf{Mitigation:} Always use \texttt{msg.sender} instead.
+\subsection*{10. Lack of Upgradeability Controls}
+
+Contracts without upgrade paths or proxies are difficult to fix after deployment.
+
+\begin{lstlisting}[language=Solidity, caption={Non-upgradable contract}, label={lst:non_upgradeable}, captionpos=b]
+contract Immutable {
+    uint public data;
+
+    function update(uint _data) public {
+        data = _data;
+    }
+    // No mechanism to upgrade logic
+}
+\end{lstlisting}
+
+\textbf{Fix:} Use proxy patterns (e.g., Transparent or UUPS proxy) to separate logic and data layers.
+
+\subsection*{Conclusion}
+Smart contracts have revolutionized the way agreements and processes are executed in decentralized environments. However, their immutability and transparency also mean that any vulnerability in the code can lead to significant financial loss and system compromise. It is therefore essential for developers to follow strict security practices, conduct thorough testing, and perform code audits before deploying contracts on the blockchain. By writing clean, modular, and well-documented code, and by staying up to date with the latest advancements in formal verification and static analysis tools, developers can greatly reduce the risk of introducing critical bugs or exploitable flaws. Ultimately, a well-secured smart contract not only protects users and assets but also fosters trust in decentralized applications and the broader blockchain ecosystem.
+
+\chapter{Artificial Intelligence}
+\section{Introduction}
+Artificial Intelligence (AI) refers to the simulation of human intelligence by machines, especially computer systems capable of learning, reasoning, and adapting to dynamic environments. As AI has matured, it has found applications across numerous domains—including finance, healthcare, manufacturing, and more recently, blockchain security.
+
+In the context of blockchain technology, particularly smart contracts, AI plays a pivotal role in enhancing security by automating the detection of vulnerabilities that could be exploited by malicious actors. Smart contracts are self-executing programs stored on a blockchain that manage the transfer of assets or data based on pre-defined rules. Due to their immutable and autonomous nature, any bugs or security flaws in smart contracts can result in irreversible financial losses, privacy breaches, or service disruptions.
+
+Traditional static and dynamic analysis tools often struggle to fully comprehend the semantic logic or edge-case behaviors of complex smart contracts. This limitation has opened up opportunities for AI-based techniques, which can learn patterns of vulnerabilities from large datasets of smart contracts and generalize across novel attack vectors.
+
+Machine learning (ML), a subset of AI, is especially promising for smart contract security. Supervised learning algorithms can be trained on labeled datasets of vulnerable and secure contracts to classify and flag potentially harmful patterns. Unsupervised learning and clustering techniques can detect anomalous contract behaviors without requiring explicit labels. Furthermore, deep learning models, such as recurrent neural networks (RNNs) and graph neural networks (GNNs), have demonstrated success in modeling the structure and control flow of smart contracts written in languages like Solidity.
+
+This chapter offers a comprehensive overview of Machine Learning and Deep Learning, introducing fundamental concepts and terminology related to these advanced technologies.
+
+\section{Definition}
+Computer science is a vast and dynamic academic field that encompasses the theoretical foundations, design principles, development processes, and practical applications of computing systems. Within this broad discipline, artificial intelligence (AI) stands out as a specialized area focused on creating systems capable of emulating human intelligence. AI systems are designed to perform tasks typically requiring human cognitive functions, such as reasoning, learning, problem-solving, understanding natural language, and interpreting sensory inputs. The overarching objective of AI is to develop autonomous and adaptable machines that can perform complex tasks without the need for explicit, step-by-step instructions.
+
+A key subfield of AI is machine learning (ML), which equips machines with the ability to learn from data and progressively enhance their performance. ML involves designing algorithms and models that can sift through large datasets, recognize patterns, make predictions, and uncover valuable insights that may not be immediately apparent.
+
+Deep learning (DL) is a further refinement of machine learning. It leverages artificial neural networks composed of multiple processing layers to analyze complex data structures. This approach has driven significant breakthroughs in areas like computer vision, speech recognition, natural language understanding, and even strategic decision-making in games.
+
+Simultaneously, data science has emerged as a multidisciplinary field that focuses on extracting actionable knowledge from data. It blends techniques from mathematics, statistics, computer science, and AI to interpret large volumes of information and generate insights that can support informed decision-making in a variety of domains. Figure ~\ref{fig:ai_fields} shows a relationship between these fields. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/ai_fields.png}
+    \caption{A simple representation of the relationship between Artificial Intelligence, Machine Learning, Deep Learning and Data Science.}
+    \label{fig:ai_fields}
+\end{figure}
+
+\section{Dataset}
+A dataset is an organized collection of data points used for analysis and processing in various domains, especially in machine learning and data science. It may contain different types of information, including text, numbers, images, or audio, depending on the application. Datasets are essential for training models, validating results, and extracting insights.
+
+Structured datasets follow a consistent format, typically resembling tables with rows as entries and columns as attributes. In contrast, unstructured datasets—like raw text or images—lack a clear format and require specialized processing. Semi-structured data falls between the two, featuring partial organization using formats such as XML or JSON that include tags but don’t conform to strict tables.
+\subsection{Types of Datasets}
+There are various kinds of datasets, each designed to serve specific tasks, applications, or analytical needs. Below are some commonly used types:
+
+\subsubsection*{Texts Datasets}
+Text datasets contain written content such as articles, reviews, or social media posts. They are commonly used in natural language processing tasks like sentiment analysis, text classification, and language generation. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/text_dataset.png}
+    \caption{Text Datasets.}
+    \label{fig:text_dataset}
+\end{figure}
+
+\subsubsection*{Image Datasets}
+Image datasets consist of collections of images and are used in tasks such as image classification, object detection, and image generation. Well-known examples include MNIST for handwritten digit recognition and ImageNet for large-scale object classification.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{Assets/image_dataset.png}
+    \caption{Image Datasets.}
+    \label{fig:image_dataset}
+\end{figure}
+
+\subsubsection*{Tabular Datasets}
+Tabular datasets are organized in a spreadsheet-like format, where each row corresponds to a data entry and each column represents a specific feature or attribute. They are commonly used in tasks such as data analysis, regression, and classification.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/table_dataset.png}
+    \caption{Table Datasets.}
+    \label{fig:table_dataset}
+\end{figure}
+
+\subsection{Imbalanced Dataset}
+Imbalanced data describes a situation where the number of instances across different classes in a dataset is uneven, with some classes having significantly more samples than others. In machine learning classification tasks, each "class" represents a unique label or outcome.
+
+This imbalance is a common issue and can severely affect model training by making it harder to identify meaningful patterns, distinguish between classes, and evaluate performance accurately. It often leads to biased predictions favoring the majority class and poor generalization for minority classes. Imbalanced datasets are particularly challenging in classification problems and are frequently encountered in a wide range of real-world applications.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/imbalanced_dataset.png}
+    \caption{Imbalanced Dataset.}
+    \label{fig:imbalanced_dataset}
+\end{figure}
+
+\section{Data Preprocessing}
+Real-world data often contains imperfections such as noise, missing entries, and inconsistent formatting, largely due to data collection methods and human error. These quality issues can negatively affect the performance of machine learning models.
+
+To address these challenges, data preprocessing is a crucial step that prepares raw data for analysis and modeling. This process includes tasks like correcting errors, handling missing values, and standardizing formats or scales to ensure reliable input for algorithms. Effective preprocessing not only improves model accuracy and efficiency but also enhances the overall quality of insights derived from the data.
+
+\subsection{Data preprocessing steps}
+Data preprocessing refers to the process of cleaning and preparing raw data so that it can be effectively used for analysis or machine learning tasks. Below are some common steps involved in the preprocessing phase:
+
+\subsubsection*{Data cleaning}
+This step tackles problems like missing data, duplicate entries, outliers, and errors. It helps ensure that the dataset is clean, consistent, and reliable, minimizing the risk of misleading results during analysis
+
+\subsubsection*{Data transformation}
+This stage involves operations like scaling numerical features, converting categorical variables into numeric representations, and preparing text data for use in natural language processing. These tasks help ensure consistency across features and make the data suitable for machine learning algorithms.
+
+\subsubsection*{Feature Selection}
+This step focuses on selecting the most relevant features while eliminating those that are unnecessary or redundant. Doing so simplifies the dataset and enhances model performance by concentrating on the variables that have the greatest impact. Additionally, dimensionality reduction methods can be employed to reduce complexity when dealing with high-dimensional data.
+\subsubsection*{Data validation}
+This stage ensures the processed data meets quality standards by verifying that it aligns with expected formats and criteria. Doing so enhances the reliability of subsequent analyses and model performance. 
+
+\subsubsection*{Data splitting}
+Data splitting is a crucial step for assessing the effectiveness of machine learning models. It involves dividing the dataset into training, validation, and test sets, allowing the model to be trained and optimized on one portion while its performance is evaluated on separate, unseen data.
+
+
+\section{Machine Learning}
+In today’s age of automation, the meaning of "manual" continues to evolve as Machine Learning (ML) algorithms take on tasks once thought to require human expertise—ranging from playing chess to assisting in surgeries. As technology advances, powerful computing tools have become widely accessible, empowering data scientists to develop sophisticated systems. The wide range of ML algorithms offers adaptable solutions to complex, real-world problems and continuously improves through experience. This progress highlights the transformative impact of modern technology.
+
+\subsection{Types of Machine Learning}
+Machine learning can generally be categorized into three main types based on how the models learn: supervised learning, unsupervised learning, and semi-supervised learning.
+
+\subsubsection*{Supervised Machine Learning}
+As the name suggests, Supervised Machine Learning involves training a model with guidance using labeled datasets—where each input is paired with a known output. Through this process, the model learns to recognize patterns and relationships in the data, much like being taught correct answers during instruction.
+
+Initially, the model is trained on input-output examples, enabling it to generalize and make predictions on new, unseen data. The effectiveness of these predictions is then assessed using a separate test set.
+
+Supervised learning is commonly divided into two main types:
+
+\begin{itemize}
+  \item \textbf{Classification:} Used when the output variable is categorical—such as predicting "yes" or "no", or classifying labels like male/female, or red/blue. Classification algorithms determine the appropriate category for each input.
+  
+  \item \textbf{Regression:} Applied when the output is continuous, and there is a measurable relationship between inputs and outputs. Regression is used in scenarios like predicting market prices, weather conditions, or sales trends.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/supervised_learning.png}
+    \caption{Supervised Machine Learning.}
+    \label{fig:supervised_learning}
+\end{figure}
+
+\subsubsection*{Unsupervised Machine Learning}
+Unsupervised Machine Learning differs from the supervised approach by operating without labeled data. In this method, models are trained on datasets that do not contain predefined output labels or classifications. The algorithm explores the data on its own, identifying patterns, groupings, or relationships hidden within the dataset.
+
+In unsupervised learning, the model is exposed to raw, untagged input and learns to interpret the structure of the data independently. The core goal is to organize or segment the data based on underlying similarities and differences, revealing natural groupings and associations that may not be obvious.
+
+Unsupervised learning techniques are generally divided into two main categories:
+
+\begin{itemize}
+  \item \textbf{Clustering:} This method groups data points based on shared characteristics. Items within the same group (or cluster) are more similar to each other than to those in other groups. A common use case is customer segmentation based on buying habits.
+
+  \item \textbf{Association:} Association rule learning identifies relationships between variables in large datasets. It detects how the presence of one item relates to the presence of another, helping uncover dependencies. This technique is widely used in market basket analysis, web usage analysis, and product recommendation systems.
+  
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Assets/unsupervised_learning.png}
+    \caption{Unsupervised Machine Learning.}
+    \label{fig:unsupervised_learning}
+\end{figure}
+
+\subsection{Common Machine Learning Algorithms}
+Several machine learning algorithms are widely used for classification, regression, and pattern recognition tasks. Each algorithm is based on a mathematical model that enables the system to learn from data and make predictions or decisions. Below are some of the most commonly used algorithms along with their core formulas.
+\subsubsection*{1.Decision Tree}
+
+Decision Trees split the dataset into branches based on feature values, using measures like Information Gain or Gini Index.
+
+\textbf{Gini Impurity:}
+\[
+Gini(t) = 1 - \sum_{i=1}^{n} p_i^2
+\]
+where \( p_i \) is the probability of class \( i \) at node \( t \).
+
+\textbf{Information Gain (Entropy):}
+\[
+IG(D, A) = Entropy(D) - \sum_{v \in Values(A)} \frac{|D_v|}{|D|} \cdot Entropy(D_v)
+\]
+\[
+Entropy(D) = - \sum_{i=1}^{n} p_i \log_2 p_i
+\]
+
+\subsubsection*{2.Support Vector Machine (SVM)}
+
+SVM aims to find the optimal hyperplane that separates classes with maximum margin.
+
+\textbf{Objective:}
+\[
+\min_{\mathbf{w}, b} \frac{1}{2} ||\mathbf{w}||^2
+\]
+subject to:
+\[
+y_i(\mathbf{w} \cdot \mathbf{x}_i + b) \geq 1 \quad \forall i
+\]
+where \( \mathbf{w} \) is the weight vector, \( b \) is the bias, and \( y_i \in \{-1, 1\} \).
+
+\subsubsection*{3.K-Nearest Neighbors (K-NN)}
+
+K-NN classifies a data point based on the majority label among its \( k \) nearest neighbors.
+
+\textbf{Distance Metric (Euclidean):}
+\[
+d(x, y) = \sqrt{\sum_{i=1}^{n}(x_i - y_i)^2}
+\]
+
+\subsubsection*{4.Naive Bayes}
+
+Naive Bayes is a probabilistic classifier based on Bayes’ theorem with an assumption of independence among features.
+
+\textbf{Bayes Theorem:}
+\[
+P(C_k | \mathbf{x}) = \frac{P(\mathbf{x} | C_k) \cdot P(C_k)}{P(\mathbf{x})}
+\]
+where \( P(C_k | \mathbf{x}) \) is the posterior, \( P(\mathbf{x} | C_k) \) is the likelihood, \( P(C_k) \) is the prior, and \( P(\mathbf{x}) \) is the evidence.
+
+\subsubsection*{5.Logistic Regression}
+
+Used for binary classification, logistic regression models the probability of class membership using the logistic function.
+
+\textbf{Hypothesis Function:}
+\[
+h_\theta(x) = \frac{1}{1 + e^{-\theta^T x}}
+\]
+
+\textbf{Cost Function:}
+\[
+J(\theta) = -\frac{1}{m} \sum_{i=1}^{m} \left[ y^{(i)} \log(h_\theta(x^{(i)})) + (1 - y^{(i)}) \log(1 - h_\theta(x^{(i)})) \right]
+\]
+
+\subsubsection*{6.Random Forest}
+
+Random Forest is an ensemble learning method that constructs multiple decision trees and aggregates their predictions.
+
+\textbf{Final Prediction (Classification):}
+\[
+\hat{y} = \text{majority\_vote}(T_1(x), T_2(x), \dots, T_k(x))
+\]
+where \( T_i \) is the \( i \)-th decision tree in the forest.
+
+\subsubsection*{7.Linear Regression}
+
+Used for predicting a continuous target value based on input features.
+
+\textbf{Prediction Function:}
+\[
+\hat{y} = \mathbf{w}^T \mathbf{x} + b
+\]
+
+\textbf{Cost Function (MSE):}
+\[
+J(\mathbf{w}, b) = \frac{1}{m} \sum_{i=1}^{m} (\hat{y}^{(i)} - y^{(i)})^2
+\]
+
+\section{Deep Learning}
+Deep learning is a branch of machine learning that uses neural networks with three or more layers to model complex patterns in data. These multi-layered networks are inspired by the human brain’s structure, although they differ significantly in capability. As they process large volumes of data, the networks learn and adjust their internal parameters to improve performance. While basic neural networks with a single layer can make rough predictions, deeper architectures allow for greater accuracy and optimization.
+
+Deep learning powers many modern artificial intelligence (AI) applications and is central to automating a wide range of analytical and physical tasks. Its widespread use can be seen in everyday technologies and has become a key driver of innovation across various industries.
+\subsection{Common Deep Learning Models and Architectures}
+Below, we present an overview of the most widely used deep learning architectures.
+\subsubsection*{1.Artificial Neural Networks (ANNs)}
+
+Artificial Neural Networks are the foundational architecture in deep learning, composed of interconnected layers of artificial neurons. Each neuron applies a transformation (typically non-linear) to its input and passes the result to the next layer. ANNs are typically used for regression and classification tasks when the input features are numerical and structured.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Assets/ann.png}
+    \caption{Structure of a basic feedforward Artificial Neural Network (ANN).}
+    \label{fig:ann}
+\end{figure}
+
+\subsubsection*{2.Convolutional Neural Networks (CNNs)}
+Convolutional Neural Networks are specialized for processing data with a grid-like structure, such as images. CNNs apply convolutional filters to extract spatial features and patterns, making them ideal for image classification, object detection, and visual data analysis. They have also been applied in smart contract vulnerability detection through opcode or bytecode visualization.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Assets/cnn.png}
+    \caption{Typical CNN architecture ~\cite{raj2019cnn}.}
+    \label{fig:cnn}
+\end{figure}
+
+\subsubsection*{3.Recurrent Neural Networks (RNNs)}
+
+Recurrent Neural Networks are designed to process sequential data by maintaining a hidden state that captures temporal dependencies. They are particularly effective for tasks involving time series, speech recognition, and natural language processing. In smart contract analysis, RNNs can be used to process opcode sequences or abstract syntax trees.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Assets/rnn.png}
+    \caption{A basic RNN architecture for sequential data.}
+    \label{fig:rnn}
+\end{figure}
+
+\subsubsection*{4.Long Short-Term Memory Networks (LSTMs)}
+
+LSTM networks are a type of RNN specifically designed to overcome the limitations of standard RNNs, such as vanishing or exploding gradients. LSTMs are capable of learning long-range dependencies and are widely used in language modeling, code generation, and anomaly detection in smart contracts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Assets/lstm.png}
+    \caption{Structure of an LSTM cell showing input, forget, and output gates.}
+    \label{fig:lstm}
+\end{figure}
+
+\subsubsection*{5.Transformer Networks}
+
+Transformers are state-of-the-art deep learning models introduced to handle sequential data without relying on recurrence. Using mechanisms like self-attention, transformers have revolutionized natural language processing and are increasingly used in code analysis, vulnerability prediction, and contract summarization.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Assets/transformer.png}
+    \caption{Simplified Transformer architecture~\cite{amanatulla2023transformer}.}
+    \label{fig:transformer}
+\end{figure}
+
+\subsubsection*{6.Graph Neural Networks (GNNs)}
+
+Graph Neural Networks are designed to operate on graph-structured data. In the context of smart contracts, GNNs are highly effective for analyzing control flow graphs (CFGs), dependency trees, and inter-contract relations. They capture both local and global structural information, making them ideal for modeling program logic.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Assets/GNN.png}
+    \caption{Overview of a Graph Neural Network Architecture ~\cite{neptune2023gnn}.}
+    \label{fig:gnn}
+\end{figure}
+
+
+\section{AI for Code and Security Analysis}
+Artificial Intelligence has emerged as a powerful tool for analyzing and securing software systems, particularly in domains like malware detection, source code classification, and vulnerability discovery. In the context of smart contracts and blockchain applications, AI is increasingly used to analyze code structure, behavior, and potential security flaws that may not be obvious through traditional methods.
+
+\subsection{Understanding Source Code as Data}
+
+To apply AI techniques effectively, code must be represented in a form that can be processed by machine learning models. There are several structured ways to represent source code:
+
+\begin{itemize}
+    \item \textbf{Abstract Syntax Trees (ASTs):} ASTs represent the syntactic structure of source code in a tree format, capturing the hierarchy of operations and expressions. This tree can be used to extract features or be fed directly into models like Graph Neural Networks (GNNs).
+    
+    \item \textbf{Opcode Sequences:} Compiled smart contracts in Solidity are converted into Ethereum Virtual Machine (EVM) opcodes. These sequences can be treated as tokens or instructions similar to text, allowing techniques from natural language processing (NLP) to be applied.
+    
+    \item \textbf{Bytecode Representation:} Bytecode is the low-level, machine-readable version of a contract deployed on-chain. It can be vectorized into numerical features or interpreted as image-like matrices for deep learning tasks.
+\end{itemize}
+
+\subsection{Embeddings and Feature Extraction}
+
+Once code is structured appropriately, it must be transformed into numerical representations or embeddings suitable for input to learning models:
+
+\begin{itemize}
+    \item \textbf{Token Embeddings:} Just like in NLP, tokens from source code or opcode sequences can be embedded using techniques like Word2Vec, FastText, or Transformer-based models to capture semantic meaning.
+    
+    \item \textbf{Graph-Based Features:} For ASTs and control/data flow graphs, node embeddings can be generated using Graph Neural Networks (GNNs), which preserve both local and global structural properties.
+    
+    \item \textbf{Custom Feature Engineering:} Handcrafted features—such as the number of functions, modifiers, nested loops, or storage access patterns—can be used as input for traditional machine learning algorithms.
+\end{itemize}
+
+\subsection{Classification and Anomaly Detection}
+
+AI techniques can then be applied to classify contracts or detect unusual behavior:
+
+\begin{itemize}
+    \item \textbf{Binary and Multi-Class Classification:} Models can predict whether a contract is vulnerable or safe, or classify the type of vulnerability present (e.g., reentrancy, integer overflow).
+    
+    \item \textbf{Anomaly Detection:} Unsupervised models like autoencoders or clustering algorithms can flag contracts that deviate significantly from the norm, which may indicate obfuscated logic or malicious intent.
+\end{itemize}
+
+\subsection{Use Cases in Code Security}
+
+AI-based code analysis is already being used in a variety of real-world applications:
+
+\begin{itemize}
+    \item \textbf{Smart Contract Vulnerability Detection:} Deep learning models trained on labeled Solidity contracts can detect vulnerabilities with high accuracy.
+    
+    \item \textbf{Malware Analysis:} Opcode and bytecode sequences are analyzed using CNNs or RNNs to identify malicious behavior in contract logic.
+    
+    \item \textbf{Source Code Classification:} Classifying smart contracts by functionality (e.g., token contracts, DAOs, wallets) helps automate auditing workflows.
+    
+    \item \textbf{Code Summarization and Documentation:} Transformer-based models can generate human-readable descriptions of contract functions, aiding in code reviews and legal assessments.
+\end{itemize}
+

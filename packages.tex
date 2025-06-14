@@ -1,0 +1,123 @@
+% Encoding and Language Support
+\usepackage[utf8]{inputenc}
+\usepackage[main=english]{babel}
+\usepackage{polyglossia}
+\setdefaultlanguage{english}
+\setotherlanguage{arabic}
+\newfontfamily\arabicfont[Script=Arabic]{Amiri}
+
+% Font and Formatting
+\usepackage{lmodern}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{romannum}
+\usepackage{indentfirst}
+\usepackage{extsizes}
+\usepackage{chngcntr}
+\counterwithout{table}{chapter}
+% Graphics and Colors
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{subfigure}
+\usepackage[table]{xcolor}
+
+% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks = true,
+  urlcolor = black,
+  linkcolor = black,
+  citecolor = black
+}
+
+% Tables
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tabu}
+
+% Floating elements
+\usepackage{float}
+\usepackage{wrapfig}
+
+% Captions
+\usepackage{caption}
+
+% Glossaries and Acronyms
+\usepackage[acronym, automake]{glossaries}
+\makeglossaries
+
+% Bibliography (keep only one config!)
+\usepackage[backend=biber, style=ieee, sorting=none]{biblatex}
+\addbibresource{references.bib} % Make sure this file exists at the project root
+
+% Lists
+\usepackage{listofitems}
+
+% Diagrams and Plots
+\usepackage{tikz}
+\usetikzlibrary{matrix,chains,positioning,decorations.pathreplacing,arrows,arrows.meta}
+\tikzset{>=latex}
+
+% Page Layout
+\usepackage[top=1.3cm, bottom=1.5cm, left=2.5cm, right=2.5cm, headheight=15pt]{geometry}
+\usepackage{fancyhdr}
+
+% Chapter and Section Titles
+\usepackage{titlesec}
+\titleformat{\chapter}[hang]
+  {\normalfont\LARGE\bfseries}
+  {\thechapter\quad}
+  {0pt}
+  {}
+\def\toclevel@subsubsubsection{4}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+\usepackage{booktabs}
+% Miscellaneous
+\usepackage{pdflscape}
+\usepackage{footmisc}
+\usepackage[outline]{contour}
+\contourlength{1.4pt}
+\usepackage[normalem]{ulem}
+\usepackage{lipsum}
+
+% Custom Commands
+\newcommand{\challenge}[2]{\vspace{1ex}\textbf{Research task {#1}}: \emph{#2}\vspace{1ex}}
+\newcommand{\task}[2]{\challenge{#1}{#2}}
+\newcommand{\taskref}[1]{\textbf{Task~}\ref{#1}}
+\newcounter{tasknmbr}
+\newcounter{tasklabel}
+\renewcommand{\thetasklabel}{\textbf{\thetasknmbr}}
+\newenvironment{taskenv}{\begin{list}{\textbf{Task }\thetasklabel:}{\usecounter{tasklabel}\stepcounter{tasknmbr}\item\em}}{\\[-7pt]\end{list}}
+\usepackage{etoolbox}
+
+\makeatletter
+% Use Arabic numbers for parts instead of Roman numerals
+\renewcommand\thepart{\arabic{part}}
+
+% Custom chapter and section format: PART.CHAPTER, PART.CHAPTER.SECTION
+\renewcommand\thechapter{\thepart.\arabic{chapter}}
+\renewcommand\thesection{\thechapter.\arabic{section}}
+\renewcommand\thesubsection{\thesection.\arabic{subsection}}
+
+% Reset chapter and section numbers at each part
+\pretocmd{\part}{\setcounter{chapter}{0} \setcounter{section}{0}}{}{}
+\makeatother
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstdefinelanguage{Solidity}{
+  keywords={contract, function, returns, uint, public, private, view, pure, return},
+  keywordstyle=\color{blue}\bfseries,
+  identifierstyle=\color{black},
+  commentstyle=\color{gray},
+  stringstyle=\color{orange},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]"
+}

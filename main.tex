@@ -1,0 +1,57 @@
+\documentclass[openany,12pt,oneside]{extreport}
+
+\input{packages}
+
+\begin{document}
+
+% -------- Title Page --------
+\include{FrontMatter/titlepage}
+
+% -------- Front Matter (unnumbered) --------
+\pagenumbering{roman}
+
+\chapter*{Acknowledgement}
+\addcontentsline{toc}{chapter}{Acknowledgement}
+\input{FrontMatter/Acknowledgement}
+
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\input{FrontMatter/Abstract}
+
+\chapter*{Acronyms}
+\addcontentsline{toc}{chapter}{Acronyms}
+\input{FrontMatter/Acronyms}
+
+% -------- Table of Contents --------
+\clearpage
+\tableofcontents
+\listoffigures
+\listoftables
+\printglossary[type=\acronymtype, title=Acronyms]
+
+% -------- Switch to normal numbering --------
+\clearpage
+\pagenumbering{arabic}
+\setcounter{part}{0}
+
+% -------- Chapters as Parts --------
+\part{Introduction}
+\include{Chapters/01_Introduction}
+
+\part{Background}
+\include{Chapters/02_Background}
+
+\include{Chapters/03_Implementation}
+
+\part{Results}
+\include{Chapters/04_Results}
+
+\part{Conclusion}
+\include{Chapters/05_Conclusion}
+
+% -------- Bibliography --------
+\nocite{*}
+\part{Bibliography}
+\printbibliography
+
+\end{document}

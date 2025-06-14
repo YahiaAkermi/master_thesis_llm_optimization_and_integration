@@ -1,0 +1,691 @@
+% Implementation
+\part{State of The Art}
+
+\chapter{Introduction}
+Smart contracts have become a critical component of decentralized applications, enabling autonomous execution of logic on blockchain platforms. However, their immutability and complexity make them prone to security vulnerabilities, with incidents such as the DAO hack highlighting the risks of deploying unaudited or flawed contracts.
+
+To address this, various vulnerability detection tools have been developed—ranging from rule-based static analyzers like Oyente and Securify to symbolic execution engines like Mythril. While these tools provide valuable insights, they often face limitations in scalability, precision, and adaptability to new threats.
+
+As a result, researchers have begun exploring artificial intelligence techniques to enhance vulnerability detection. Machine learning models can learn from labeled contract datasets to identify risky patterns, while deep learning approaches—including CNNs, RNNs, and Graph Neural Networks—enable more advanced analysis of smart contract structures, such as opcodes and control flow graphs.
+
+Recent work also incorporates transformer-based models for source code understanding and vulnerability prediction. Despite these advancements, challenges like data quality, class imbalance, and explainability remain open issues.
+
+This chapter reviews key contributions and methodologies in this domain, laying the groundwork for the proposed AI-based approach presented in this thesis.
+
+\chapter{Related Work}
+\section{Used Datasets}
+The progress in smart contract vulnerability detection has been largely fueled by the availability of public datasets that contain real-world or labeled smart contracts. These datasets enable the development, training, and benchmarking of AI-based models for static or semantic vulnerability analysis. Below is an overview of the most widely used datasets in the field.
+
+\subsection*{Public Datasets}
+
+\begin{itemize}
+
+  \item \textbf{SmartBugs Dataset}~\cite{durieux2020empirical}: This benchmark dataset contains over 47,000 verified smart contracts from Etherscan. Contracts are labeled using several static analyzers like Oyente, Securify, and Mythril. It is widely used for training and evaluating AI-based vulnerability detection systems.
+
+  \item \textbf{Dataset Used in Feng et al.}~\cite{feng2024interpretable}: Feng et al. collected and processed 43,937 verified contracts from Etherscan and labeled them using Oyente to detect six vulnerability types. These contracts were later transformed into opcode sequences and tokenized into n-grams for input into machine learning models.
+
+  \item \textbf{Lesimple’s Contract Corpus}~\cite{lesimple2020master}: In this work, smart contracts were scraped from Etherscan and annotated manually or using a mix of tools. This dataset was used to train and evaluate deep learning models such as LSTMs and CNNs on opcode sequences.
+
+  \item \textbf{Zhang et al. (SCVD Dataset)}~\cite{zhang2020scvd}: This dataset includes over 20,000 smart contracts collected from Etherscan and labeled using multiple tools, including Slither, SmartCheck, and manual inspection. It supports multi-label classification tasks with annotations for several vulnerabilities per contract.
+
+  \item \textbf{Albert et al. (SAFEVM Set)}~\cite{albert2019safevm}: More than 24,000 smart contracts were collected for verification using a formal translation into C and analysis via tools such as CPAchecker and SeaHorn. The dataset focuses on bytecode-level execution safety.
+
+  \item \textbf{Tann et al. (EtherCorpus)}~\cite{tann2020towards}: EtherCorpus includes over 160,000 smart contracts with both source code and compiled bytecode. The dataset supports embedding learning and is often used with transformer-based models or opcode token analysis.
+
+\end{itemize}
+
+See table ~\ref{tab:accurate_smart_contract_datasets} for a comparaison between the mentioned datasets.
+\begin{table}[H]
+\centering
+\label{tab:accurate_smart_contract_datasets}
+\begin{tabular}{|l|c|p{6cm}|c|c|}
+\hline
+\textbf{Study} & \textbf{Year} & \textbf{Source} & \textbf{Samples} & \textbf{Balanced} \\
+\hline
+SmartBugs~\cite{durieux2020empirical} & 2020 & Contracts from Etherscan, labeled with Mythril, Oyente, Securify & 47,000+ & No \\
+\hline
+Feng et al.~\cite{feng2024interpretable} & 2024 & Verified contracts from Etherscan, labeled via Oyente & 43,937 & No \\
+\hline
+Lesimple~\cite{lesimple2020master} & 2020 & Etherscan contracts annotated manually and with tools & ~5,000 & No \\
+\hline
+Zhang et al. (SCVD)~\cite{zhang2020scvd} & 2020 & Etherscan contracts labeled with Slither, SmartCheck, manual review & 20,000+ & No \\
+\hline
+Albert et al. (SAFEVM)~\cite{albert2019safevm} & 2019 & Etherscan contracts translated to C and verified with CPAchecker & 24,000+ & No \\
+\hline
+Tann et al. (EtherCorpus)~\cite{tann2020towards} & 2023 & Smart contracts with bytecode and source from public deployments & 160,000+ & No \\
+\hline
+\end{tabular}
+\caption{Summary of Publicly Available Smart Contract Datasets}
+\label{tab:accurate_smart_contract_datasets}
+
+\end{table}
+
+\section{Data Preprocessing}
+In several studies, raw Solidity contracts or EVM bytecode were transformed into opcode sequences. This is essential because opcode representations reduce semantic ambiguity and capture low-level execution patterns.
+
+\begin{itemize}
+  \item \textbf{SmartBugs}~\cite{durieux2020empirical} retained the Solidity source code and directly applied static analyzers to identify vulnerabilities, requiring no further preprocessing for machine learning but structured output normalization for comparison across tools.
+  \item \textbf{Lesimple et al.}~\cite{lesimple2020master} compiled contracts into opcodes, then tokenized them. Token sequences were one-hot encoded and padded to ensure uniform input lengths for CNN and LSTM models.
+  \item \textbf{Feng et al.}~\cite{feng2024interpretable} extracted opcodes from compiled bytecode and applied \textbf{n-gram tokenization} (bigrams and trigrams) to capture instruction patterns. This approach emphasized local semantic context before transforming token sequences into vectors using \textbf{TF-IDF}.
+\end{itemize}
+
+\subsection*{Opcode Extraction and Tokenization}
+
+\begin{itemize}
+    \item \textbf{SmartBugs}: This dataset does not rely on opcode parsing for model input, as it uses static analysis outputs from source code. However, tools like Mythril and Oyente internally parse bytecode to detect low-level vulnerabilities.
+    \item \textbf{Feng et al.}: The Solidity contracts were compiled to bytecode and disassembled into opcode sequences. These were then tokenized into bi- and tri-grams for downstream TF-IDF modeling.
+    \item \textbf{Lesimple}: Contracts were also compiled to bytecode and tokenized into opcode sequences. The opcodes were directly used as input to deep learning models via one-hot encoding.
+    \item \textbf{SCVD}: Extracted both opcode and AST sequences. Opcodes were used for behavioral pattern learning, and tokenized into linear sequences for hybrid feature models.
+    \item \textbf{SAFEVM}: Bytecode was transformed into EthIR rule-based representation, but opcode sequences were not directly extracted or tokenized. The processing focused on symbolic representation.
+    \item \textbf{EtherCorpus}: Extracted and stored opcode sequences at scale across 160,000+ contracts. These were intended for language modeling, unsupervised token embedding, or transformer-based representation learning.
+\end{itemize}
+
+\subsection*{Feature Vector Construction}
+
+\begin{itemize}
+    \item \textbf{SmartBugs}: Structured tool outputs were normalized into JSON fields per contract, suitable for rule-based or label-based model training.
+    \item \textbf{Feng et al.}: Opcode n-grams were vectorized using TF-IDF encoding, generating sparse matrices representing each contract’s opcode pattern.
+    \item \textbf{Lesimple}: One-hot encoded opcode sequences were padded to equal length and transformed into 2D matrices compatible with CNN and LSTM architectures.
+    \item \textbf{SCVD}: Generated embeddings from AST structures and control flow graphs. Graphs were used to encode node/edge semantics for input into GNN models.
+    \item \textbf{SAFEVM}: Transformed bytecode into C code annotated with verification logic; not vectorized in the traditional ML sense but used for static symbolic execution.
+    \item \textbf{EtherCorpus}: No vulnerability labels were provided. Preprocessing focused on generating token embeddings from bytecode and opcode sequences for unsupervised learning.
+\end{itemize}
+
+\subsection*{Label Assignment and Vulnerability Annotation}
+
+\begin{itemize}
+    \item \textbf{SmartBugs}: Labeled using static analysis tools (Oyente, Mythril, Securify). Each tool generated vulnerability reports, later unified into a multi-label schema.
+    \item \textbf{Feng et al.}: Used Oyente to detect six categories of vulnerabilities and created binary labels for each category.
+    \item \textbf{Lesimple}: Relied on tool outputs and partial manual inspection to define binary labels (vulnerable vs. non-vulnerable).
+    \item \textbf{SCVD}: Used Slither, SmartCheck, and human inspection for multi-label annotation of contracts across vulnerability types.
+    \item \textbf{SAFEVM}: Contracts were labeled as vulnerable if formal verification tools detected an assertion failure or invalid behavior.
+    \item \textbf{EtherCorpus}: No labeling or ground truth vulnerability annotation; intended for language modeling and pretraining tasks.
+\end{itemize}
+
+
+\subsection*{Balancing and Class Imbalance Handling}
+
+\begin{itemize}
+    \item \textbf{SmartBugs}: Class imbalance exists due to the natural distribution of bugs. No explicit rebalancing was done in the published dataset, though downstream tasks may subsample.
+    \item \textbf{Feng et al.}: Applied SMOTE to generate synthetic vulnerable samples, improving class balance and avoiding model bias.
+    \item \textbf{Lesimple}: Used stratified sampling and undersampling of majority classes to ensure balanced splits between vulnerable and safe contracts.
+    \item \textbf{SCVD}: Constructed training/test splits with controlled vulnerability distributions for multi-label learning.
+    \item \textbf{SAFEVM}: Labels emerged from verification outcomes; balance was not manipulated but depended on verification failure ratios.
+    \item \textbf{EtherCorpus}: No balancing applied; the dataset is unsupervised and serves as a large-scale corpus for pretraining.
+\end{itemize}
+
+\subsection*{Structural Representations and Translation}
+
+\begin{itemize}
+    \item \textbf{SmartBugs}: Does not include ASTs or graph-based representations. Focuses solely on tool-level vulnerability annotation.
+    \item \textbf{Feng et al.}: Operates only on opcode-level abstraction; no structural parsing beyond n-grams.
+    \item \textbf{Lesimple}: Similar to Feng, relies on opcode structure; no use of ASTs or CFGs.
+    \item \textbf{SCVD}: Generated ASTs from Solidity code and constructed graphs with syntactic and semantic edges, enabling GNN-based processing.
+    \item \textbf{SAFEVM}: Used EthIR to translate EVM bytecode into rule-based logic, then into C code with assertion annotations for formal verification.
+    \item \textbf{EtherCorpus}: Offers raw source, bytecode, and opcodes suitable for graph construction or token-level representation learning, but no explicit structural parsing included in the dataset.
+\end{itemize}
+
+\subsection*{Conclusion}
+
+Across these six datasets, a range of preprocessing strategies were employed to convert smart contracts into structured representations:
+
+\begin{itemize}
+    \item \textbf{Opcode-driven} datasets (Feng, Lesimple, EtherCorpus) emphasize instruction-level pattern learning.
+    \item \textbf{Graph-based} datasets (SCVD) model control/data flows via ASTs and syntax graphs.
+    \item \textbf{Symbolic translation} (SAFEVM) enables verification with program logic.
+    \item \textbf{Hybrid datasets} (SmartBugs) offer normalized tool outputs for comparative analysis.
+\end{itemize}
+
+These preprocessing stages serve as the bridge between raw smart contract code and AI-powered vulnerability detection techniques.
+
+\section{Detection Techniques for Smart Contract Vulnerabilities}
+The increasing reliance on Ethereum smart contracts for financial and business operations has brought to light a growing concern over their security. Numerous vulnerabilities such as reentrancy, integer overflows, timestamp dependencies, and access control flaws have been widely exploited, resulting in substantial financial losses. Hence, detecting these vulnerabilities efficiently and accurately is of paramount importance. In this section, we explore various techniques proposed and implemented in recent literature, broadly classified into three categories: static analysis, dynamic analysis, and formal verification. We also detail how these approaches have been applied across major studies.
+\subsection*{Static Analysis}
+
+Static analysis involves examining the smart contract’s source code or bytecode without executing it. This method allows for early detection of potential vulnerabilities before deployment.
+
+\begin{itemize}
+  \item \textbf{Oyente} was one of the first tools to use symbolic execution for vulnerability detection in smart contracts. It constructs a control flow graph (CFG), explores possible execution paths using symbolic inputs, and flags vulnerabilities using the Z3 SMT solver~\cite{durieux2020empirical}.
+  \item \textbf{SmartCheck} converts Solidity code into an intermediate representation and scans it using predefined XPath patterns to detect issues like reentrancy or integer overflows~\cite{durieux2020empirical}.
+  \item \textbf{Slither} offers static analysis of Solidity source code through CFG construction, variable tracking, and taint analysis. It provides modular detectors that scan for specific vulnerability patterns~\cite{durieux2020empirical}.
+  \item \textbf{Tann et al.} leveraged static features from source code and bytecode and combined them with deep learning models to enhance vulnerability detection, particularly in large-scale contract corpora~\cite{tann2020towards}.
+  \item \textbf{SAFEVM (Albert et al.)} translated EVM bytecode into C for verification using tools like CPAchecker, identifying security violations via static pattern matching~\cite{albert2019safevm}.
+\end{itemize}
+
+Static analysis is favored for its speed and ability to evaluate all possible execution paths. However, it suffers from a high false-positive rate and may miss vulnerabilities dependent on runtime states.
+
+\subsection*{Dynamic Analysis}
+
+Dynamic analysis techniques execute the smart contract in a simulated or actual environment to observe runtime behavior, offering insights into context-dependent vulnerabilities.
+
+\begin{itemize}
+  \item \textbf{ContractFuzzer} executes smart contracts with random inputs in a fuzz-testing environment and observes execution logs to detect issues like unhandled exceptions or gas limit violations~\cite{feng2024interpretable}.
+  \item \textbf{sFuzz} enhances test-case generation using feedback-based fuzzing to improve code coverage and vulnerability discovery~\cite{feng2024interpretable}.
+  \item \textbf{ConFuzzius2} blends symbolic execution and fuzzing. It guides test case generation based on static analysis, improving the coverage and detection of hidden bugs..
+  \item \textbf{Zhang et al. (SCVD Dataset)} used multi-label dynamic annotations, enabling classifiers to detect multiple vulnerabilities per contract~\cite{zhang2020scvd}.
+  \item \textbf{Lesimple’s Master Thesis} simulated contract execution using opcode-based transformations and evaluated dynamic effects via recurrent networks like LSTMs~\cite{lesimple2020master}.
+\end{itemize}
+
+Dynamic analysis reduces false positives and uncovers bugs triggered only during execution. However, it may miss vulnerabilities in unexplored code paths and is sensitive to test coverage quality.
+
+\subsection*{Formal Verification}
+
+Formal verification employs mathematical logic to rigorously prove whether a smart contract satisfies its specified properties under all conditions. These methods provide strong guarantees of correctness but often require formal specifications and are computationally expensive.
+
+\begin{itemize}
+  \item \textbf{SAFEVM}~\cite{albert2019safevm} is a leading benchmark for formal verification. It translates EVM bytecode into intermediate rule-based representations (RBR), which are then converted into C code with embedded assertions. Tools like CPAchecker and SeaHorn verify whether these assertions (e.g., \texttt{\_\_VERIFIER\_error()}) are violated during symbolic execution.
+  \item \textbf{Securify}~\cite{durieux2020empirical} is a compliance-based verification framework. It checks whether a contract meets or violates pre-defined secure coding patterns using Datalog and formal logic rules. Securify is integrated with many static analysis pipelines and supports bytecode-level validation.
+\end{itemize}
+
+While formal verification offers high confidence in contract correctness and security, it requires significant computational effort and deep expertise to define formal properties. As a result, it is often used for high-value or mission-critical contracts.
+
+\subsection*{Machine Learning and Deep Learning-Based Detection}
+
+To overcome the limitations of traditional approaches, recent works have incorporated AI-driven models.
+
+\begin{itemize}
+  \item \textbf{Feng et al.} proposed a deep learning approach using opcode-level n-gram representations and convolutional layers to detect six types of vulnerabilities, including reentrancy and integer overflows~\cite{feng2024interpretable}.
+  \item \textbf{Tann et al.} introduced transformers trained on opcode embeddings to outperform classical ML models in detecting timestamp dependencies and unchecked call issues~\cite{tann2020towards}.
+  \item \textbf{Zhang et al.} trained multi-label classifiers on the SCVD dataset using deep learning models that simultaneously predict several vulnerabilities~\cite{zhang2020scvd}.
+  \item \textbf{Albert et al.} combined formal models with machine learning features to validate dataflow correctness across bytecode and symbolic traces~\cite{albert2019safevm}.
+  \item \textbf{Lesimple} experimented with CNN and LSTM architectures, demonstrating high precision on small curated datasets and improved generalization via embedding fusion~\cite{lesimple2020master}.
+\end{itemize}
+
+These models demonstrate promising results in terms of scalability and detection accuracy, though they are limited by dataset imbalance and interpretability challenges.
+
+\subsection*{Hybrid Detection Techniques}
+
+Hybrid vulnerability detection approaches combine elements of static analysis, formal verification, and machine learning to exploit the strengths of each. These approaches have shown improved performance in both precision and scalability.
+
+\begin{itemize}
+  \item \textbf{SCVD}~\cite{zhang2020scvd} integrates multiple feature types including abstract syntax trees (ASTs), opcodes, and control flow graphs. The dataset supports multi-label classification using both traditional ML models and graph neural networks, representing a fusion of static structure and learning-based detection.
+  \item \textbf{Lesimple}~\cite{lesimple2020master} experimented with both convolutional and recurrent neural networks on opcode sequences while labeling was done using outputs from symbolic and static tools, enabling a weakly-supervised hybrid setup.
+  \item \textbf{SAFEVM}~\cite{albert2019safevm} demonstrates a hybrid formal method by combining symbolic analysis with logic rule extraction and translating contracts to verification-friendly C code for model checking.
+  \item \textbf{Feng et al.}~\cite{feng2024interpretable} combines n-gram-based opcode analysis with interpretable classifiers, using labels derived from static tools, offering a lightweight yet hybrid detection strategy.
+\end{itemize}
+
+These hybrid models aim to improve the trade-off between detection coverage and precision while offering more robust generalization across contract types and vulnerability categories.
+
+\subsection*{Discussion}
+
+From traditional static and dynamic tools to cutting-edge AI-based systems, smart contract vulnerability detection continues to evolve. While tools like Slither, Mythril, and Oyente provide robust rule-based frameworks, deep learning models such as CNNs, BiLSTMs, and Transformers bring scalability and automation. The integration of symbolic execution, bytecode translation, control flow analysis, and NLP-based representations has greatly enhanced vulnerability detection performance.
+
+Future directions include expanding labeled datasets, integrating interpretability modules, and improving detection for cross-contract vulnerabilities and complex attack vectors. As summarized in Table~\ref{tab:detection_comparison}, each study demonstrates different strengths and limitations based on their detection strategy, level of analysis, and intended use case.
+
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{3.2cm}|p{2.8cm}|p{2.4cm}|p{3.3cm}|p{2.8cm}|}
+\hline
+\textbf{Study} & \textbf{Detection Technique} & \textbf{Level of Analysis} & \textbf{Strengths} & \textbf{Limitations} \\ \hline
+
+SmartBugs~\cite{durieux2020empirical} & Static + Symbolic Execution + Fuzzing & Source Code / Bytecode & Benchmarks 9 tools; Multi-vuln tool comparison & Limited AI integration; fixed rule sets \\ \hline
+
+Feng et al.~\cite{feng2024interpretable} & ML-based with n-gram TF-IDF + interpretable classifiers & Opcode & Lightweight and scalable; interpretable & Relies on static labels; low generalization to novel attacks \\ \hline
+
+Lesimple~\cite{lesimple2020master} & CNN/LSTM over opcode sequences & Bytecode & Effective feature learning via DNNs & Requires balanced training; no multi-label prediction \\ \hline
+
+SCVD~\cite{zhang2020scvd} & Multi-label DL, GNNs & AST + Opcode + Graphs & Rich annotations; supports multiple vulnerability types & Tool complexity; resource-intensive \\ \hline
+
+SAFEVM~\cite{albert2019safevm} & Formal verification (symbolic execution + CPAchecker) & Bytecode → C IR & High assurance via formal methods & High computational cost; needs translation layer \\ \hline
+
+EtherCorpus~\cite{tann2020towards} & Representation learning (Transformers, embeddings) & Opcode / Bytecode & Large scale pretraining; unsupervised modeling & No labels; not usable for classification out-of-the-box \\ \hline
+
+\end{tabular}
+\caption{Comparison of Detection Techniques Across Benchmark Studies}
+\label{tab:detection_comparison}
+\end{table}
+
+\section{Learning Paradigms in Vulnerability Detection}
+Artificial Intelligence (AI) has revolutionized the domain of smart contract security by enabling models that automatically detect vulnerabilities from contract code. Central to these AI methods are various learning paradigms that define how models are trained and how they generalize. This section provides a comprehensive overview of the learning approaches adopted across recent research, including supervised, unsupervised, deep learning, transfer learning, and multi-label learning strategies.
+
+\subsection*{Supervised Learning}
+Supervised learning is the most commonly adopted paradigm in smart contract vulnerability detection. It involves training models on labeled data—where each smart contract (or code segment) is annotated with its corresponding vulnerability type(s).
+
+\begin{itemize}
+    \item \textbf{Feng et al.}~\cite{feng2024interpretable} used labeled datasets of over 43,000 smart contracts and applied n-gram feature extraction over opcodes. Models such as XGBoost and decision trees were trained to classify contracts into six vulnerability types. Their results demonstrated high accuracy, precision, and recall when supervised data was balanced using SMOTE.
+    
+    \item \textbf{Lesimple}~\cite{lesimple2020master} treated vulnerability detection as a supervised classification problem. Contracts were tokenized and converted into opcode sequences, which were then used to train CNN and LSTM models. Labels were derived using symbolic analysis tools such as Oyente and Mythril.
+    
+    \item \textbf{Zhang et al.}~\cite{zhang2020scvd} also followed a supervised approach but extended it to support multi-label classification (discussed below), using Slither and SmartCheck to generate labels.
+\end{itemize}
+
+Supervised learning requires substantial labeled data, which is often limited in the blockchain space. Nonetheless, it remains the most interpretable and practical approach for production systems.
+
+\subsection*{Deep Learning Approaches}
+
+Deep learning, a subfield of machine learning, uses neural network architectures with multiple layers to learn abstract and complex patterns from raw contract data.
+
+\begin{itemize}
+    \item \textbf{Lesimple} utilized \textbf{CNNs} and \textbf{LSTMs} to learn temporal and spatial features from opcode sequences. His results showed superior generalization compared to traditional ML models.
+    
+    \item \textbf{Zhang et al.} adopted \textbf{Graph Neural Networks (GNNs)} to model relationships in Abstract Syntax Trees (ASTs) and control flow graphs. GNNs captured context-sensitive vulnerability patterns such as reentrancy and delegate call misuse.
+    
+    \item \textbf{Tann et al.}~\cite{tann2020towards} experimented with \textbf{Transformers} trained on bytecode and opcode sequences using self-attention. These models demonstrated strong capability in learning contextual dependencies in smart contract logic.
+\end{itemize}
+
+These models require large datasets and extensive computational resources, but they significantly outperform classical models in terms of accuracy and feature extraction.
+\subsection*{Multi-Label Learning}
+
+In real-world scenarios, smart contracts often contain multiple vulnerabilities simultaneously. This requires a shift from traditional binary or multi-class classification to \textbf{multi-label classification}.
+
+\begin{itemize}
+    \item \textbf{SCVD Dataset (Zhang et al.)} was specifically designed for multi-label detection. Each contract in the dataset was annotated with one or more of seven vulnerability types, and models were trained using sigmoid outputs with binary cross-entropy loss~\cite{zhang2020scvd}.
+    
+    \item Evaluation metrics like macro/micro-averaged F1-score were used to balance performance across common and rare vulnerabilities.
+\end{itemize}
+
+Multi-label learning better reflects real-world detection challenges and allows finer-grained reporting.
+
+\subsection*{Transfer and Pretrained Learning}
+
+Transfer learning involves leveraging knowledge gained from one task or dataset and applying it to another. In the context of smart contracts, this is often done using pretrained models on large unlabeled corpora.
+
+\begin{itemize}
+    \item \textbf{Tann et al.} introduced \textbf{EtherCorpus}, a dataset of over 160,000 smart contracts used for unsupervised pretraining. Models such as Transformers were pretrained on opcode sequences and then fine-tuned on vulnerability-labeled tasks~\cite{tann2020towards}.
+    
+    \item This method reduces the need for large labeled datasets and enables effective feature learning from the language of smart contracts itself.
+\end{itemize}
+
+\subsection*{Unsupervised Learning}
+
+Although rarely used for final classification, unsupervised learning plays a critical role in:
+\begin{itemize}
+    \item Contract clustering
+    \item Feature extraction
+    \item Embedding learning
+\end{itemize}
+
+\textbf{EtherCorpus} was also used to train contract embeddings without labels, enabling improved downstream performance.
+
+\subsection*{Hybrid Learning Pipelines}
+
+Several works combine multiple paradigms:
+
+\begin{itemize}
+    \item \textbf{Lesimple} combined static labeling with dynamic learning using opcode-level representations and attention mechanisms~\cite{lesimple2020master}.
+    
+    \item \textbf{Feng et al.} combined classical XGBoost classifiers with deep interpretable embeddings to improve explainability and reduce bias~\cite{feng2024interpretable}.
+\end{itemize}
+
+These hybrid systems offer robustness but may require more tuning and interpretability analysis.
+
+\subsection*{Summary Visualization}
+
+Figure~\ref{fig:learning_paradigm_distribution} illustrates the distribution of learning paradigms across the studies surveyed.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Assets/learning_paradigms.png}
+    \caption{Distribution of learning paradigms across key vulnerability detection studies.}
+    \label{fig:learning_paradigm_distribution}
+\end{figure}
+
+Table~\ref{tab:learning_paradigms_comparison} shows the comparison between learning paradigms per study. 
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+
+\begin{tabular}{|p{3.3cm}|p{3cm}|p{4.5cm}|p{2.5cm}|}
+\hline
+\textbf{Study} & \textbf{Learning Paradigm} & \textbf{Main Models Used} & \textbf{Dataset} \\
+\hline
+
+Feng et al.~\cite{feng2024interpretable} & Supervised ML + Lightweight DL & XGBoost, Decision Trees & 43,937 Etherscan Contracts (labeled) \\
+\hline
+
+Lesimple~\cite{lesimple2020master} & Supervised DL & CNN, LSTM & SmartBugs + Collected contracts \\
+\hline
+
+Zhang et al. (SCVD)~\cite{zhang2020scvd} & Supervised Multi-label DL & GNNs, Fully Connected Layers & SCVD Dataset (20,000+ contracts) \\
+\hline
+
+Tann et al. (EtherCorpus)~\cite{tann2020towards} & Transfer Learning + Unsupervised Pretraining & Transformer Encoder, Pretraining on OpCodes & EtherCorpus (160,000+ contracts) \\
+\hline
+
+Albert et al. (SAFEVM)~\cite{albert2019safevm} & Formal Verification (not ML) & Rule-based translation + Model Checking & SAFEVM Dataset (24,000+ contracts) \\
+\hline
+
+Durieux et al. (SmartBugs)~\cite{durieux2020empirical} & Static and Dynamic Analysis (Benchmarking) & Static Analyzers (Oyente, Mythril, etc.) & SmartBugs Benchmark \\
+\hline
+
+\end{tabular}
+\caption{Comparison of Learning Paradigms Across Key Studies}
+\label{tab:learning_paradigms_comparison}
+\end{table}
+
+\subsection*{Conclusion}
+
+Learning paradigms form the foundation of AI-driven smart contract vulnerability detection systems. While supervised learning remains dominant, the integration of deep learning, multi-label detection, and pretrained embeddings significantly enhance detection capabilities. Future systems may adopt semi-supervised and self-supervised learning approaches to address labeling bottlenecks and improve generalization on unseen contract types.
+
+\section{Vulnerability Types and Labeling Strategies}
+Accurate identification and labeling of vulnerabilities are fundamental to building effective smart contract security systems. This section explores the most critical vulnerability types observed in Ethereum smart contracts, the strategies used for labeling contracts in benchmark datasets, and the implications of labeling quality on model performance.
+
+
+\subsection{Labeling Strategies for Vulnerability Detection}
+To train supervised learning models, contracts must be labeled based on the presence or absence of specific vulnerabilities. Two main approaches are used:
+
+\subsubsection*{Static Analysis Tools}
+
+Most datasets leverage automated static analysis tools to scan smart contracts and assign labels.
+
+\begin{itemize}
+    \item \textbf{SmartBugs}~\cite{durieux2020empirical} utilized multiple tools like Oyente, Mythril, Securify, and Manticore to generate vulnerability labels automatically.
+    \item \textbf{SCVD Dataset}~\cite{zhang2020scvd} incorporated labels from Slither and SmartCheck after deduplication, conflict resolution, and additional manual verification.
+    \item \textbf{Feng et al.}~\cite{feng2024interpretable} extracted vulnerability labels using Oyente, covering six major vulnerability types for supervised learning tasks.
+\end{itemize}
+
+Static analysis provides broad coverage but is prone to:
+
+\begin{itemize}
+    \item \textbf{False Positives}: Misidentifying vulnerabilities where none exist.
+    \item \textbf{False Negatives}: Missing subtle or dynamic vulnerabilities.
+\end{itemize}
+
+\subsubsection*{Manual Labeling and Validation}
+
+Manual annotation and validation are applied to increase labeling precision:
+
+\begin{itemize}
+    \item \textbf{Lesimple’s Corpus}~\cite{lesimple2020master} involved manual intervention in cases where static analysis tools disagreed or provided inconclusive results.
+    \item \textbf{SAFEVM Dataset}~\cite{albert2019safevm} relied on formal verification processes to validate the correctness of vulnerability labels at the bytecode level.
+\end{itemize}
+
+Manual labeling significantly improves the reliability of datasets but limits scalability due to its labor-intensive nature.
+
+\subsection{Label Usage in Machine Learning and Deep Learning Studies}
+
+After the vulnerability labeling phase, various machine learning and deep learning models were trained using these labeled datasets:
+
+\begin{itemize}
+    \item \textbf{Feng et al.}~\cite{feng2024interpretable} applied XGBoost classifiers on contracts labeled through static analysis tools, achieving strong performance across six vulnerability types.
+    \item \textbf{Lesimple}~\cite{lesimple2020master} used labeled opcode sequences to train convolutional neural networks (CNNs) and long short-term memory networks (LSTMs), demonstrating the effectiveness of deep learning for smart contract security.
+    \item \textbf{Zhang et al. (SCVD)}~\cite{zhang2020scvd} employed graph neural networks (GNNs) to capture structural properties of contracts, using labels derived from combined static and manual analysis.
+    \item \textbf{Tann et al. (EtherCorpus)}~\cite{tann2020towards} pretrained transformers on unlabeled contracts and fine-tuned them on labeled vulnerability datasets, benefiting from transfer learning techniques.
+\end{itemize}
+
+Thus, both classical machine learning and deep learning models depend critically on the quality of the initial vulnerability labels.
+
+\subsection{Label Distribution and Imbalance Issues}
+
+Real-world datasets demonstrate considerable label imbalance. Some vulnerabilities, like Integer Overflow and Reentrancy, are highly prevalent, while others such as Timestamp Dependency or Uninitialized Storage Pointers are rare.
+
+Table~\ref{tab:label_distribution} summarizes typical label distributions.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\caption{Typical Label Distribution in Smart Contract Datasets}
+\label{tab:label_distribution}
+\begin{tabular}{|p{5cm}|p{3cm}|}
+\hline
+\textbf{Vulnerability Type} & \textbf{Approximate Frequency} \\
+\hline
+Integer Overflow/Underflow & High (frequent) \\
+\hline
+Reentrancy & High (frequent) \\
+\hline
+Access Control Violation & Medium \\
+\hline
+Timestamp Dependency & Low (rare) \\
+\hline
+Unchecked Call Return Value & Medium \\
+\hline
+Denial of Service (DoS) & Low to Medium \\
+\hline
+Uninitialized Storage Pointers & Very Rare \\
+\hline
+\end{tabular}
+\end{table}
+
+Label imbalance presents a major challenge for classifiers, often requiring techniques such as:
+
+\begin{itemize}
+    \item Oversampling (e.g., SMOTE applied in Feng et al.~\cite{feng2024interpretable}).
+    \item Weighted loss functions (e.g., Weighted Cross-Entropy in Lesimple~\cite{lesimple2020master}).
+\end{itemize}
+
+Figure~\ref{fig:vulnerability_distribution_pie} illustrates the approximate distribution.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Assets/vuln_pie_chart.png}
+    \caption{Approximate distribution of smart contract vulnerability types across benchmark datasets.}
+    \label{fig:vulnerability_distribution_pie}
+\end{figure}
+
+\subsection{Impact of Label Quality on Detection Performance}
+
+The quality of vulnerability labels has a profound effect on detection models:
+
+\begin{itemize}
+    \item \textbf{Noisy labels} introduce bias and degrade generalization performance.
+    \item \textbf{Incomplete labeling} makes certain vulnerabilities systematically underdetected.
+    \item \textbf{Incorrect labels} cause models to mislearn mappings between features and vulnerability classes.
+\end{itemize}
+
+Empirical results from Zhang et al.~\cite{zhang2020scvd} confirm that cleaner and verified labels directly correlate with higher multi-label classification accuracy.
+
+\subsection{Conclusion}
+
+Labeling strategies underpin the success of AI-driven vulnerability detection in smart contracts. Whether using static analyzers, manual validation, or hybrid approaches, maintaining high labeling accuracy is critical for model robustness. Furthermore, balancing label distributions is vital to ensuring effective detection of both common and rare vulnerabilities across diverse smart contract ecosystems.
+
+
+\section{Challenges and Limitations in Current Approaches}
+Despite significant advancements in smart contract vulnerability detection, current approaches still face several challenges that limit their scalability, accuracy, and robustness. This section outlines the major technical and methodological limitations observed in the literature.
+
+\subsection*{Data Quality Challenges}
+High-quality labeled datasets are essential for effective supervised learning models. However, the current datasets suffer from several quality-related issues:
+
+\begin{itemize}
+    \item \textbf{Noisy Labels}: Static analysis tools such as Oyente and Mythril, used for automatic labeling, are prone to false positives and false negatives~\cite{durieux2020empirical}.
+    
+    \item \textbf{Imbalanced Vulnerability Distribution}: Some vulnerabilities (e.g., Integer Overflow) are frequent, while others (e.g., Timestamp Dependency) are rare, making it challenging to train balanced classifiers~\cite{zhang2020scvd}.
+    
+    \item \textbf{Small Dataset Sizes}: Even the largest curated datasets (e.g., EtherCorpus, SCVD) cover a limited portion of real-world contracts compared to millions deployed on Ethereum, leading to poor generalization~\cite{tann2020towards}.
+\end{itemize}
+
+\subsection*{Detection Model Challenges}
+
+The models used for vulnerability detection also present various technical challenges:
+
+\begin{itemize}
+    \item \textbf{Overfitting}: Deep learning models such as CNNs and GNNs tend to overfit small training datasets, leading to reduced performance on unseen contracts~\cite{lesimple2020master}.
+    
+    \item \textbf{Poor Generalization}: Many models perform well on test splits but fail to generalize to contracts deployed after their training datasets were collected.
+    
+    \item \textbf{Multi-label Detection Complexity}: Contracts often contain multiple vulnerabilities simultaneously, making learning and evaluation harder.
+    
+    \item \textbf{Model Interpretability}: Deep learning models often behave as black boxes, making it difficult to explain why a specific vulnerability was detected or missed.
+\end{itemize}
+
+\subsection*{Scalability Issues}
+
+Several current approaches face challenges in scaling to large datasets or real-world blockchain networks:
+
+\begin{itemize}
+    \item \textbf{Heavy Computational Requirements}: Pretraining Transformers on large corpora (e.g., EtherCorpus) demands significant compute resources~\cite{tann2020towards}.
+    
+    \item \textbf{Static Analysis Bottleneck}: Static analyzers used for labeling contracts do not scale efficiently to millions of contracts, limiting dataset expansion.
+\end{itemize}
+
+\subsection*{Limited Labeling Automation}
+
+While static analysis provides an efficient labeling mechanism, it has critical limitations:
+
+\begin{itemize}
+    \item \textbf{Outdated Vulnerability Coverage}: Tools like Oyente and Mythril mainly detect vulnerabilities known as of 2018--2019, missing newly discovered exploit patterns.
+    
+    \item \textbf{Lack of Dynamic Behavior Analysis}: Most vulnerabilities that manifest during contract execution (e.g., gas limit attacks) are not captured.
+\end{itemize}
+
+\subsection*{Dataset and Evaluation Inconsistency}
+
+Experimental inconsistencies among studies pose challenges to replicability and fair comparison:
+
+\begin{itemize}
+    \item \textbf{Different Dataset Versions}: Studies often use slightly different filtered versions of SmartBugs, SCVD, or Etherscan crawls.
+    
+    \item \textbf{Non-standard Evaluation Metrics}: Some studies report accuracy, others F1-score, and very few report macro/micro-averaged metrics, complicating direct comparison.
+\end{itemize}
+
+\subsection*{Security-Specific Challenges}
+
+Security-specific aspects of smart contracts introduce additional complexity:
+
+\begin{itemize}
+    \item \textbf{Adversarial Examples}: Small code perturbations can deceive machine learning models, leading to undetected vulnerabilities.
+    
+    \item \textbf{Semantic Equivalence}: Two contracts may differ syntactically but be semantically identical, which is difficult for syntax-based models to recognize.
+    
+    \item \textbf{Proxy and Upgradeable Contracts}: Many contracts on Ethereum use proxy patterns for upgradability, but most detection models assume monolithic contracts.
+\end{itemize}
+
+\subsection*{Summary of Challenges}
+
+Table~\ref{tab:challenges_summary} summarizes the main categories of challenges and their impacts on smart contract vulnerability detection.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+
+\begin{tabular}{|p{4.5cm}|p{7cm}|}
+\hline
+\textbf{Challenge Category} & \textbf{Impact} \\
+\hline
+Noisy/Imbalanced Datasets & Reduced model accuracy, bias towards common vulnerabilities \\
+\hline
+Overfitting and Generalization Issues & Poor performance on real-world, unseen contracts \\
+\hline
+Scalability Bottlenecks & Infeasibility of analyzing blockchain-scale datasets \\
+\hline
+Labeling Limitations & Missing novel vulnerabilities, incomplete training signals \\
+\hline
+Dataset/Evaluation Inconsistency & Difficulty in comparing and reproducing research results \\
+\hline
+Security-Specific Complexity & Increased attack surface; failure to handle proxy patterns, semantic variations \\
+\hline
+\end{tabular}
+\caption{Summary of Challenges and Their Impacts}
+\label{tab:challenges_summary}
+\end{table}
+
+Figure~\ref{fig:challenges_vulnerability_detection} illustrates the primary challenges encountered in smart contract vulnerability detection workflows and their cascading impacts. Issues such as noisy and imbalanced data often lead to overfitting, which consequently results in poor generalization to unseen contracts. Scalability limitations and security-specific complexities further contribute to unreliable detection outcomes. Evaluation inconsistencies across datasets and tools also hinder reproducibility and fair benchmarking of models.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Assets/challenges.png}
+    \caption{Main challenges and their impact pathways in smart contract vulnerability detection.}
+    \label{fig:challenges_vulnerability_detection}
+\end{figure}
+\subsection*{Conclusion}
+
+Although significant progress has been made in smart contract vulnerability detection, the limitations outlined in this section highlight critical areas that demand further innovation. Improving dataset quality, building explainable models, enhancing scalability, and addressing adversarial robustness will be key priorities for advancing secure and reliable smart contract analysis in future research.
+
+\section{Evaluation Benchmarks and Metrics}
+Rigorous evaluation is essential to assess the effectiveness, robustness, and generalizability of smart contract vulnerability detection models. This section presents the benchmark datasets used for evaluation, discusses the key metrics adopted across major studies, and highlights common challenges encountered in comparative analysis.
+
+\subsection*{Importance of Evaluation in Smart Contract Vulnerability Detection}
+
+Accurate evaluation ensures that models are not merely memorizing training data but are capable of detecting vulnerabilities in unseen contracts. Given the security-critical nature of smart contracts, high precision, recall, and robustness are vital for practical deployment.
+
+Without careful benchmarking, models risk overfitting, underestimating rare vulnerabilities, or offering misleading performance guarantees.
+
+\subsection*{Benchmark Datasets Used}
+
+Several public datasets have been utilized across studies to train and evaluate vulnerability detection models:
+
+\begin{itemize}
+    \item \textbf{SmartBugs Dataset}~\cite{durieux2020empirical}: A manually curated corpus containing real-world smart contracts labeled using multiple static analyzers.
+    
+    \item \textbf{SCVD Dataset}~\cite{zhang2020scvd}: A multi-label annotated dataset with over 20,000 contracts, each labeled with multiple vulnerabilities where applicable.
+    
+    \item \textbf{EtherCorpus}~\cite{tann2020towards}: A large corpus (over 160,000 contracts) used mainly for pretraining; fine-tuning and evaluation were conducted on smaller labeled subsets.
+    
+    \item \textbf{SAFEVM Dataset}~\cite{albert2019safevm}: A dataset focusing on bytecode-level vulnerabilities, leveraging formal verification approaches for evaluation.
+\end{itemize}
+
+Train/test splits typically ranged from 70/30 to 80/20, although cross-validation was less commonly applied in this domain.
+
+\subsection*{Evaluation Metrics}
+
+Different studies adopted various evaluation metrics to measure model performance, depending on whether the task was single-label or multi-label classification:
+
+\begin{itemize}
+    \item \textbf{Accuracy}: The proportion of correctly predicted samples over all samples. While widely reported, it can be misleading for imbalanced datasets.
+    
+    \item \textbf{Precision}: The proportion of correctly predicted positive samples out of all predicted positives. Crucial for minimizing false alarms in vulnerability detection.
+    
+    \item \textbf{Recall (Sensitivity)}: The proportion of correctly predicted positives out of all actual positives. Critical for ensuring vulnerabilities are not missed.
+    
+    \item \textbf{F1-Score}: The harmonic mean of precision and recall. Provides a single measure balancing both aspects.
+    
+    \item \textbf{Macro-Averaged Metrics}: Averaging metrics equally across all classes, treating each class equally regardless of frequency.
+    
+    \item \textbf{Micro-Averaged Metrics}: Aggregating the contributions of all classes to compute the average metric, weighting frequent classes more heavily.
+    
+    \item \textbf{ROC-AUC (Receiver Operating Characteristic – Area Under Curve)}: Rarely used but can measure separability for binary classification problems.
+\end{itemize}
+
+\subsection*{Metric Usage Across Studies}
+
+Table~\ref{tab:metrics_comparison} summarizes the metrics reported by key studies.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.3}
+\caption{Evaluation Metrics Used Across Key Studies}
+\label{tab:metrics_comparison}
+\begin{tabular}{|p{4.5cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
+\hline
+\textbf{Study} & \textbf{Accuracy} & \textbf{Precision/Recall} & \textbf{F1-Score} & \textbf{Macro/Micro Averaging} \\
+\hline
+Feng et al.~\cite{feng2024interpretable} & \checkmark & \checkmark & \checkmark & - \\
+\hline
+Lesimple~\cite{lesimple2020master} & \checkmark & \checkmark & \checkmark & \checkmark \\
+\hline
+Zhang et al.~\cite{zhang2020scvd} & \checkmark & \checkmark & \checkmark & \checkmark \\
+\hline
+Tann et al.~\cite{tann2020towards} & \checkmark & - & - & - \\
+\hline
+Albert et al.~\cite{albert2019safevm} & - & \checkmark & - & - \\
+\hline
+Durieux et al.~\cite{durieux2020empirical} & - & - & - & - (Benchmarking tools only) \\
+\hline
+\end{tabular}
+\end{table}
+
+As shown in Table~\ref{tab:metrics_comparison}, more recent studies such as Lesimple~\cite{lesimple2020master} and Zhang et al.~\cite{zhang2020scvd} adopted comprehensive evaluation using macro-averaged precision, recall, and F1-scores, especially suitable for multi-label classification tasks.\\
+\\As illustrated in Figure~\ref{fig:performance_comparison}, models evaluated on the \textit{Feng et al.} and \textit{Lesimple} datasets consistently achieved higher F1-scores and accuracy compared to those tested on SAFEVM or SmartBugs, highlighting variability in model robustness across datasets.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Assets/metrics.png}
+    \caption{Performance comparison of different vulnerability detection methods across benchmark datasets based on F1-Score, Accuracy, Precision, and Recall.}
+    \label{fig:performance_comparison}
+\end{figure}
+\subsection*{Challenges in Fair Evaluation}
+
+Several challenges complicate fair and reproducible evaluation across studies:
+
+\begin{itemize}
+    \item \textbf{Dataset Variability}: Different studies sometimes use differently filtered datasets, making direct comparison difficult.
+    
+    \item \textbf{Non-Uniform Metrics}: Some report only accuracy (problematic for imbalanced data), while others properly report F1-scores.
+    
+    \item \textbf{Different Vulnerability Taxonomies}: Varying definitions of what constitutes a vulnerability can lead to inconsistent labeling.
+    
+    \item \textbf{Training-Test Data Leakage}: Improper dataset splits may accidentally leak information from training to testing sets, inflating reported results.
+\end{itemize}
+
+\subsection*{Discussion}
+
+Evaluation practices in smart contract vulnerability detection have improved over time, shifting from simplistic metrics like accuracy to more robust metrics such as macro-averaged F1-score. However, inconsistencies in datasets, metrics, and reporting practices remain a critical challenge. The community would benefit from the adoption of standardized datasets, clear vulnerability taxonomies, and unified evaluation protocols for future benchmarking.
+
+\section*{Conclusion}
+This chapter has provided a comprehensive overview of the existing literature and methodologies for smart contract vulnerability detection using artificial intelligence. It covered commonly used datasets, data preprocessing techniques, detection approaches, learning paradigms, and evaluation metrics. The review highlights the growing importance of machine and deep learning in analyzing smart contracts, while also exposing the challenges such as data imbalance, interpretability, and the need for standardized evaluation. These insights form a solid foundation for developing and justifying the methodology proposed in the next chapter.
