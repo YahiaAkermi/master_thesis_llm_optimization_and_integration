@@ -1,691 +1,1973 @@
 % Implementation
-\part{State of The Art}
+\part{Implementation and Evaluation}
 
-\chapter{Introduction}
-Smart contracts have become a critical component of decentralized applications, enabling autonomous execution of logic on blockchain platforms. However, their immutability and complexity make them prone to security vulnerabilities, with incidents such as the DAO hack highlighting the risks of deploying unaudited or flawed contracts.
+\chapter{Introduction and Research Context}
 
-To address this, various vulnerability detection tools have been developed—ranging from rule-based static analyzers like Oyente and Securify to symbolic execution engines like Mythril. While these tools provide valuable insights, they often face limitations in scalability, precision, and adaptability to new threats.
+\section{Problem Statement and Motivation}
 
-As a result, researchers have begun exploring artificial intelligence techniques to enhance vulnerability detection. Machine learning models can learn from labeled contract datasets to identify risky patterns, while deep learning approaches—including CNNs, RNNs, and Graph Neural Networks—enable more advanced analysis of smart contract structures, such as opcodes and control flow graphs.
+The proliferation of Large Language Models (LLMs) in enterprise applications has created an unprecedented demand for efficient, scalable, and maintainable integration architectures. While the theoretical capabilities of LLMs are well-documented, the practical implementation of these models within enterprise systems presents significant architectural challenges that remain inadequately addressed in current literature.
 
-Recent work also incorporates transformer-based models for source code understanding and vulnerability prediction. Despite these advancements, challenges like data quality, class imbalance, and explainability remain open issues.
+Contemporary enterprise applications require LLM integration patterns that can simultaneously satisfy multiple competing requirements: low-latency response times for interactive applications, high-throughput processing for batch operations, real-time streaming capabilities for conversational interfaces, and comprehensive observability for production monitoring. The existing body of research predominantly focuses on model performance optimization and theoretical integration approaches, leaving a critical gap in empirical, production-ready implementation studies.
 
-This chapter reviews key contributions and methodologies in this domain, laying the groundwork for the proposed AI-based approach presented in this thesis.
+The fundamental challenge lies in the architectural decision-making process when selecting appropriate integration patterns. Traditional REST APIs, while well-understood and widely adopted, may not be optimal for LLM workloads that exhibit unique characteristics such as variable processing times, context-dependent responses, and resource-intensive computations. Emerging protocols like Model Context Protocol (MCP) promise improved efficiency through persistent connections and stateful interactions, yet lack comprehensive empirical validation in real-world scenarios. Similarly, streaming protocols offer real-time user feedback but introduce complexity in error handling, resource management, and system observability.
 
-\chapter{Related Work}
-\section{Used Datasets}
-The progress in smart contract vulnerability detection has been largely fueled by the availability of public datasets that contain real-world or labeled smart contracts. These datasets enable the development, training, and benchmarking of AI-based models for static or semantic vulnerability analysis. Below is an overview of the most widely used datasets in the field.
+Furthermore, the enterprise software development community faces a methodological challenge: the absence of standardized benchmarking frameworks and quantitative evaluation criteria for LLM integration patterns. This deficiency impedes evidence-based architectural decisions and limits the reproducibility of performance studies. The complexity is compounded by the need to balance theoretical performance advantages with practical implementation constraints, including development complexity, operational overhead, and maintainability considerations.
 
-\subsection*{Public Datasets}
+The motivation for this research emerges from the recognition that current literature fails to provide actionable guidance for enterprise architects and developers who must make critical decisions about LLM integration patterns. The gap between theoretical protocol specifications and practical implementation realities necessitates a comprehensive, empirical study that bridges this divide through rigorous scientific methodology and production-ready implementations.
 
-\begin{itemize}
+\section{Research Objectives and Scope}
 
-  \item \textbf{SmartBugs Dataset}~\cite{durieux2020empirical}: This benchmark dataset contains over 47,000 verified smart contracts from Etherscan. Contracts are labeled using several static analyzers like Oyente, Securify, and Mythril. It is widely used for training and evaluating AI-based vulnerability detection systems.
+This research aims to address the identified knowledge gaps through a systematic, empirical investigation of LLM integration patterns in enterprise contexts. The primary research objectives are structured around three fundamental pillars: implementation, measurement, and analysis.
 
-  \item \textbf{Dataset Used in Feng et al.}~\cite{feng2024interpretable}: Feng et al. collected and processed 43,937 verified contracts from Etherscan and labeled them using Oyente to detect six vulnerability types. These contracts were later transformed into opcode sequences and tokenized into n-grams for input into machine learning models.
+\textbf{Primary Objective}: To develop and empirically evaluate a comprehensive framework for comparing LLM integration patterns in enterprise applications, focusing on REST APIs, Model Context Protocol (MCP), and Server-Sent Events (SSE) streaming implementations.
 
-  \item \textbf{Lesimple’s Contract Corpus}~\cite{lesimple2020master}: In this work, smart contracts were scraped from Etherscan and annotated manually or using a mix of tools. This dataset was used to train and evaluate deep learning models such as LSTMs and CNNs on opcode sequences.
+\textbf{Secondary Objectives}:
 
-  \item \textbf{Zhang et al. (SCVD Dataset)}~\cite{zhang2020scvd}: This dataset includes over 20,000 smart contracts collected from Etherscan and labeled using multiple tools, including Slither, SmartCheck, and manual inspection. It supports multi-label classification tasks with annotations for several vulnerabilities per contract.
-
-  \item \textbf{Albert et al. (SAFEVM Set)}~\cite{albert2019safevm}: More than 24,000 smart contracts were collected for verification using a formal translation into C and analysis via tools such as CPAchecker and SeaHorn. The dataset focuses on bytecode-level execution safety.
-
-  \item \textbf{Tann et al. (EtherCorpus)}~\cite{tann2020towards}: EtherCorpus includes over 160,000 smart contracts with both source code and compiled bytecode. The dataset supports embedding learning and is often used with transformer-based models or opcode token analysis.
-
-\end{itemize}
-
-See table ~\ref{tab:accurate_smart_contract_datasets} for a comparaison between the mentioned datasets.
-\begin{table}[H]
-\centering
-\label{tab:accurate_smart_contract_datasets}
-\begin{tabular}{|l|c|p{6cm}|c|c|}
-\hline
-\textbf{Study} & \textbf{Year} & \textbf{Source} & \textbf{Samples} & \textbf{Balanced} \\
-\hline
-SmartBugs~\cite{durieux2020empirical} & 2020 & Contracts from Etherscan, labeled with Mythril, Oyente, Securify & 47,000+ & No \\
-\hline
-Feng et al.~\cite{feng2024interpretable} & 2024 & Verified contracts from Etherscan, labeled via Oyente & 43,937 & No \\
-\hline
-Lesimple~\cite{lesimple2020master} & 2020 & Etherscan contracts annotated manually and with tools & ~5,000 & No \\
-\hline
-Zhang et al. (SCVD)~\cite{zhang2020scvd} & 2020 & Etherscan contracts labeled with Slither, SmartCheck, manual review & 20,000+ & No \\
-\hline
-Albert et al. (SAFEVM)~\cite{albert2019safevm} & 2019 & Etherscan contracts translated to C and verified with CPAchecker & 24,000+ & No \\
-\hline
-Tann et al. (EtherCorpus)~\cite{tann2020towards} & 2023 & Smart contracts with bytecode and source from public deployments & 160,000+ & No \\
-\hline
-\end{tabular}
-\caption{Summary of Publicly Available Smart Contract Datasets}
-\label{tab:accurate_smart_contract_datasets}
-
-\end{table}
-
-\section{Data Preprocessing}
-In several studies, raw Solidity contracts or EVM bytecode were transformed into opcode sequences. This is essential because opcode representations reduce semantic ambiguity and capture low-level execution patterns.
-
-\begin{itemize}
-  \item \textbf{SmartBugs}~\cite{durieux2020empirical} retained the Solidity source code and directly applied static analyzers to identify vulnerabilities, requiring no further preprocessing for machine learning but structured output normalization for comparison across tools.
-  \item \textbf{Lesimple et al.}~\cite{lesimple2020master} compiled contracts into opcodes, then tokenized them. Token sequences were one-hot encoded and padded to ensure uniform input lengths for CNN and LSTM models.
-  \item \textbf{Feng et al.}~\cite{feng2024interpretable} extracted opcodes from compiled bytecode and applied \textbf{n-gram tokenization} (bigrams and trigrams) to capture instruction patterns. This approach emphasized local semantic context before transforming token sequences into vectors using \textbf{TF-IDF}.
-\end{itemize}
-
-\subsection*{Opcode Extraction and Tokenization}
-
-\begin{itemize}
-    \item \textbf{SmartBugs}: This dataset does not rely on opcode parsing for model input, as it uses static analysis outputs from source code. However, tools like Mythril and Oyente internally parse bytecode to detect low-level vulnerabilities.
-    \item \textbf{Feng et al.}: The Solidity contracts were compiled to bytecode and disassembled into opcode sequences. These were then tokenized into bi- and tri-grams for downstream TF-IDF modeling.
-    \item \textbf{Lesimple}: Contracts were also compiled to bytecode and tokenized into opcode sequences. The opcodes were directly used as input to deep learning models via one-hot encoding.
-    \item \textbf{SCVD}: Extracted both opcode and AST sequences. Opcodes were used for behavioral pattern learning, and tokenized into linear sequences for hybrid feature models.
-    \item \textbf{SAFEVM}: Bytecode was transformed into EthIR rule-based representation, but opcode sequences were not directly extracted or tokenized. The processing focused on symbolic representation.
-    \item \textbf{EtherCorpus}: Extracted and stored opcode sequences at scale across 160,000+ contracts. These were intended for language modeling, unsupervised token embedding, or transformer-based representation learning.
-\end{itemize}
-
-\subsection*{Feature Vector Construction}
-
-\begin{itemize}
-    \item \textbf{SmartBugs}: Structured tool outputs were normalized into JSON fields per contract, suitable for rule-based or label-based model training.
-    \item \textbf{Feng et al.}: Opcode n-grams were vectorized using TF-IDF encoding, generating sparse matrices representing each contract’s opcode pattern.
-    \item \textbf{Lesimple}: One-hot encoded opcode sequences were padded to equal length and transformed into 2D matrices compatible with CNN and LSTM architectures.
-    \item \textbf{SCVD}: Generated embeddings from AST structures and control flow graphs. Graphs were used to encode node/edge semantics for input into GNN models.
-    \item \textbf{SAFEVM}: Transformed bytecode into C code annotated with verification logic; not vectorized in the traditional ML sense but used for static symbolic execution.
-    \item \textbf{EtherCorpus}: No vulnerability labels were provided. Preprocessing focused on generating token embeddings from bytecode and opcode sequences for unsupervised learning.
-\end{itemize}
-
-\subsection*{Label Assignment and Vulnerability Annotation}
-
-\begin{itemize}
-    \item \textbf{SmartBugs}: Labeled using static analysis tools (Oyente, Mythril, Securify). Each tool generated vulnerability reports, later unified into a multi-label schema.
-    \item \textbf{Feng et al.}: Used Oyente to detect six categories of vulnerabilities and created binary labels for each category.
-    \item \textbf{Lesimple}: Relied on tool outputs and partial manual inspection to define binary labels (vulnerable vs. non-vulnerable).
-    \item \textbf{SCVD}: Used Slither, SmartCheck, and human inspection for multi-label annotation of contracts across vulnerability types.
-    \item \textbf{SAFEVM}: Contracts were labeled as vulnerable if formal verification tools detected an assertion failure or invalid behavior.
-    \item \textbf{EtherCorpus}: No labeling or ground truth vulnerability annotation; intended for language modeling and pretraining tasks.
-\end{itemize}
-
-
-\subsection*{Balancing and Class Imbalance Handling}
-
-\begin{itemize}
-    \item \textbf{SmartBugs}: Class imbalance exists due to the natural distribution of bugs. No explicit rebalancing was done in the published dataset, though downstream tasks may subsample.
-    \item \textbf{Feng et al.}: Applied SMOTE to generate synthetic vulnerable samples, improving class balance and avoiding model bias.
-    \item \textbf{Lesimple}: Used stratified sampling and undersampling of majority classes to ensure balanced splits between vulnerable and safe contracts.
-    \item \textbf{SCVD}: Constructed training/test splits with controlled vulnerability distributions for multi-label learning.
-    \item \textbf{SAFEVM}: Labels emerged from verification outcomes; balance was not manipulated but depended on verification failure ratios.
-    \item \textbf{EtherCorpus}: No balancing applied; the dataset is unsupervised and serves as a large-scale corpus for pretraining.
-\end{itemize}
-
-\subsection*{Structural Representations and Translation}
-
-\begin{itemize}
-    \item \textbf{SmartBugs}: Does not include ASTs or graph-based representations. Focuses solely on tool-level vulnerability annotation.
-    \item \textbf{Feng et al.}: Operates only on opcode-level abstraction; no structural parsing beyond n-grams.
-    \item \textbf{Lesimple}: Similar to Feng, relies on opcode structure; no use of ASTs or CFGs.
-    \item \textbf{SCVD}: Generated ASTs from Solidity code and constructed graphs with syntactic and semantic edges, enabling GNN-based processing.
-    \item \textbf{SAFEVM}: Used EthIR to translate EVM bytecode into rule-based logic, then into C code with assertion annotations for formal verification.
-    \item \textbf{EtherCorpus}: Offers raw source, bytecode, and opcodes suitable for graph construction or token-level representation learning, but no explicit structural parsing included in the dataset.
-\end{itemize}
-
-\subsection*{Conclusion}
-
-Across these six datasets, a range of preprocessing strategies were employed to convert smart contracts into structured representations:
-
-\begin{itemize}
-    \item \textbf{Opcode-driven} datasets (Feng, Lesimple, EtherCorpus) emphasize instruction-level pattern learning.
-    \item \textbf{Graph-based} datasets (SCVD) model control/data flows via ASTs and syntax graphs.
-    \item \textbf{Symbolic translation} (SAFEVM) enables verification with program logic.
-    \item \textbf{Hybrid datasets} (SmartBugs) offer normalized tool outputs for comparative analysis.
-\end{itemize}
-
-These preprocessing stages serve as the bridge between raw smart contract code and AI-powered vulnerability detection techniques.
-
-\section{Detection Techniques for Smart Contract Vulnerabilities}
-The increasing reliance on Ethereum smart contracts for financial and business operations has brought to light a growing concern over their security. Numerous vulnerabilities such as reentrancy, integer overflows, timestamp dependencies, and access control flaws have been widely exploited, resulting in substantial financial losses. Hence, detecting these vulnerabilities efficiently and accurately is of paramount importance. In this section, we explore various techniques proposed and implemented in recent literature, broadly classified into three categories: static analysis, dynamic analysis, and formal verification. We also detail how these approaches have been applied across major studies.
-\subsection*{Static Analysis}
-
-Static analysis involves examining the smart contract’s source code or bytecode without executing it. This method allows for early detection of potential vulnerabilities before deployment.
-
-\begin{itemize}
-  \item \textbf{Oyente} was one of the first tools to use symbolic execution for vulnerability detection in smart contracts. It constructs a control flow graph (CFG), explores possible execution paths using symbolic inputs, and flags vulnerabilities using the Z3 SMT solver~\cite{durieux2020empirical}.
-  \item \textbf{SmartCheck} converts Solidity code into an intermediate representation and scans it using predefined XPath patterns to detect issues like reentrancy or integer overflows~\cite{durieux2020empirical}.
-  \item \textbf{Slither} offers static analysis of Solidity source code through CFG construction, variable tracking, and taint analysis. It provides modular detectors that scan for specific vulnerability patterns~\cite{durieux2020empirical}.
-  \item \textbf{Tann et al.} leveraged static features from source code and bytecode and combined them with deep learning models to enhance vulnerability detection, particularly in large-scale contract corpora~\cite{tann2020towards}.
-  \item \textbf{SAFEVM (Albert et al.)} translated EVM bytecode into C for verification using tools like CPAchecker, identifying security violations via static pattern matching~\cite{albert2019safevm}.
-\end{itemize}
-
-Static analysis is favored for its speed and ability to evaluate all possible execution paths. However, it suffers from a high false-positive rate and may miss vulnerabilities dependent on runtime states.
-
-\subsection*{Dynamic Analysis}
-
-Dynamic analysis techniques execute the smart contract in a simulated or actual environment to observe runtime behavior, offering insights into context-dependent vulnerabilities.
-
-\begin{itemize}
-  \item \textbf{ContractFuzzer} executes smart contracts with random inputs in a fuzz-testing environment and observes execution logs to detect issues like unhandled exceptions or gas limit violations~\cite{feng2024interpretable}.
-  \item \textbf{sFuzz} enhances test-case generation using feedback-based fuzzing to improve code coverage and vulnerability discovery~\cite{feng2024interpretable}.
-  \item \textbf{ConFuzzius2} blends symbolic execution and fuzzing. It guides test case generation based on static analysis, improving the coverage and detection of hidden bugs..
-  \item \textbf{Zhang et al. (SCVD Dataset)} used multi-label dynamic annotations, enabling classifiers to detect multiple vulnerabilities per contract~\cite{zhang2020scvd}.
-  \item \textbf{Lesimple’s Master Thesis} simulated contract execution using opcode-based transformations and evaluated dynamic effects via recurrent networks like LSTMs~\cite{lesimple2020master}.
-\end{itemize}
-
-Dynamic analysis reduces false positives and uncovers bugs triggered only during execution. However, it may miss vulnerabilities in unexplored code paths and is sensitive to test coverage quality.
-
-\subsection*{Formal Verification}
-
-Formal verification employs mathematical logic to rigorously prove whether a smart contract satisfies its specified properties under all conditions. These methods provide strong guarantees of correctness but often require formal specifications and are computationally expensive.
-
-\begin{itemize}
-  \item \textbf{SAFEVM}~\cite{albert2019safevm} is a leading benchmark for formal verification. It translates EVM bytecode into intermediate rule-based representations (RBR), which are then converted into C code with embedded assertions. Tools like CPAchecker and SeaHorn verify whether these assertions (e.g., \texttt{\_\_VERIFIER\_error()}) are violated during symbolic execution.
-  \item \textbf{Securify}~\cite{durieux2020empirical} is a compliance-based verification framework. It checks whether a contract meets or violates pre-defined secure coding patterns using Datalog and formal logic rules. Securify is integrated with many static analysis pipelines and supports bytecode-level validation.
-\end{itemize}
-
-While formal verification offers high confidence in contract correctness and security, it requires significant computational effort and deep expertise to define formal properties. As a result, it is often used for high-value or mission-critical contracts.
-
-\subsection*{Machine Learning and Deep Learning-Based Detection}
-
-To overcome the limitations of traditional approaches, recent works have incorporated AI-driven models.
-
-\begin{itemize}
-  \item \textbf{Feng et al.} proposed a deep learning approach using opcode-level n-gram representations and convolutional layers to detect six types of vulnerabilities, including reentrancy and integer overflows~\cite{feng2024interpretable}.
-  \item \textbf{Tann et al.} introduced transformers trained on opcode embeddings to outperform classical ML models in detecting timestamp dependencies and unchecked call issues~\cite{tann2020towards}.
-  \item \textbf{Zhang et al.} trained multi-label classifiers on the SCVD dataset using deep learning models that simultaneously predict several vulnerabilities~\cite{zhang2020scvd}.
-  \item \textbf{Albert et al.} combined formal models with machine learning features to validate dataflow correctness across bytecode and symbolic traces~\cite{albert2019safevm}.
-  \item \textbf{Lesimple} experimented with CNN and LSTM architectures, demonstrating high precision on small curated datasets and improved generalization via embedding fusion~\cite{lesimple2020master}.
-\end{itemize}
-
-These models demonstrate promising results in terms of scalability and detection accuracy, though they are limited by dataset imbalance and interpretability challenges.
-
-\subsection*{Hybrid Detection Techniques}
-
-Hybrid vulnerability detection approaches combine elements of static analysis, formal verification, and machine learning to exploit the strengths of each. These approaches have shown improved performance in both precision and scalability.
-
-\begin{itemize}
-  \item \textbf{SCVD}~\cite{zhang2020scvd} integrates multiple feature types including abstract syntax trees (ASTs), opcodes, and control flow graphs. The dataset supports multi-label classification using both traditional ML models and graph neural networks, representing a fusion of static structure and learning-based detection.
-  \item \textbf{Lesimple}~\cite{lesimple2020master} experimented with both convolutional and recurrent neural networks on opcode sequences while labeling was done using outputs from symbolic and static tools, enabling a weakly-supervised hybrid setup.
-  \item \textbf{SAFEVM}~\cite{albert2019safevm} demonstrates a hybrid formal method by combining symbolic analysis with logic rule extraction and translating contracts to verification-friendly C code for model checking.
-  \item \textbf{Feng et al.}~\cite{feng2024interpretable} combines n-gram-based opcode analysis with interpretable classifiers, using labels derived from static tools, offering a lightweight yet hybrid detection strategy.
-\end{itemize}
-
-These hybrid models aim to improve the trade-off between detection coverage and precision while offering more robust generalization across contract types and vulnerability categories.
-
-\subsection*{Discussion}
-
-From traditional static and dynamic tools to cutting-edge AI-based systems, smart contract vulnerability detection continues to evolve. While tools like Slither, Mythril, and Oyente provide robust rule-based frameworks, deep learning models such as CNNs, BiLSTMs, and Transformers bring scalability and automation. The integration of symbolic execution, bytecode translation, control flow analysis, and NLP-based representations has greatly enhanced vulnerability detection performance.
-
-Future directions include expanding labeled datasets, integrating interpretability modules, and improving detection for cross-contract vulnerabilities and complex attack vectors. As summarized in Table~\ref{tab:detection_comparison}, each study demonstrates different strengths and limitations based on their detection strategy, level of analysis, and intended use case.
-
-
-\begin{table}[H]
-\centering
-\renewcommand{\arraystretch}{1.3}
-\begin{tabular}{|p{3.2cm}|p{2.8cm}|p{2.4cm}|p{3.3cm}|p{2.8cm}|}
-\hline
-\textbf{Study} & \textbf{Detection Technique} & \textbf{Level of Analysis} & \textbf{Strengths} & \textbf{Limitations} \\ \hline
-
-SmartBugs~\cite{durieux2020empirical} & Static + Symbolic Execution + Fuzzing & Source Code / Bytecode & Benchmarks 9 tools; Multi-vuln tool comparison & Limited AI integration; fixed rule sets \\ \hline
-
-Feng et al.~\cite{feng2024interpretable} & ML-based with n-gram TF-IDF + interpretable classifiers & Opcode & Lightweight and scalable; interpretable & Relies on static labels; low generalization to novel attacks \\ \hline
-
-Lesimple~\cite{lesimple2020master} & CNN/LSTM over opcode sequences & Bytecode & Effective feature learning via DNNs & Requires balanced training; no multi-label prediction \\ \hline
-
-SCVD~\cite{zhang2020scvd} & Multi-label DL, GNNs & AST + Opcode + Graphs & Rich annotations; supports multiple vulnerability types & Tool complexity; resource-intensive \\ \hline
-
-SAFEVM~\cite{albert2019safevm} & Formal verification (symbolic execution + CPAchecker) & Bytecode → C IR & High assurance via formal methods & High computational cost; needs translation layer \\ \hline
-
-EtherCorpus~\cite{tann2020towards} & Representation learning (Transformers, embeddings) & Opcode / Bytecode & Large scale pretraining; unsupervised modeling & No labels; not usable for classification out-of-the-box \\ \hline
-
-\end{tabular}
-\caption{Comparison of Detection Techniques Across Benchmark Studies}
-\label{tab:detection_comparison}
-\end{table}
-
-\section{Learning Paradigms in Vulnerability Detection}
-Artificial Intelligence (AI) has revolutionized the domain of smart contract security by enabling models that automatically detect vulnerabilities from contract code. Central to these AI methods are various learning paradigms that define how models are trained and how they generalize. This section provides a comprehensive overview of the learning approaches adopted across recent research, including supervised, unsupervised, deep learning, transfer learning, and multi-label learning strategies.
-
-\subsection*{Supervised Learning}
-Supervised learning is the most commonly adopted paradigm in smart contract vulnerability detection. It involves training models on labeled data—where each smart contract (or code segment) is annotated with its corresponding vulnerability type(s).
-
-\begin{itemize}
-    \item \textbf{Feng et al.}~\cite{feng2024interpretable} used labeled datasets of over 43,000 smart contracts and applied n-gram feature extraction over opcodes. Models such as XGBoost and decision trees were trained to classify contracts into six vulnerability types. Their results demonstrated high accuracy, precision, and recall when supervised data was balanced using SMOTE.
+\begin{enumerate}
+    \item \textbf{Architecture Implementation}: Design and implement production-ready microservice architectures for each integration pattern, ensuring consistency in underlying LLM processing while isolating pattern-specific characteristics. This includes developing robust error handling, resource management, and scalability features that reflect real-world enterprise requirements.
     
-    \item \textbf{Lesimple}~\cite{lesimple2020master} treated vulnerability detection as a supervised classification problem. Contracts were tokenized and converted into opcode sequences, which were then used to train CNN and LSTM models. Labels were derived using symbolic analysis tools such as Oyente and Mythril.
+    \item \textbf{Measurement Framework Development}: Create a scientifically rigorous measurement and benchmarking framework capable of capturing fine-grained performance metrics, including latency distributions, throughput characteristics, resource utilization patterns, and overhead analysis. The framework must provide microsecond-precision timing capabilities and statistical robustness for comparative analysis.
     
-    \item \textbf{Zhang et al.}~\cite{zhang2020scvd} also followed a supervised approach but extended it to support multi-label classification (discussed below), using Slither and SmartCheck to generate labels.
-\end{itemize}
+    \item \textbf{Observability Integration}: Establish comprehensive monitoring and observability infrastructure using industry-standard tools (Prometheus, Micrometer) to enable real-time performance analysis and historical trend identification. This includes custom metrics development specifically tailored for LLM workload characteristics.
+    
+    \item \textbf{Scientific Validation}: Implement reproducible experimental methodologies that ensure statistical validity and enable peer review validation. This encompasses automated testing frameworks, standardized benchmarking protocols, and documented experimental procedures.
+\end{enumerate}
 
-Supervised learning requires substantial labeled data, which is often limited in the blockchain space. Nonetheless, it remains the most interpretable and practical approach for production systems.
+\textbf{Scope Definition}:
 
-\subsection*{Deep Learning Approaches}
-
-Deep learning, a subfield of machine learning, uses neural network architectures with multiple layers to learn abstract and complex patterns from raw contract data.
+The research scope encompasses the following dimensions:
 
 \begin{itemize}
-    \item \textbf{Lesimple} utilized \textbf{CNNs} and \textbf{LSTMs} to learn temporal and spatial features from opcode sequences. His results showed superior generalization compared to traditional ML models.
+    \item \textbf{Technical Scope}: Implementation focuses on Java-based Spring Boot microservices utilizing local GGUF models through the de.kherud.llama library, ensuring reproducibility and eliminating external API dependencies that could introduce variability.
     
-    \item \textbf{Zhang et al.} adopted \textbf{Graph Neural Networks (GNNs)} to model relationships in Abstract Syntax Trees (ASTs) and control flow graphs. GNNs captured context-sensitive vulnerability patterns such as reentrancy and delegate call misuse.
+    \item \textbf{Integration Patterns}: Three distinct patterns are investigated: synchronous REST APIs, asynchronous MCP implementation using CompletableFuture, and real-time SSE streaming with token-level delivery.
     
-    \item \textbf{Tann et al.}~\cite{tann2020towards} experimented with \textbf{Transformers} trained on bytecode and opcode sequences using self-attention. These models demonstrated strong capability in learning contextual dependencies in smart contract logic.
+    \item \textbf{Performance Dimensions}: Analysis covers latency characteristics, throughput capabilities, resource utilization (CPU, memory), async processing overhead, and scalability behavior under varying load conditions.
+    
+    \item \textbf{Enterprise Context}: All implementations incorporate production-ready features including comprehensive logging, error handling, monitoring integration, data persistence, and operational observability.
 \end{itemize}
 
-These models require large datasets and extensive computational resources, but they significantly outperform classical models in terms of accuracy and feature extraction.
-\subsection*{Multi-Label Learning}
-
-In real-world scenarios, smart contracts often contain multiple vulnerabilities simultaneously. This requires a shift from traditional binary or multi-class classification to \textbf{multi-label classification}.
+\textbf{Scope Limitations}:
 
 \begin{itemize}
-    \item \textbf{SCVD Dataset (Zhang et al.)} was specifically designed for multi-label detection. Each contract in the dataset was annotated with one or more of seven vulnerability types, and models were trained using sigmoid outputs with binary cross-entropy loss~\cite{zhang2020scvd}.
-    
-    \item Evaluation metrics like macro/micro-averaged F1-score were used to balance performance across common and rare vulnerabilities.
+    \item The study focuses on single-node deployments and does not address distributed system considerations or horizontal scaling scenarios.
+    \item Model selection is limited to Microsoft Phi-2 Q4\_K\_M quantized model to ensure consistency across experiments while maintaining reasonable computational requirements.
+    \item Network-based performance factors are excluded through the use of local model inference, allowing focus on pattern-specific architectural characteristics.
 \end{itemize}
 
-Multi-label learning better reflects real-world detection challenges and allows finer-grained reporting.
+\section{Contribution to the Field}
 
-\subsection*{Transfer and Pretrained Learning}
+This research makes several distinct contributions to the field of enterprise software architecture and LLM integration methodologies, addressing critical gaps in both theoretical understanding and practical implementation guidance.
 
-Transfer learning involves leveraging knowledge gained from one task or dataset and applying it to another. In the context of smart contracts, this is often done using pretrained models on large unlabeled corpora.
+\subsection{Methodological Contributions}
+
+The research introduces a novel scientific framework for empirical evaluation of LLM integration patterns that combines precision measurement techniques with production-ready implementations. This framework addresses the current lack of standardized benchmarking methodologies in the field by providing:
 
 \begin{itemize}
-    \item \textbf{Tann et al.} introduced \textbf{EtherCorpus}, a dataset of over 160,000 smart contracts used for unsupervised pretraining. Models such as Transformers were pretrained on opcode sequences and then fine-tuned on vulnerability-labeled tasks~\cite{tann2020towards}.
-    
-    \item This method reduces the need for large labeled datasets and enables effective feature learning from the language of smart contracts itself.
+    \item \textbf{Microsecond-precision overhead measurement}: Implementation of sophisticated timing mechanisms capable of isolating and quantifying async processing overhead, enabling precise analysis of architectural trade-offs.
+    \item \textbf{Automated benchmarking infrastructure}: Development of reproducible testing frameworks that eliminate manual testing variability and ensure statistical validity across multiple experimental runs.
+    \item \textbf{Production-quality monitoring integration}: Establishment of comprehensive observability patterns that bridge the gap between research environments and production deployments.
 \end{itemize}
 
-\subsection*{Unsupervised Learning}
+\subsection{Technical Contributions}
 
-Although rarely used for final classification, unsupervised learning plays a critical role in:
-\begin{itemize}
-    \item Contract clustering
-    \item Feature extraction
-    \item Embedding learning
-\end{itemize}
-
-\textbf{EtherCorpus} was also used to train contract embeddings without labels, enabling improved downstream performance.
-
-\subsection*{Hybrid Learning Pipelines}
-
-Several works combine multiple paradigms:
+The implementation provides the research community with several technical innovations:
 
 \begin{itemize}
-    \item \textbf{Lesimple} combined static labeling with dynamic learning using opcode-level representations and attention mechanisms~\cite{lesimple2020master}.
-    
-    \item \textbf{Feng et al.} combined classical XGBoost classifiers with deep interpretable embeddings to improve explainability and reduce bias~\cite{feng2024interpretable}.
+    \item \textbf{Comprehensive Integration Pattern Library}: Production-ready implementations of three distinct LLM integration patterns, each optimized for specific use cases while maintaining architectural consistency for fair comparison.
+    \item \textbf{Advanced Metrics Collection Framework}: Custom Micrometer and Prometheus integration specifically designed for LLM workload characteristics, including pattern-specific metrics, real-time system monitoring, and historical trend analysis.
+    \item \textbf{Scientific Validation Infrastructure}: Automated testing and benchmarking capabilities that enable reproducible research and peer validation of results.
 \end{itemize}
 
-These hybrid systems offer robustness but may require more tuning and interpretability analysis.
+\subsection{Empirical Contributions}
 
-\subsection*{Summary Visualization}
-
-Figure~\ref{fig:learning_paradigm_distribution} illustrates the distribution of learning paradigms across the studies surveyed.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.75\textwidth]{Assets/learning_paradigms.png}
-    \caption{Distribution of learning paradigms across key vulnerability detection studies.}
-    \label{fig:learning_paradigm_distribution}
-\end{figure}
-
-Table~\ref{tab:learning_paradigms_comparison} shows the comparison between learning paradigms per study. 
-
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-
-\begin{tabular}{|p{3.3cm}|p{3cm}|p{4.5cm}|p{2.5cm}|}
-\hline
-\textbf{Study} & \textbf{Learning Paradigm} & \textbf{Main Models Used} & \textbf{Dataset} \\
-\hline
-
-Feng et al.~\cite{feng2024interpretable} & Supervised ML + Lightweight DL & XGBoost, Decision Trees & 43,937 Etherscan Contracts (labeled) \\
-\hline
-
-Lesimple~\cite{lesimple2020master} & Supervised DL & CNN, LSTM & SmartBugs + Collected contracts \\
-\hline
-
-Zhang et al. (SCVD)~\cite{zhang2020scvd} & Supervised Multi-label DL & GNNs, Fully Connected Layers & SCVD Dataset (20,000+ contracts) \\
-\hline
-
-Tann et al. (EtherCorpus)~\cite{tann2020towards} & Transfer Learning + Unsupervised Pretraining & Transformer Encoder, Pretraining on OpCodes & EtherCorpus (160,000+ contracts) \\
-\hline
-
-Albert et al. (SAFEVM)~\cite{albert2019safevm} & Formal Verification (not ML) & Rule-based translation + Model Checking & SAFEVM Dataset (24,000+ contracts) \\
-\hline
-
-Durieux et al. (SmartBugs)~\cite{durieux2020empirical} & Static and Dynamic Analysis (Benchmarking) & Static Analyzers (Oyente, Mythril, etc.) & SmartBugs Benchmark \\
-\hline
-
-\end{tabular}
-\caption{Comparison of Learning Paradigms Across Key Studies}
-\label{tab:learning_paradigms_comparison}
-\end{table}
-
-\subsection*{Conclusion}
-
-Learning paradigms form the foundation of AI-driven smart contract vulnerability detection systems. While supervised learning remains dominant, the integration of deep learning, multi-label detection, and pretrained embeddings significantly enhance detection capabilities. Future systems may adopt semi-supervised and self-supervised learning approaches to address labeling bottlenecks and improve generalization on unseen contract types.
-
-\section{Vulnerability Types and Labeling Strategies}
-Accurate identification and labeling of vulnerabilities are fundamental to building effective smart contract security systems. This section explores the most critical vulnerability types observed in Ethereum smart contracts, the strategies used for labeling contracts in benchmark datasets, and the implications of labeling quality on model performance.
-
-
-\subsection{Labeling Strategies for Vulnerability Detection}
-To train supervised learning models, contracts must be labeled based on the presence or absence of specific vulnerabilities. Two main approaches are used:
-
-\subsubsection*{Static Analysis Tools}
-
-Most datasets leverage automated static analysis tools to scan smart contracts and assign labels.
+The research contributes significant empirical evidence to the field through:
 
 \begin{itemize}
-    \item \textbf{SmartBugs}~\cite{durieux2020empirical} utilized multiple tools like Oyente, Mythril, Securify, and Manticore to generate vulnerability labels automatically.
-    \item \textbf{SCVD Dataset}~\cite{zhang2020scvd} incorporated labels from Slither and SmartCheck after deduplication, conflict resolution, and additional manual verification.
-    \item \textbf{Feng et al.}~\cite{feng2024interpretable} extracted vulnerability labels using Oyente, covering six major vulnerability types for supervised learning tasks.
+    \item \textbf{Quantitative Performance Analysis}: Systematic measurement and comparison of performance characteristics across integration patterns, providing the first comprehensive empirical study of its kind in the literature.
+    \item \textbf{Overhead Decomposition}: Detailed analysis of architectural overhead components, enabling informed decision-making about trade-offs between theoretical advantages and practical implementation costs.
+    \item \textbf{Real-world Validation}: Implementation and testing under realistic enterprise constraints, ensuring that findings are applicable to production environments rather than theoretical scenarios.
 \end{itemize}
 
-Static analysis provides broad coverage but is prone to:
+\subsection{Practical Contributions}
+
+The research provides immediate practical value to the enterprise software development community:
 
 \begin{itemize}
-    \item \textbf{False Positives}: Misidentifying vulnerabilities where none exist.
-    \item \textbf{False Negatives}: Missing subtle or dynamic vulnerabilities.
+    \item \textbf{Architectural Decision Framework}: Evidence-based criteria for selecting appropriate integration patterns based on specific application requirements and constraints.
+    \item \textbf{Implementation Patterns}: Documented, tested, and validated implementation approaches that can be directly adopted in enterprise environments.
+    \item \textbf{Operational Insights}: Comprehensive monitoring and observability patterns that enable effective management of LLM-integrated applications in production environments.
 \end{itemize}
 
-\subsubsection*{Manual Labeling and Validation}
+\subsection{Academic Contributions}
 
-Manual annotation and validation are applied to increase labeling precision:
+From an academic perspective, this research establishes several important precedents:
 
 \begin{itemize}
-    \item \textbf{Lesimple’s Corpus}~\cite{lesimple2020master} involved manual intervention in cases where static analysis tools disagreed or provided inconclusive results.
-    \item \textbf{SAFEVM Dataset}~\cite{albert2019safevm} relied on formal verification processes to validate the correctness of vulnerability labels at the bytecode level.
+    \item \textbf{Methodological Rigor}: Introduction of scientific measurement techniques and statistical validation methods to a field that has traditionally relied on anecdotal evidence and theoretical analysis.
+    \item \textbf{Reproducible Research}: Complete implementation artifacts, experimental procedures, and benchmarking frameworks that enable peer validation and extension of the research.
+    \item \textbf{Interdisciplinary Integration}: Combination of software engineering principles, distributed systems concepts, and machine learning infrastructure considerations into a cohesive research framework.
 \end{itemize}
 
-Manual labeling significantly improves the reliability of datasets but limits scalability due to its labor-intensive nature.
+The significance of these contributions lies not only in their immediate applicability but also in their potential to establish new standards for empirical research in LLM integration architectures. By providing both theoretical insights and practical implementation guidance, this research bridges the critical gap between academic research and industrial application, enabling evidence-based decision-making in enterprise LLM deployments.
 
-\subsection{Label Usage in Machine Learning and Deep Learning Studies}
+Furthermore, the research establishes a foundation for future investigations into more complex scenarios, including distributed deployments, multi-model architectures, and advanced optimization techniques. The methodological framework and implementation patterns developed in this study provide a robust platform for extending research into emerging areas of LLM integration and enterprise architecture evolution.
 
-After the vulnerability labeling phase, various machine learning and deep learning models were trained using these labeled datasets:
+\chapter{Technical Architecture and Design Principles}
 
-\begin{itemize}
-    \item \textbf{Feng et al.}~\cite{feng2024interpretable} applied XGBoost classifiers on contracts labeled through static analysis tools, achieving strong performance across six vulnerability types.
-    \item \textbf{Lesimple}~\cite{lesimple2020master} used labeled opcode sequences to train convolutional neural networks (CNNs) and long short-term memory networks (LSTMs), demonstrating the effectiveness of deep learning for smart contract security.
-    \item \textbf{Zhang et al. (SCVD)}~\cite{zhang2020scvd} employed graph neural networks (GNNs) to capture structural properties of contracts, using labels derived from combined static and manual analysis.
-    \item \textbf{Tann et al. (EtherCorpus)}~\cite{tann2020towards} pretrained transformers on unlabeled contracts and fine-tuned them on labeled vulnerability datasets, benefiting from transfer learning techniques.
-\end{itemize}
+\section{Core Technology Stack Selection and Justification}
 
-Thus, both classical machine learning and deep learning models depend critically on the quality of the initial vulnerability labels.
+The selection of the technical stack for this research was driven by rigorous evaluation criteria that prioritize empirical measurement accuracy, production readiness, and scientific reproducibility. Each technology choice was made to support the primary research objectives while ensuring that measurements reflect realistic enterprise deployment scenarios.
 
-\subsection{Label Distribution and Imbalance Issues}
+\subsection{Framework Foundation: Spring Boot 3.5.0 with Java 21}
 
-Real-world datasets demonstrate considerable label imbalance. Some vulnerabilities, like Integer Overflow and Reentrancy, are highly prevalent, while others such as Timestamp Dependency or Uninitialized Storage Pointers are rare.
+The decision to utilize Spring Boot 3.5.0 represents a strategic choice that balances cutting-edge capabilities with enterprise stability requirements. Java 21's Long Term Support (LTS) designation ensures reproducibility over extended research timelines, while its enhanced virtual thread support and performance optimizations provide the foundation for accurate async pattern evaluation. Spring Boot's mature ecosystem offers comprehensive observability integration, dependency injection capabilities, and production-ready features essential for meaningful enterprise architecture research.
 
-Table~\ref{tab:label_distribution} summarizes typical label distributions.
+% TODO: Add reference to application.yaml configuration (lines 25-35)
+The framework's built-in actuator capabilities provide standardized health checks, metrics exposition, and operational monitoring without introducing measurement artifacts that could compromise experimental validity. This integration ensures that the observability infrastructure itself does not become a confounding variable in performance measurements.
 
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-\caption{Typical Label Distribution in Smart Contract Datasets}
-\label{tab:label_distribution}
-\begin{tabular}{|p{5cm}|p{3cm}|}
-\hline
-\textbf{Vulnerability Type} & \textbf{Approximate Frequency} \\
-\hline
-Integer Overflow/Underflow & High (frequent) \\
-\hline
-Reentrancy & High (frequent) \\
-\hline
-Access Control Violation & Medium \\
-\hline
-Timestamp Dependency & Low (rare) \\
-\hline
-Unchecked Call Return Value & Medium \\
-\hline
-Denial of Service (DoS) & Low to Medium \\
-\hline
-Uninitialized Storage Pointers & Very Rare \\
-\hline
-\end{tabular}
-\end{table}
+\subsection{LLM Integration Layer: de.kherud.llama 4.1.0}
 
-Label imbalance presents a major challenge for classifiers, often requiring techniques such as:
+The selection of the de.kherud.llama library over alternatives such as LangChain4j or direct Python integration stems from several critical research requirements. First, the library provides direct Java Native Interface (JNI) bindings to the underlying llama.cpp implementation, eliminating the network latency and serialization overhead that would be introduced by Python-based solutions or external API calls. This architectural decision ensures that measured performance characteristics reflect the integration patterns themselves rather than external dependencies.
 
-\begin{itemize}
-    \item Oversampling (e.g., SMOTE applied in Feng et al.~\cite{feng2024interpretable}).
-    \item Weighted loss functions (e.g., Weighted Cross-Entropy in Lesimple~\cite{lesimple2020master}).
-\end{itemize}
+The library's support for GGUF (Georgi Gerganov Universal Format) models enables the use of quantized models that balance computational efficiency with response quality. The specific choice of Microsoft Phi-2 Q4\_K\_M quantization provides a representative enterprise model size while maintaining reasonable computational requirements for reproducible research environments.
 
-Figure~\ref{fig:vulnerability_distribution_pie} illustrates the approximate distribution.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{Assets/vuln_pie_chart.png}
-    \caption{Approximate distribution of smart contract vulnerability types across benchmark datasets.}
-    \label{fig:vulnerability_distribution_pie}
-\end{figure}
+\subsection{Observability Infrastructure: Micrometer and Prometheus}
 
-\subsection{Impact of Label Quality on Detection Performance}
+The monitoring stack selection prioritizes industry-standard tools that reflect real-world enterprise monitoring practices. Micrometer's vendor-neutral facade pattern enables metrics collection without coupling the research implementation to specific monitoring backends, ensuring broader applicability of findings.
 
-The quality of vulnerability labels has a profound effect on detection models:
+% TODO: Add reference to pom.xml configuration (lines 38-42)
+Prometheus integration provides time-series data collection capabilities essential for longitudinal performance analysis and statistical validation. The pull-based metrics model ensures that monitoring overhead remains consistent across all integration patterns, preventing measurement bias that could arise from push-based systems with variable network timing.
 
-\begin{itemize}
-    \item \textbf{Noisy labels} introduce bias and degrade generalization performance.
-    \item \textbf{Incomplete labeling} makes certain vulnerabilities systematically underdetected.
-    \item \textbf{Incorrect labels} cause models to mislearn mappings between features and vulnerability classes.
-\end{itemize}
+\subsection{Data Persistence: H2 Database with JPA}
 
-Empirical results from Zhang et al.~\cite{zhang2020scvd} confirm that cleaner and verified labels directly correlate with higher multi-label classification accuracy.
+The embedded H2 database selection serves multiple research objectives. First, it eliminates external database dependencies that could introduce variable latency in performance measurements. Second, its file-based persistence mode ensures data durability for longitudinal analysis while maintaining reproducibility across research environments.
 
-\subsection{Conclusion}
+% TODO: Add reference to application.yaml configuration (lines 5-7)
+The Java Persistence API (JPA) abstraction enables sophisticated data modeling for research analytics while maintaining database vendor neutrality. This design choice supports future research extensions that might require different database backends without compromising the core measurement infrastructure.
 
-Labeling strategies underpin the success of AI-driven vulnerability detection in smart contracts. Whether using static analyzers, manual validation, or hybrid approaches, maintaining high labeling accuracy is critical for model robustness. Furthermore, balancing label distributions is vital to ensuring effective detection of both common and rare vulnerabilities across diverse smart contract ecosystems.
+\subsection{Build and Dependency Management: Maven}
+
+Maven's declarative dependency management provides reproducible build environments essential for scientific research. The centralized dependency version management ensures consistent library versions across research environments, eliminating a potential source of experimental variability.
+
+% TODO: Add reference to pom.xml configuration (lines 30-32)
+
+\section{Microservice Architecture Design}
+
+The microservice architecture design follows Domain-Driven Design (DDD) principles while incorporating specific adaptations required for empirical LLM integration research. The architecture prioritizes clear separation of concerns, enabling precise measurement of pattern-specific characteristics while maintaining implementation consistency across integration approaches.
+
+% TODO: Add Figure 2.1: High-Level System Architecture
+
+\subsection{Layered Architecture Pattern Implementation}
+
+The application implements a modified layered architecture that separates integration pattern concerns from core LLM processing logic. This design enables fair comparison between patterns by ensuring that the underlying model inference remains identical across all integration approaches.
+
+% TODO: Add reference to controller implementation
+The controller layer provides pattern-specific HTTP endpoints while delegating to specialized service implementations. This separation ensures that HTTP handling overhead is consistently measured across all patterns while enabling pattern-specific optimizations.
+
+% TODO: Add reference to LlmService.java (lines 1-150)
+The service layer architecture employs a hybrid approach where a central \texttt{LlmService} provides consistent model inference capabilities, while pattern-specific services (\texttt{RestLlmService}, \texttt{McpLlmService}, \texttt{StreamingLlmService}) implement integration-specific logic. This design ensures that performance measurements capture pattern overhead while maintaining consistency in core processing.
+
+\subsection{Resource Management and Lifecycle Handling}
+
+The architecture implements sophisticated resource management patterns essential for accurate performance measurement. The \texttt{LlmService} initialization pattern ensures deterministic model loading timing, while the cleanup mechanisms provide proper resource deallocation that prevents memory leaks from affecting longitudinal measurements.
+
+% TODO: Add reference to lines 45-65 and 140-150
+The model initialization follows the Spring Framework's \texttt{@PostConstruct} pattern, ensuring that model loading overhead is excluded from request processing measurements. This design choice enables accurate measurement of per-request processing times without the confounding effects of one-time initialization costs.
+
+\subsection{Async Processing Architecture}
+
+The asynchronous processing implementation leverages Spring's async configuration capabilities to provide controlled thread pool management. The custom thread pool configuration ensures predictable resource allocation while enabling precise measurement of async processing overhead.
+
+% TODO: Add reference to AsyncConfig.java (lines 15-40)
+% TODO: Add reference to McpLlmService (lines 25-45)
+The \texttt{CompletableFuture} implementation pattern provides non-blocking request handling while maintaining comprehensive timing measurement capabilities. This architecture enables the isolation and quantification of async wrapper overhead, supporting the research objective of empirical pattern comparison.
+
+% TODO: Add Figure 2.2: Service Layer Architecture Diagram
+
+\section{Design Patterns and Architectural Decisions}
+
+The architectural design incorporates several strategic design patterns that support the research objectives while ensuring enterprise-grade implementation quality. Each pattern selection was driven by specific research requirements and validated through empirical testing.
+
+\subsection{Strategy Pattern for Integration Pattern Abstraction}
+
+The implementation employs the Strategy pattern to encapsulate integration pattern-specific behavior while maintaining a consistent interface for performance measurement. Each integration service (\texttt{RestLlmService}, \texttt{McpLlmService}, \texttt{StreamingLlmService}) implements pattern-specific processing logic while delegating core LLM inference to the shared \texttt{LlmService}.
+
+This pattern enables the precise measurement of pattern-specific overhead by isolating integration logic from core processing. The consistent delegation pattern ensures that timing measurements capture only the architectural differences between patterns, supporting accurate comparative analysis.
+
+\subsection{Template Method Pattern for Request Processing}
+
+The request processing flow implements a Template Method pattern that standardizes timing measurement and data persistence across all integration patterns. The template ensures consistent measurement points while allowing pattern-specific customization of processing logic.
+
+% TODO: Add reference to service layer implementation (lines 30-80 in each service class)
+The template implementation provides standardized pre-processing, processing, and post-processing hooks. This design ensures that performance measurements are collected at identical points in the processing pipeline, eliminating measurement variability that could compromise research validity.
+
+\subsection{Observer Pattern for Real-time Monitoring}
+
+The monitoring infrastructure implements an Observer pattern that enables real-time metrics collection without coupling the core processing logic to specific monitoring backends. The \texttt{MetricsService} implements scheduled observation of system metrics and application performance indicators.
+
+% TODO: Add reference to MetricsService.java (lines 25-120)
+This pattern provides comprehensive observability while maintaining measurement accuracy by ensuring that monitoring overhead remains consistent across all integration patterns. The scheduled collection approach eliminates the potential for monitoring-induced performance artifacts.
+
+\subsection{Factory Pattern for Configuration Management}
+
+The configuration management architecture employs a Factory pattern for creating properly configured model parameters and inference settings. This pattern ensures consistent model configuration across all integration patterns while enabling centralized parameter tuning for research optimization.
+
+The factory implementation provides deterministic configuration that eliminates variability from model parameter differences. This design choice ensures that measured performance differences reflect integration pattern characteristics rather than configuration inconsistencies.
+
+\subsection{Circuit Breaker Pattern for Resilience}
+
+The architecture incorporates resilience patterns essential for production deployment while maintaining measurement accuracy. The error handling implementation provides graceful degradation without compromising timing measurements.
+
+The resilience patterns ensure that experimental measurements reflect realistic operational conditions while preventing cascading failures that could compromise research data collection. This design choice supports the research objective of providing enterprise-applicable findings.
+
+\subsection{Dependency Injection for Testability and Measurement}
+
+The comprehensive use of Spring's dependency injection framework provides several research benefits. First, it enables precise control over component initialization timing, ensuring that measurement artifacts from construction overhead are eliminated. Second, it facilitates the injection of measurement infrastructure without coupling core business logic to monitoring concerns.
+
+The injection patterns support sophisticated testing scenarios while maintaining clean separation between business logic and measurement infrastructure. This architectural decision enables comprehensive unit testing and integration testing that validates both functional correctness and measurement accuracy.
+
+% TODO: Add Figure 2.3: Design Pattern Interaction Diagram
+
+\subsection{Architectural Trade-off Analysis}
+
+Several critical architectural decisions required careful trade-off analysis to balance research objectives with implementation practicality. The decision to implement all integration patterns within a single application, rather than separate microservices, prioritizes measurement consistency over deployment flexibility. This choice ensures that environmental factors (JVM warmup, system resource availability, network conditions) remain constant across pattern comparisons.
+
+The choice to implement custom metrics collection rather than relying solely on Spring Boot's built-in metrics reflects the need for LLM-specific measurement capabilities. While this increases implementation complexity, it provides the granular measurement capabilities essential for meaningful research findings.
+
+The architecture's emphasis on synchronous processing for measurement collection, despite the availability of async alternatives, prioritizes measurement accuracy over theoretical performance optimization. This design choice ensures that timing measurements are not affected by the variability inherent in asynchronous metrics collection systems.
+
+These architectural decisions collectively create a research platform that balances scientific rigor with practical enterprise applicability, supporting both immediate research objectives and future extensibility for advanced LLM integration scenarios.
 
 
-\section{Challenges and Limitations in Current Approaches}
-Despite significant advancements in smart contract vulnerability detection, current approaches still face several challenges that limit their scalability, accuracy, and robustness. This section outlines the major technical and methodological limitations observed in the literature.
 
-\subsection*{Data Quality Challenges}
-High-quality labeled datasets are essential for effective supervised learning models. However, the current datasets suffer from several quality-related issues:
+\chapter{LLM Integration Layer Implementation}
 
-\begin{itemize}
-    \item \textbf{Noisy Labels}: Static analysis tools such as Oyente and Mythril, used for automatic labeling, are prone to false positives and false negatives~\cite{durieux2020empirical}.
+\section{Model Management and Initialization}
+
+The LLM integration layer represents the critical foundation upon which all empirical measurements depend. The implementation prioritizes deterministic initialization patterns and robust resource management to ensure that performance measurements accurately reflect integration pattern characteristics rather than model loading artifacts or resource contention issues.
+
+\subsection{Deterministic Model Loading Strategy}
+
+The model initialization process follows a carefully orchestrated sequence designed to eliminate timing variability from subsequent measurements. The primary initialization logic (implemented in \texttt{LlmService.java}, lines 42-68) employs Spring Framework's \texttt{@PostConstruct} annotation to ensure model loading occurs during application startup rather than on first request processing.
+
+% TODO: Add code reference to LlmService.java initialization sequence (lines 42-68)
+
+This architectural decision addresses a fundamental challenge in LLM performance measurement: the significant overhead associated with model loading operations. By isolating initialization costs from operational measurements, the implementation ensures that comparative analysis between integration patterns reflects genuine architectural differences rather than one-time setup variations.
+
+The initialization sequence implements comprehensive error handling and logging mechanisms that provide detailed diagnostics for troubleshooting while maintaining scientific measurement integrity. The logging implementation captures model loading timing, memory allocation patterns, and configuration validation results, creating an audit trail that supports research reproducibility.
+
+\subsection{Model Parameter Optimization for Research Consistency}
+
+The model parameter configuration strategy balances computational efficiency with measurement accuracy requirements. The parameter selection process (configured in \texttt{application.yaml}, lines 38-45) establishes consistent baseline settings across all integration patterns while enabling fine-tuning for specific research scenarios.
+
+% TODO: Add reference to application.yaml configuration (lines 38-45)
+
+The context size configuration of 2048 tokens represents a deliberate compromise between realistic enterprise workloads and computational reproducibility. This setting ensures that response generation times remain within measurable ranges while supporting prompt complexity levels representative of real-world applications.
+
+Thread allocation configuration follows a systematic approach that considers both hardware capabilities and measurement precision requirements. The default configuration of 8 threads (adjustable through application properties) provides optimal utilization of modern multi-core processors while maintaining predictable resource allocation patterns that support consistent performance measurement.
+
+\subsection{Initialization Validation and Health Monitoring}
+
+The implementation incorporates comprehensive validation mechanisms that verify model readiness and operational parameters before accepting inference requests. The validation process (lines 60-68 in \texttt{LlmService.java}) performs test inference operations that confirm model functionality while providing baseline performance metrics.
+
+% TODO: Add code reference to validation process (lines 60-68)
+
+This validation approach serves dual purposes: ensuring system reliability and establishing baseline performance characteristics that inform subsequent comparative analysis. The validation metrics are automatically captured and stored, providing reference points for evaluating the consistency of experimental measurements.
+
+% TODO: Add Figure 3.1: Model Initialization Sequence Diagram
+
+\section{GGUF Model Integration with de.kherud.llama}
+
+The integration with the de.kherud.llama library represents a sophisticated implementation that bridges Java application requirements with native C++ model execution capabilities. This integration strategy eliminates the network latency and serialization overhead that would be introduced by external API-based solutions while maintaining the flexibility required for empirical research.
+
+\subsection{Native Library Integration Architecture}
+
+The de.kherud.llama integration leverages Java Native Interface (JNI) bindings to provide direct access to the underlying llama.cpp implementation. This architectural approach ensures that performance measurements capture the true characteristics of integration patterns rather than external communication overheads.
+
+The library initialization process (implemented in the model loading sequence, lines 48-58 in \texttt{LlmService.java}) creates \texttt{ModelParameters} objects that encapsulate all configuration settings required for optimal model performance. The parameter configuration includes critical settings such as context size, batch size, thread allocation, and inference parameters that directly impact processing performance.
+
+% TODO: Add code reference to ModelParameters configuration (lines 48-58)
+
+The model instantiation process creates a persistent \texttt{LlamaModel} instance that maintains model state throughout the application lifecycle. This design choice eliminates per-request model loading overhead while enabling sophisticated memory management and resource optimization strategies.
+
+\subsection{GGUF Format Optimization for Enterprise Deployment}
+
+The implementation specifically targets GGUF (Georgi Gerganov Universal Format) models due to their superior compression characteristics and optimized inference performance. The Microsoft Phi-2 Q4\_K\_M quantization selection represents a careful balance between model capability and computational efficiency requirements.
+
+The quantization strategy reduces model memory requirements while maintaining response quality sufficient for empirical research purposes. The Q4\_K\_M quantization technique provides 4-bit weight quantization with mixed precision handling, resulting in approximately 75\% memory reduction compared to full-precision models while preserving inference accuracy.
+
+Model file management follows enterprise-grade practices that ensure secure storage and efficient loading. The model path configuration (specified in application properties) supports both absolute and relative path specifications, enabling flexible deployment scenarios while maintaining security best practices.
+
+\subsection{Inference Parameter Configuration and Optimization}
+
+The inference parameter management system provides comprehensive control over model behavior while maintaining consistency across experimental runs. The parameter configuration system (lines 78-95 in \texttt{LlmService.java}) creates \texttt{InferenceParameters} objects that specify generation settings for each request.
+
+% TODO: Add code reference to InferenceParameters configuration (lines 78-95)
+
+Temperature and top-p settings are configured to provide deterministic response generation that supports reproducible research while maintaining response quality. The default temperature setting of 0.7 balances response creativity with consistency, while the top-p value of 0.95 ensures diverse vocabulary selection without compromising coherence.
+
+The maximum token configuration implements dynamic adjustment capabilities that support various prompt complexity levels while maintaining predictable processing times. This flexibility enables comprehensive evaluation of integration pattern performance across different workload characteristics.
+
+% TODO: Add Figure 3.2: GGUF Integration Architecture Diagram
+
+\section{Resource Management and Lifecycle Handling}
+
+Enterprise-grade resource management represents a critical requirement for production deployments and scientific measurement accuracy. The implementation provides comprehensive resource lifecycle management that prevents memory leaks, ensures deterministic cleanup, and maintains system stability throughout extended experimental runs.
+
+\subsection{Memory Management and Optimization Strategies}
+
+The memory management architecture addresses the unique challenges associated with large model deployments in JVM environments. The implementation coordinates JVM heap management with native memory allocation required by the underlying C++ model implementation.
+
+The model loading process (lines 45-65 in \texttt{LlmService.java}) implements careful memory allocation strategies that minimize garbage collection impact on performance measurements. The initialization sequence pre-allocates required memory buffers and establishes memory pools that reduce allocation overhead during inference operations.
+
+% TODO: Add code reference to memory management implementation (lines 45-65)
+
+Memory monitoring capabilities (integrated within the metrics collection system) provide real-time visibility into memory utilization patterns across different integration patterns. This monitoring enables the detection of memory leaks or resource contention issues that could compromise measurement accuracy.
+
+\subsection{Thread Pool Management and Concurrency Control}
+
+The implementation provides sophisticated thread management that balances performance optimization with measurement consistency requirements. The async configuration (defined in \texttt{AsyncConfig.java}, lines 20-45) establishes dedicated thread pools for different processing patterns.
+
+% TODO: Add code reference to AsyncConfig.java thread pool configuration (lines 20-45)
+
+The MCP integration pattern utilizes a custom thread pool configuration that provides predictable resource allocation while enabling precise measurement of async processing overhead. The thread pool sizing follows CPU core count recommendations while maintaining headroom for system processes and measurement infrastructure.
+
+Thread naming conventions and monitoring integration provide comprehensive visibility into thread utilization patterns. This visibility enables the identification of resource contention or thread pool saturation conditions that could affect measurement validity.
+
+\subsection{Graceful Shutdown and Cleanup Procedures}
+
+The cleanup implementation (lines 135-150 in \texttt{LlmService.java}) follows Spring Framework lifecycle management patterns while addressing the specific requirements of native library integration. The \texttt{@PreDestroy} annotation ensures that cleanup operations occur during application shutdown, preventing resource leaks in development and testing environments.
+
+% TODO: Add code reference to cleanup implementation (lines 135-150)
+
+The cleanup sequence includes model deallocation, thread pool termination, and native memory cleanup operations. This comprehensive approach ensures that system resources are properly released and that subsequent application instances start with clean resource allocation.
+
+Resource monitoring during shutdown provides validation that cleanup operations complete successfully. This monitoring supports debugging of resource management issues while ensuring that experimental environments remain consistent across multiple test runs.
+
+\subsection{Resource Monitoring and Alerting Integration}
+
+The resource monitoring system (implemented in \texttt{MetricsService.java}, lines 85-120) provides real-time visibility into resource utilization patterns across all integration patterns. The monitoring system captures CPU utilization, memory consumption, and thread pool metrics that inform performance analysis and system optimization.
+
+% TODO: Add code reference to MetricsService.java resource monitoring (lines 85-120)
+
+The monitoring implementation utilizes JVM management beans (\texttt{OperatingSystemMXBean}, \texttt{MemoryMXBean}) to capture precise system metrics without introducing measurement artifacts. This approach ensures that resource monitoring overhead remains consistent across all integration patterns.
+
+% TODO: Add Figure 3.3: Resource Management Lifecycle Diagram
+
+\section{Configuration Management Strategies}
+
+The configuration management architecture provides flexible, maintainable configuration capabilities that support both research requirements and production deployment scenarios. The implementation follows Spring Boot configuration best practices while incorporating LLM-specific configuration patterns.
+
+\subsection{Hierarchical Configuration Architecture}
+
+The configuration system implements a hierarchical approach that supports environment-specific overrides while maintaining baseline configuration consistency. The primary configuration (defined in \texttt{application.yaml}, lines 1-50) establishes default settings that provide optimal performance for typical research scenarios.
+
+% TODO: Add reference to application.yaml primary configuration (lines 1-50)
+
+The LLM-specific configuration namespace (lines 38-45) encapsulates model-related settings including model path, inference parameters, and performance tuning options. This organization enables clear separation between application configuration and model-specific settings.
+
+Environment-specific configuration capabilities support different deployment scenarios including development, testing, and production environments. The configuration system supports both property file overrides and environment variable injection, providing flexibility for containerized deployment scenarios.
+
+\subsection{Dynamic Configuration and Runtime Adjustment}
+
+The configuration system provides limited runtime adjustment capabilities for parameters that do not require model reinitialization. Temperature and top-p settings can be adjusted through configuration properties without requiring application restart, supporting experimental parameter tuning.
+
+Model path configuration supports both absolute and relative path specifications, enabling flexible model deployment strategies. The path resolution logic (implemented in the initialization sequence) provides comprehensive error handling and validation that ensures model availability before application startup completion.
+
+Performance tuning parameters including thread count, batch size, and context size are validated during initialization to ensure compatibility with available system resources. This validation prevents runtime failures while providing clear diagnostic information for configuration optimization.
+
+The LLM integration layer represents the critical foundation upon which all empirical measurements depend. The implementation prioritizes deterministic initialization patterns and robust resource management to ensure that performance measurements accurately reflect integration pattern characteristics rather than model loading artifacts or resource contention issues.
+
+\subsection{Deterministic Model Loading Strategy}
+
+The model initialization process follows a carefully orchestrated sequence designed to eliminate timing variability from subsequent measurements. The primary initialization logic employs Spring Framework's \texttt{@PostConstruct} annotation to ensure model loading occurs during application startup rather than on first request processing.
+
+% TODO: Add reference to LlmService.java (lines 42-68)
+
+This architectural decision addresses a fundamental challenge in LLM performance measurement: the significant overhead associated with model loading operations. By isolating initialization costs from operational measurements, the implementation ensures that comparative analysis between integration patterns reflects genuine architectural differences rather than one-time setup variations.
+
+The initialization sequence implements comprehensive error handling and logging mechanisms that provide detailed diagnostics for troubleshooting while maintaining scientific measurement integrity. The logging implementation captures model loading timing, memory allocation patterns, and configuration validation results, creating an audit trail that supports research reproducibility.
+
+\subsection{Model Parameter Optimization for Research Consistency}
+
+The model parameter configuration strategy balances computational efficiency with measurement accuracy requirements. The parameter selection process establishes consistent baseline settings across all integration patterns while enabling fine-tuning for specific research scenarios.
+
+% TODO: Add reference to application.yaml configuration (lines 38-45)
+
+The context size configuration of 2048 tokens represents a deliberate compromise between realistic enterprise workloads and computational reproducibility. This setting ensures that response generation times remain within measurable ranges while supporting prompt complexity levels representative of real-world applications.
+
+Thread allocation configuration follows a systematic approach that considers both hardware capabilities and measurement precision requirements. The default configuration of 8 threads (adjustable through application properties) provides optimal utilization of modern multi-core processors while maintaining predictable resource allocation patterns that support consistent performance measurement.
+
+\subsection{Initialization Validation and Health Monitoring}
+
+The implementation incorporates comprehensive validation mechanisms that verify model readiness and operational parameters before accepting inference requests. The validation process performs test inference operations that confirm model functionality while providing baseline performance metrics.
+
+% TODO: Add reference to LlmService.java validation logic (lines 60-68)
+
+This validation approach serves dual purposes: ensuring system reliability and establishing baseline performance characteristics that inform subsequent comparative analysis. The validation metrics are automatically captured and stored, providing reference points for evaluating the consistency of experimental measurements.
+
+% TODO: Add Figure 3.1: Model Initialization Sequence Diagram
+
+\section{GGUF Model Integration with de.kherud.llama}
+
+The integration with the de.kherud.llama library represents a sophisticated implementation that bridges Java application requirements with native C++ model execution capabilities. This integration strategy eliminates the network latency and serialization overhead that would be introduced by external API-based solutions while maintaining the flexibility required for empirical research.
+
+\subsection{Native Library Integration Architecture}
+
+The de.kherud.llama integration leverages Java Native Interface (JNI) bindings to provide direct access to the underlying llama.cpp implementation. This architectural approach ensures that performance measurements capture the true characteristics of integration patterns rather than external communication overheads.
+
+The library initialization process creates \texttt{ModelParameters} objects that encapsulate all configuration settings required for optimal model performance. The parameter configuration includes critical settings such as context size, batch size, thread allocation, and inference parameters that directly impact processing performance.
+
+% TODO: Add reference to model loading sequence (lines 48-58 in LlmService.java)
+
+The model instantiation process creates a persistent \texttt{LlamaModel} instance that maintains model state throughout the application lifecycle. This design choice eliminates per-request model loading overhead while enabling sophisticated memory management and resource optimization strategies.
+
+\subsection{GGUF Format Optimization for Enterprise Deployment}
+
+The implementation specifically targets GGUF (Georgi Gerganov Universal Format) models due to their superior compression characteristics and optimized inference performance. The Microsoft Phi-2 Q4\_K\_M quantization selection represents a careful balance between model capability and computational efficiency requirements.
+
+The quantization strategy reduces model memory requirements while maintaining response quality sufficient for empirical research purposes. The Q4\_K\_M quantization technique provides 4-bit weight quantization with mixed precision handling, resulting in approximately 75\% memory reduction compared to full-precision models while preserving inference accuracy.
+
+Model file management follows enterprise-grade practices that ensure secure storage and efficient loading. The model path configuration (specified in application properties) supports both absolute and relative path specifications, enabling flexible deployment scenarios while maintaining security best practices.
+
+\subsection{Inference Parameter Configuration and Optimization}
+
+The inference parameter management system provides comprehensive control over model behavior while maintaining consistency across experimental runs. The parameter configuration system creates \texttt{InferenceParameters} objects that specify generation settings for each request.
+
+% TODO: Add reference to LlmService.java parameter configuration (lines 78-95)
+
+Temperature and top-p settings are configured to provide deterministic response generation that supports reproducible research while maintaining response quality. The default temperature setting of 0.7 balances response creativity with consistency, while the top-p value of 0.95 ensures diverse vocabulary selection without compromising coherence.
+
+The maximum token configuration implements dynamic adjustment capabilities that support various prompt complexity levels while maintaining predictable processing times. This flexibility enables comprehensive evaluation of integration pattern performance across different workload characteristics.
+
+% TODO: Add Figure 3.2: GGUF Integration Architecture Diagram
+
+\section{Resource Management and Lifecycle Handling}
+
+Enterprise-grade resource management represents a critical requirement for production deployments and scientific measurement accuracy. The implementation provides comprehensive resource lifecycle management that prevents memory leaks, ensures deterministic cleanup, and maintains system stability throughout extended experimental runs.
+
+\subsection{Memory Management and Optimization Strategies}
+
+The memory management architecture addresses the unique challenges associated with large model deployments in JVM environments. The implementation coordinates JVM heap management with native memory allocation required by the underlying C++ model implementation.
+
+The model loading process implements careful memory allocation strategies that minimize garbage collection impact on performance measurements. The initialization sequence pre-allocates required memory buffers and establishes memory pools that reduce allocation overhead during inference operations.
+
+% TODO: Add reference to memory management implementation (lines 45-65 in LlmService.java)
+
+Memory monitoring capabilities (integrated within the metrics collection system) provide real-time visibility into memory utilization patterns across different integration patterns. This monitoring enables the detection of memory leaks or resource contention issues that could compromise measurement accuracy.
+
+\subsection{Thread Pool Management and Concurrency Control}
+
+The implementation provides sophisticated thread management that balances performance optimization with measurement consistency requirements. The async configuration establishes dedicated thread pools for different processing patterns.
+
+% TODO: Add reference to AsyncConfig.java configuration (lines 20-45)
+
+The MCP integration pattern utilizes a custom thread pool configuration that provides predictable resource allocation while enabling precise measurement of async processing overhead. The thread pool sizing follows CPU core count recommendations while maintaining headroom for system processes and measurement infrastructure.
+
+Thread naming conventions and monitoring integration provide comprehensive visibility into thread utilization patterns. This visibility enables the identification of resource contention or thread pool saturation conditions that could affect measurement validity.
+
+\subsection{Graceful Shutdown and Cleanup Procedures}
+
+The cleanup implementation follows Spring Framework lifecycle management patterns while addressing the specific requirements of native library integration. The \texttt{@PreDestroy} annotation ensures that cleanup operations occur during application shutdown, preventing resource leaks in development and testing environments.
+
+% TODO: Add reference to cleanup implementation (lines 135-150 in LlmService.java)
+
+The cleanup sequence includes model deallocation, thread pool termination, and native memory cleanup operations. This comprehensive approach ensures that system resources are properly released and that subsequent application instances start with clean resource allocation.
+
+Resource monitoring during shutdown provides validation that cleanup operations complete successfully. This monitoring supports debugging of resource management issues while ensuring that experimental environments remain consistent across multiple test runs.
+
+\subsection{Resource Monitoring and Alerting Integration}
+
+The resource monitoring system provides real-time visibility into resource utilization patterns across all integration patterns. The monitoring system captures CPU utilization, memory consumption, and thread pool metrics that inform performance analysis and system optimization.
+
+% TODO: Add reference to MetricsService.java monitoring implementation (lines 85-120)
+
+The monitoring implementation utilizes JVM management beans (\texttt{OperatingSystemMXBean}, \texttt{MemoryMXBean}) to capture precise system metrics without introducing measurement artifacts. This approach ensures that resource monitoring overhead remains consistent across all integration patterns.
+
+% TODO: Add Figure 3.3: Resource Management Lifecycle Diagram
+
+\section{Configuration Management Strategies}
+
+The configuration management architecture provides flexible, maintainable configuration capabilities that support both research requirements and production deployment scenarios. The implementation follows Spring Boot configuration best practices while incorporating LLM-specific configuration patterns.
+
+\subsection{Hierarchical Configuration Architecture}
+
+The configuration system implements a hierarchical approach that supports environment-specific overrides while maintaining baseline configuration consistency. The primary configuration establishes default settings that provide optimal performance for typical research scenarios.
+
+% TODO: Add reference to application.yaml configuration (lines 1-50)
+
+The LLM-specific configuration namespace encapsulates model-related settings including model path, inference parameters, and performance tuning options. This organization enables clear separation between application configuration and model-specific settings.
+
+% TODO: Add reference to LLM configuration namespace (lines 38-45)
+
+Environment-specific configuration capabilities support different deployment scenarios including development, testing, and production environments. The configuration system supports both property file overrides and environment variable injection, providing flexibility for containerized deployment scenarios.
+
+\subsection{Dynamic Configuration and Runtime Adjustment}
+
+The configuration system provides limited runtime adjustment capabilities for parameters that do not require model reinitialization. Temperature and top-p settings can be adjusted through configuration properties without requiring application restart, supporting experimental parameter tuning.
+
+Model path configuration supports both absolute and relative path specifications, enabling flexible model deployment strategies. The path resolution logic (implemented in the initialization sequence) provides comprehensive error handling and validation that ensures model availability before application startup completion.
+
+Performance tuning parameters including thread count, batch size, and context size are validated during initialization to ensure compatibility with available system resources. This validation prevents runtime failures while providing clear diagnostic information for configuration optimization.
+
+\subsection{Configuration Validation and Error Handling}
+
+The configuration validation system (integrated within the initialization process) performs comprehensive validation of all configuration parameters before model loading begins. The validation process includes file system checks, resource availability verification, and parameter compatibility analysis.
+
+Error handling during configuration validation provides detailed diagnostic information that supports troubleshooting while maintaining security best practices. The error messages include sufficient detail for configuration correction without exposing sensitive system information.
+
+Configuration logging provides comprehensive audit trails that support research reproducibility and system debugging. The logging implementation captures all configuration settings, validation results, and runtime adjustments, creating a complete record of system configuration state.
+
+\subsection{Security and Access Control Considerations}
+
+The configuration management system implements security best practices including secure credential handling and access control for sensitive configuration parameters. Model path validation includes security checks that prevent unauthorized file system access while supporting legitimate model deployment scenarios.
+
+Configuration parameter sanitization prevents injection attacks and ensures that all configuration values conform to expected formats and ranges. This sanitization supports both security requirements and system stability by preventing invalid configuration from causing runtime failures.
+
+The configuration system supports externalized configuration management through environment variables and configuration files, enabling deployment in containerized environments while maintaining security boundaries between configuration and application code.
+
+% TODO: Add Figure 3.4: Configuration Management Architecture Diagram
+
+The LLM integration layer implementation provides a robust foundation for empirical research while maintaining enterprise-grade reliability and performance characteristics. The comprehensive approach to model management, resource handling, and configuration management ensures that research measurements accurately reflect integration pattern characteristics while supporting practical deployment requirements.
+
+\chapter{Integration Pattern Implementations}
+
+\section{REST API Integration Pattern}
+
+\subsection{Implementation Details and Design Rationale}
+
+The REST API integration pattern represents the foundational implementation against which all other patterns are compared. The design prioritizes simplicity, predictability, and adherence to established HTTP semantics while maintaining comprehensive measurement capabilities essential for empirical research.
+
+The architectural rationale for the REST implementation centers on providing a baseline that reflects current industry practices for LLM integration. The synchronous request-response model eliminates the complexity associated with asynchronous processing patterns, enabling precise measurement of core LLM processing characteristics without confounding variables introduced by advanced architectural patterns.
+
+The controller implementation (RestLlmController.java, lines 15-35) follows standard Spring MVC patterns while incorporating sophisticated timing measurement capabilities. The design ensures that HTTP protocol overhead is consistently measured across all requests, providing a stable baseline for comparative analysis.
+
+% TODO: Add code reference to RestLlmController.java implementation (lines 15-35)
+
+The service layer design (RestLlmService.java, lines 20-40) implements direct delegation to the core LLM service while maintaining comprehensive logging and metrics collection. This approach ensures that REST-specific overhead is minimized while preserving measurement accuracy.
+
+% TODO: Add code reference to RestLlmService.java implementation (lines 20-40)
+
+\subsection{Synchronous Processing Architecture}
+
+The synchronous processing architecture implements a straightforward request-response flow that blocks the calling thread until completion. This design choice, while potentially limiting for high-concurrency scenarios, provides several research advantages including predictable resource utilization patterns and simplified measurement interpretation.
+
+The processing flow begins with request validation and preprocessing (lines 25-30 in \texttt{RestLlmController.java}) that ensures prompt formatting consistency across all integration patterns. The validation process includes input sanitization and parameter normalization that prevents measurement artifacts from inconsistent request formatting.
+
+% TODO: Add code reference to request validation (lines 25-30 in RestLlmController.java)
+
+The core processing delegation maintains strict timing boundaries that enable precise measurement of LLM inference time versus HTTP handling overhead. The timing implementation (lines 28-35 in \texttt{RestLlmController.java}) captures both end-to-end request processing time and core LLM inference time, supporting detailed overhead analysis.
+
+% TODO: Add code reference to timing implementation (lines 28-35 in RestLlmController.java)
+
+Error handling within the synchronous architecture provides comprehensive exception management while maintaining timing measurement integrity. The error handling implementation ensures that failed requests are properly categorized and excluded from performance statistics without compromising the measurement infrastructure.
+
+\subsection{Code Implementation and Technical Specifications}
+
+The REST controller implementation demonstrates enterprise-grade patterns while maintaining research measurement requirements. The core controller structure implements standard Spring MVC patterns with enhanced timing measurement capabilities:
+
+\begin{lstlisting}[language=Java, caption=REST Controller Implementation Pattern]
+% @RestController
+% @RequestMapping("/api/llm/rest")
+% @Slf4j
+% public class RestLlmController {
+%     private static final String INTEGRATION_PATTERN = "REST";
+%     
+%     @Autowired
+%     private RestLlmService restLlmService;
+%     
+%     @PostMapping("/complete")
+%     public ResponseEntity<CompletionResponse> complete(
+%         @RequestBody CompletionRequest request) {
+%         long startTime = System.currentTimeMillis();
+%         CompletionResponse response = 
+%             restLlmService.generateCompletion(request);
+%         long totalTime = System.currentTimeMillis() - startTime;
+%         log.info("REST completion generated in {}ms", totalTime);
+%         return ResponseEntity.ok(response);
+%     }
+% }
+\end{lstlisting}
+
+% TODO: Add complete code reference to RestLlmController.java
+
+The service layer implementation maintains separation of concerns while providing comprehensive measurement capabilities (implemented in \texttt{RestLlmService.java}, lines 15-45). The service delegates core processing to the shared \texttt{LlmService} while implementing pattern-specific logging and metrics collection.
+
+% TODO: Add code reference to RestLlmService.java service layer (lines 15-45)
+
+The data transfer object design ensures consistent request and response formatting across all integration patterns. The \texttt{CompletionRequest} and \texttt{CompletionResponse} classes provide standardized interfaces that eliminate serialization overhead variations between patterns.
+
+% TODO: Add code reference to DTO implementations (lines 1-25 each)
+
+HTTP status code management follows RESTful best practices while providing comprehensive error reporting capabilities. The implementation returns appropriate status codes for different error conditions while maintaining detailed error information for debugging and research analysis.
+
+% TODO: Add Figure 4.1: REST API Processing Flow Diagram
+
+\section{Model Context Protocol (MCP) Integration Pattern}
+
+\subsection{Asynchronous Processing Implementation}
+
+The MCP integration pattern implementation represents a sophisticated asynchronous processing architecture designed to demonstrate non-blocking request handling while maintaining precise measurement of async processing overhead. The implementation provides empirical evidence for evaluating the theoretical advantages of asynchronous LLM processing patterns.
+
+The architectural foundation leverages Spring Framework's async processing capabilities while implementing custom measurement infrastructure that isolates and quantifies async wrapper overhead. This design enables rigorous comparative analysis between synchronous and asynchronous processing approaches under controlled experimental conditions.
+
+The controller implementation (implemented in \texttt{McpLlmController.java}, lines 20-45) demonstrates enterprise-grade async processing patterns while maintaining comprehensive timing measurement capabilities. The implementation provides non-blocking request handling that enables concurrent processing of multiple LLM requests without thread pool exhaustion.
+
+% TODO: Add code reference to McpLlmController.java implementation (lines 20-45)
+
+The service layer architecture (implemented in \texttt{McpLlmService.java}, lines 25-60) implements sophisticated async delegation patterns that maintain measurement precision while providing scalable processing capabilities. The design ensures that async processing benefits are realized without compromising measurement accuracy.
+
+% TODO: Add code reference to McpLlmService.java implementation (lines 25-60)
+
+\subsection{CompletableFuture Architecture and Thread Management}
+
+The CompletableFuture implementation provides comprehensive async processing capabilities while maintaining deterministic thread management essential for accurate performance measurement. The architecture balances processing efficiency with measurement precision requirements.
+
+The thread management strategy utilizes custom thread pool configuration (defined in \texttt{AsyncConfig.java}, lines 25-45) that provides predictable resource allocation while enabling precise measurement of thread switching overhead. The thread pool sizing follows CPU-bound workload optimization principles while maintaining headroom for measurement infrastructure.
+
+% TODO: Add code reference to AsyncConfig.java thread pool configuration (lines 25-45)
+
+The CompletableFuture composition patterns (implemented in \texttt{McpLlmService.java}, lines 30-55) provide sophisticated error handling and result processing capabilities. The implementation includes comprehensive exception handling that maintains measurement integrity while providing detailed error reporting for debugging purposes.
+
+% TODO: Add code reference to CompletableFuture composition patterns (lines 30-55)
+
+The async processing pipeline incorporates detailed timing measurement at multiple stages, enabling precise quantification of async wrapper overhead versus core processing time. This measurement granularity supports empirical validation of theoretical async processing advantages.
+
+\subsection{Overhead Measurement and Analysis Methodology}
+
+The overhead measurement methodology represents a critical research contribution that enables precise quantification of async processing costs versus benefits. The implementation provides microsecond-precision timing capabilities that isolate specific overhead components for detailed analysis.
+
+The measurement architecture (implemented across lines 35-50 in \texttt{McpLlmService.java}) captures multiple timing dimensions including async initialization time, thread switching overhead, and CompletableFuture composition costs. This comprehensive measurement approach enables detailed analysis of async processing trade-offs.
+
+% TODO: Add code reference to overhead measurement implementation (lines 35-50)
+
+The timing implementation utilizes high-resolution timing APIs (\texttt{System.nanoTime()}) to provide microsecond-precision measurements that support statistical analysis of overhead variations. The measurement process includes statistical validation to ensure measurement accuracy and reproducibility.
+
+The overhead analysis methodology includes comparative measurement against synchronous processing baseline, enabling precise quantification of async processing benefits and costs. The analysis framework provides both absolute overhead measurements and relative performance comparisons that inform architectural decision-making.
+
+\subsection{Code Implementation and Technical Specifications}
+
+The MCP service implementation demonstrates sophisticated async processing patterns while maintaining precise measurement capabilities. The core service implementation showcases enterprise-grade async handling with comprehensive timing instrumentation:
+
+% \begin{lstlisting}[language=Java, caption=MCP Service Implementation Pattern]
+% % @Service
+% % @Slf4j
+% % public class McpLlmService {
+% %     private static final String INTEGRATION_PATTERN = "MCP";
+% %     
+% %     @Autowired
+% %     private LlmService llmService;
+% %     
+% %     @Async("mcpThreadPool")
+% %     public CompletableFuture<CompletionResponse> generateCompletionAsync(
+% %             CompletionRequest request) {
+% %         long asyncStartTime = System.nanoTime();
+% %         
+% %         return CompletableFuture.supplyAsync(() -> {
+% %             long coreProcessingStart = System.currentTimeMillis();
+% %             CompletionResponse response = 
+% %                 llmService.generateCompletion(request, INTEGRATION_PATTERN);
+% %             
+% %             long asyncOverheadNanos = System.nanoTime() - asyncStartTime - 
+% %                 (response.getProcessingTimeMs() * 1_000_000);
+% %             double asyncOverheadMs = asyncOverheadNanos / 1_000_000.0;
+% %             
+% %             log.info("MCP Performance Breakdown - Async Overhead: {}ms, " + 
+% %                     "Core Processing: {}ms", 
+% %                     String.format("%.3f", asyncOverheadMs), 
+% %                     response.getProcessingTimeMs());
+% %             
+% %             return response;
+% %         });
+% %     }
+% }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to McpLlmService.java
+
+The controller implementation provides non-blocking request handling capabilities while maintaining measurement precision. The implementation leverages Spring's async result handling capabilities to provide efficient HTTP response processing:
+
+% \begin{lstlisting}[language=Java, caption=MCP Controller Implementation Pattern]
+% % @RestController
+% % @RequestMapping("/api/llm/mcp")
+% % @Slf4j
+% % public class McpLlmController {
+% %     
+% %     @Autowired
+% %     private McpLlmService mcpLlmService;
+% %     
+% %     @PostMapping("/complete")
+% %     public CompletableFuture<ResponseEntity<CompletionResponse>> complete(
+% %             @RequestBody CompletionRequest request) {
+% %         long startTime = System.currentTimeMillis();
+% %         
+% %         return mcpLlmService.generateCompletionAsync(request)
+% %             .thenApply(response -> {
+% %                 long totalTime = System.currentTimeMillis() - startTime;
+% %                 log.info("MCP completion generated in {}ms", totalTime);
+% %                 return ResponseEntity.ok(response);
+% %             });
+% %     }
+% }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to McpLlmController.java
+
+The thread pool configuration provides deterministic resource allocation while enabling precise measurement of async processing characteristics. The configuration balances processing efficiency with measurement precision requirements:
+
+% \begin{lstlisting}[language=Java, caption=Async Configuration for MCP]
+% % @Configuration
+% % @EnableAsync
+% % public class AsyncConfig implements AsyncConfigurer {
+% %     
+% %     @Bean(name = "mcpThreadPool")
+% %     public Executor threadPoolTaskExecutor() {
+% %         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+% %         executor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+% %         executor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
+% %         executor.setQueueCapacity(500);
+% %         executor.setThreadNamePrefix("mcp-async-");
+% %         executor.initialize();
+% %         return executor;
+% %     }
+% %     
+% %     @Override
+% %     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+% %         return (ex, method, params) -> {
+% %             log.error("Uncaught async error in MCP processing", ex);
+% %             // Additional error handling and measurement recording
+% %         };
+% %     }
+% }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to AsyncConfig.java
+
+% TODO: Add Figure 4.2: MCP Async Processing Architecture Diagram
+
+\section{Server-Sent Events (SSE) Streaming Pattern}
+
+\subsection{Real-time Streaming Implementation}
+
+The SSE streaming pattern implementation provides real-time token-level delivery capabilities that enable interactive user experiences while maintaining comprehensive measurement of streaming performance characteristics. The implementation demonstrates advanced streaming architectures suitable for conversational AI applications and real-time content generation scenarios.
+
+The architectural design prioritizes low-latency token delivery while maintaining system stability and error recovery capabilities. The implementation provides bidirectional communication control that enables client-initiated cancellation and graceful connection management essential for production deployments.
+
+The controller implementation (implemented in \texttt{StreamingLlmController.java}, lines 20-40) demonstrates industry-standard SSE implementation patterns while incorporating sophisticated timeout management and error handling capabilities. The design ensures connection stability while providing responsive token delivery.
+
+% TODO: Add code reference to StreamingLlmController.java implementation (lines 20-40)
+
+The streaming architecture maintains persistent connections throughout the generation process while providing comprehensive monitoring of connection health and performance characteristics. The implementation includes detailed metrics collection that captures both streaming performance and connection management overhead.
+
+\subsection{Token-level Processing and Delivery Mechanisms}
+
+The token-level processing implementation provides sophisticated streaming capabilities that deliver individual tokens as they are generated by the underlying model. This approach enables real-time user feedback while maintaining comprehensive measurement of streaming performance characteristics.
+
+The token processing pipeline (implemented in \texttt{StreamingLlmService.java}, lines 40-80) provides atomic token delivery with error handling and flow control capabilities. The implementation ensures that token delivery failures do not compromise the overall streaming process while maintaining measurement accuracy.
+
+% TODO: Add code reference to token processing pipeline (lines 40-80)
+
+The delivery mechanism implements backpressure handling that prevents client connection overflow while maintaining streaming performance. The implementation includes adaptive flow control that adjusts delivery rate based on client connection characteristics and processing capacity.
+
+The token streaming process incorporates comprehensive timing measurement that captures both individual token delivery time and overall streaming session performance. This measurement granularity enables detailed analysis of streaming performance characteristics and optimization opportunities.
+
+\subsection{Client-Server Communication Protocols}
+
+The SSE communication protocol implementation follows W3C Server-Sent Events standards while incorporating enhancements for LLM streaming requirements. The protocol design provides reliable message delivery with comprehensive error handling and connection recovery capabilities.
+
+The message format specification includes structured event types that enable client-side processing optimization while maintaining compatibility with standard SSE client libraries. The implementation provides event categorization that distinguishes between token delivery, completion notifications, and error conditions.
+
+The connection management implementation provides sophisticated timeout handling and graceful connection termination capabilities. The design ensures that streaming sessions can be properly terminated without resource leaks while maintaining measurement integrity throughout the session lifecycle.
+
+\subsection{Code Implementation and Technical Specifications}
+
+The streaming service implementation demonstrates sophisticated real-time processing with comprehensive error handling. The core implementation provides token-level streaming with detailed monitoring capabilities:
+
+% \begin{lstlisting}[language=Java, caption=Streaming Service Implementation]
+% % @Service
+% % @Slf4j
+% % public class StreamingLlmService {
+% %     private static final String INTEGRATION_PATTERN = "SSE";
+% %     
+% %     @Autowired
+% %     private LlmService llmService;
+% %     
+% %     public void generateCompletionStreaming(CompletionRequest request, 
+% %             SseEmitter emitter) {
+% %         CompletableFuture.runAsync(() -> {
+% %             long startTime = System.currentTimeMillis();
+% %             StringBuilder fullResponse = new StringBuilder();
+% %             AtomicBoolean isCancelled = new AtomicBoolean(false);
+% %             
+% %             emitter.onCompletion(() -> 
+% %                 log.info("Streaming completion finished"));
+% %             
+% %             emitter.onTimeout(() -> {
+% %                 log.warn("Streaming completion timed out");
+% %                 isCancelled.set(true);
+% %             });
+% %             
+% %             try {
+% %                 llmService.generateCompletionStreaming(
+% %                     request, 
+% %                     INTEGRATION_PATTERN,
+% %                     token -> {
+% %                         if (!isCancelled.get()) {
+% %                             try {
+% %                                 emitter.send(SseEmitter.event()
+% %                                     .data(token)
+% %                                     .name("token"));
+% %                                 fullResponse.append(token);
+% %                             } catch (IOException e) {
+% %                                 log.error("Error sending streaming token: {}", 
+% %                                     e.getMessage());
+% %                                 isCancelled.set(true);
+% %                             }
+% %                         }
+% %                     }
+% %                 );
+% %                 
+% %                 if (!isCancelled.get()) {
+% %                     emitter.send(SseEmitter.event()
+% %                         .data("DONE")
+% %                         .name("complete"));
+% %                     emitter.complete();
+% %                 }
+% %             } catch (Exception e) {
+% %                 emitter.completeWithError(e);
+% %             }
+% %         });
+% %     }
+% % }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to StreamingLlmService.java
+
+The controller implementation provides the HTTP endpoint for establishing streaming connections while maintaining comprehensive error handling:
+
+% \begin{lstlisting}[language=Java, caption=Streaming Controller Implementation]
+% % @RestController
+% % @RequestMapping("/api/llm/streaming")
+% % @Slf4j
+% % public class StreamingLlmController {
+% %     private static final long SSE_TIMEOUT = 60000L; // 60 seconds
+% %     
+% %     @Autowired
+% %     private StreamingLlmService streamingLlmService;
+% %     
+% %     @PostMapping(value = "/complete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+% %     public SseEmitter completeStreaming(@RequestBody CompletionRequest request) {
+% %         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
+% %         
+% %         log.info("Starting SSE streaming completion");
+% %         streamingLlmService.generateCompletionStreaming(request, emitter);
+% %         
+% %         return emitter;
+% %     }
+% }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to StreamingLlmController.java
+
+The streaming implementation provides sophisticated error handling and recovery mechanisms that ensure connection stability while maintaining measurement accuracy. The error handling includes network failure detection, client disconnection handling, and graceful session termination capabilities.
+
+The performance monitoring integration captures detailed streaming metrics including token delivery latency, connection duration, and error rates. This comprehensive monitoring enables detailed analysis of streaming performance characteristics and identification of optimization opportunities.
+
+% TODO: Add Figure 4.3: SSE Streaming Communication Flow Diagram
+
+The integration pattern implementations collectively provide comprehensive coverage of LLM integration approaches while maintaining consistent measurement infrastructure that enables rigorous comparative analysis. Each pattern demonstrates production-ready implementation quality while supporting the empirical research objectives through sophisticated measurement and monitoring capabilities.
+
+\chapter{Advanced Monitoring and Observability Framework}
+
+\section{Custom Metrics Collection Architecture}
+
+\subsection{Micrometer Integration and Configuration}
+
+The monitoring infrastructure leverages Micrometer's vendor-neutral metrics facade to provide comprehensive observability capabilities while maintaining flexibility for multiple monitoring backend integrations. The architectural design prioritizes measurement accuracy and low overhead to ensure that monitoring infrastructure does not introduce artifacts that could compromise research validity.
+
+The Micrometer integration strategy (configured through dependency management in \texttt{pom.xml}, lines 38-42) establishes a foundation for metrics collection that abstracts backend-specific implementation details while providing enterprise-grade monitoring capabilities. This abstraction enables seamless integration with various monitoring systems without coupling the research implementation to specific vendor solutions.
+
+% TODO: Add reference to pom.xml Micrometer integration (lines 38-42)
+
+The configuration architecture implements a hierarchical approach that separates application-level metrics from LLM-specific performance indicators. The base configuration (defined in \texttt{application.yaml}, lines 25-35) establishes global metrics collection parameters including collection intervals, tag propagation settings, and export configuration that ensures consistent monitoring behavior across all integration patterns.
+
+% TODO: Add reference to application.yaml metrics configuration (lines 25-35)
+
+The custom metrics configuration extends Micrometer's auto-configuration capabilities with LLM-specific metric definitions and collection strategies. This extension provides specialized monitoring capabilities that capture the unique performance characteristics of LLM workloads while maintaining compatibility with standard monitoring infrastructure.
+
+\subsection{Prometheus Metrics Registry Implementation}
+
+The Prometheus metrics registry implementation provides time-series data collection capabilities essential for longitudinal performance analysis and statistical validation of research findings. The registry configuration enables high-resolution metric collection while maintaining storage efficiency through intelligent data retention and aggregation strategies.
+
+The registry initialization process (integrated within the application startup sequence) establishes metric definitions and collection parameters that ensure consistent data capture across all integration patterns. The initialization includes validation of metric definitions and verification of collection infrastructure to prevent measurement failures during experimental runs.
+
+The metrics registry architecture implements sophisticated memory management that prevents metric accumulation from consuming excessive system resources during extended experimental runs. The implementation includes configurable retention policies and automatic cleanup mechanisms that maintain system stability while preserving essential historical data.
+
+The registry provides thread-safe metric collection capabilities that support concurrent access from multiple integration patterns without introducing contention or measurement artifacts. This thread-safety ensures that metrics collection remains accurate even under high-load conditions with multiple concurrent LLM processing requests.
+
+\subsection{Real-time System Monitoring Capabilities}
+
+The real-time monitoring implementation provides comprehensive visibility into system resource utilization patterns during LLM processing operations. The monitoring architecture captures both JVM-level metrics and system-level resource utilization to provide complete performance visibility.
+
+The system monitoring implementation (defined in \texttt{MetricsService.java}, lines 85-120) utilizes Java Management Extensions (JMX) to access detailed system metrics including CPU utilization, memory consumption, and thread pool statistics. This approach provides accurate system metrics without introducing external dependencies that could affect measurement consistency.
+
+% TODO: Add reference to MetricsService.java system monitoring (lines 85-120)
+
+The CPU monitoring implementation leverages \texttt{OperatingSystemMXBean} capabilities to capture precise CPU utilization measurements during LLM processing operations. The monitoring process accounts for both user and system CPU time to provide comprehensive visibility into processing overhead across different integration patterns.
+
+Memory monitoring capabilities utilize \texttt{MemoryMXBean} functionality to capture detailed heap and non-heap memory utilization patterns. The monitoring includes garbage collection statistics and memory pool utilization that inform memory management optimization and identify potential memory leaks or inefficient allocation patterns.
+
+\subsection{Code Implementation and Technical Specifications}
+
+The metrics service implementation demonstrates enterprise-grade monitoring capabilities with comprehensive system resource tracking:
+
+% \begin{lstlisting}[language=Java, caption=Metrics Service Implementation]
+% % @Service
+% % @Slf4j
+% % public class MetricsService {
+% %     private final MeterRegistry meterRegistry;
+% %     private final OperatingSystemMXBean osBean;
+% %     private final MemoryMXBean memoryBean;
+% %     
+% %     @Autowired
+% %     public MetricsService(MeterRegistry meterRegistry) {
+% %         this.meterRegistry = meterRegistry;
+% %         this.osBean = ManagementFactory.getPlatformMXBean(
+% %             OperatingSystemMXBean.class);
+% %         this.memoryBean = ManagementFactory.getMemoryMXBean();
+% %         initializeMetrics();
+% %     }
+% %     
+% %     private void initializeMetrics() {
+% %         Gauge.builder("system.cpu.usage", this, MetricsService::getCpuUsage)
+% %             .description("CPU usage percentage")
+% %             .register(meterRegistry);
+% %         
+% %         Gauge.builder("jvm.memory.heap.used", this, MetricsService::getMemoryUsage)
+% %             .description("JVM heap memory usage in MB")
+% %             .register(meterRegistry);
+% %     }
+% %     
+% %     private double getCpuUsage() {
+% %         double cpuLoad = osBean.getCpuLoad();
+% %         return cpuLoad >= 0 ? cpuLoad * 100.0 : 0.0;
+% %     }
+% %     
+% %     private double getMemoryUsage() {
+% %         MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
+% %         return heapUsage.getUsed() / (1024.0 * 1024.0); // Convert to MB
+% %     }
+% }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to MetricsService.java
+
+The real-time monitoring infrastructure includes alerting capabilities that notify administrators of performance anomalies or resource exhaustion conditions. The alerting system provides configurable thresholds and notification mechanisms that support both development debugging and production monitoring requirements.
+
+% TODO: Add Figure 5.1: Metrics Collection Architecture Diagram
+
+\section{Metrics Transformation and Prometheus Integration}
+
+\subsection{Gauge Metrics Registration and Management}
+
+The gauge metrics implementation provides point-in-time measurement capabilities essential for capturing instantaneous performance characteristics across different integration patterns. The gauge registration strategy ensures that metrics accurately reflect current system state while maintaining historical visibility through Prometheus time-series collection.
+
+The gauge registration process (implemented in \texttt{MetricsService.java}, lines 95-140) establishes metric definitions that capture LLM-specific performance indicators including average latency, throughput, and resource utilization metrics. The registration process includes comprehensive validation that ensures metric definitions comply with Prometheus naming conventions and data type requirements.
+
+% TODO: Add reference to gauge registration implementation (lines 95-140)
+
+The gauge management architecture implements sophisticated lifecycle handling that ensures metrics remain accurate throughout application execution. The management process includes periodic metric updates, validation of metric values, and cleanup of stale metrics that could compromise monitoring accuracy.
+
+The gauge implementation strategy addresses the unique challenges associated with LLM performance monitoring, including handling of variable processing times and managing metrics during idle periods. The implementation provides intelligent default values and handles edge cases that could result in invalid metric states.
+
+\subsection{Tag-based Metric Organization}
+
+The tag-based organization strategy provides dimensional metric capabilities that enable detailed analysis of performance characteristics across multiple variables including integration pattern, request type, and system configuration. The tagging architecture supports sophisticated querying and aggregation capabilities essential for comprehensive research analysis.
+
+The tagging implementation (integrated throughout the metrics collection process) establishes consistent tag naming conventions and value normalization that ensure metric compatibility across different collection periods and system configurations. The tag management includes validation and sanitization that prevents invalid characters or values from compromising metric integrity.
+
+The dimensional metrics architecture enables detailed comparative analysis between integration patterns while maintaining the ability to aggregate metrics across different dimensions for higher-level performance analysis. This flexibility supports both fine-grained research requirements and operational monitoring needs.
+
+The tag propagation mechanism ensures that contextual information is consistently attached to all relevant metrics, enabling detailed analysis of performance variations based on request characteristics, system load conditions, and configuration parameters.
+
+\subsection{Time-series Data Collection Methodology}
+
+The time-series collection methodology implements sophisticated data capture strategies that balance measurement granularity with storage efficiency requirements. The collection process ensures that sufficient data resolution is maintained for statistical analysis while preventing excessive storage consumption during extended experimental runs.
+
+The collection interval configuration (defined in application properties and Prometheus scrape configuration) establishes optimal balance between measurement precision and system overhead. The default 5-second collection interval provides sufficient resolution for capturing performance variations while maintaining reasonable storage requirements.
+
+The data retention strategy implements intelligent aggregation that preserves high-resolution data for recent time periods while maintaining longer-term trends through progressive aggregation. This approach ensures that both short-term performance analysis and long-term trend identification remain feasible without excessive storage consumption.
+
+The collection process includes comprehensive error handling that ensures data consistency even during system stress conditions or monitoring infrastructure failures. The error handling includes retry mechanisms and fallback strategies that maintain monitoring continuity.
+
+\subsection{Prometheus Exposition Format Compliance}
+
+The Prometheus exposition format implementation ensures full compatibility with Prometheus data collection requirements while optimizing data transfer efficiency and parsing performance. The format compliance includes proper metric naming, type declaration, and metadata specification that enables optimal Prometheus integration.
+
+The exposition format implementation (automatically handled by Micrometer's Prometheus registry) includes comprehensive metric metadata that provides detailed documentation for each metric type and measurement unit. This metadata supports both automated monitoring system integration and manual analysis of monitoring data.
+
+The format optimization includes efficient serialization that minimizes exposition endpoint response time while maintaining complete metric information. The optimization ensures that metrics collection does not introduce significant overhead during high-frequency scraping operations.
+
+\subsection{Code Implementation and Technical Specifications}
+
+The Prometheus metrics registration implementation demonstrates comprehensive performance monitoring capabilities with detailed tagging for dimensional analysis:
+
+% \begin{lstlisting}[language=Java, caption=Prometheus Metrics Registration]
+% % private void registerPrometheusMetrics(String pattern, Double latency, 
+% %                                       Integer throughput, Double cpu, 
+% %                                       Double memory) {
+% %     // Average latency per integration pattern
+% %     Gauge.builder("llm_average_latency_ms", this, 
+% %             ms -> latency != null ? latency : 0.0)
+% %         .description("Average LLM response latency in milliseconds")
+% %         .tag("integration_pattern", pattern)
+% %         .register(meterRegistry);
+% %         
+% %     // Throughput per integration pattern  
+% %     Gauge.builder("llm_throughput_requests_per_minute", this, 
+% %             ms -> throughput != null ? throughput.doubleValue() : 0.0)
+% %         .description("LLM requests processed per minute")
+% %         .tag("integration_pattern", pattern)
+% %         .register(meterRegistry);
+% %         
+% %     // System resource metrics
+% %     Gauge.builder("llm_cpu_usage_percent", this, 
+% %             ms -> cpu != null ? cpu : 0.0)
+% %         .description("CPU usage percentage during LLM processing")
+% %         .register(meterRegistry);
+% %         
+% %     Gauge.builder("llm_memory_usage_mb", this, 
+% %             ms -> memory != null ? memory : 0.0)
+% %         .description("Memory usage in MB during LLM processing")
+% % %         .register(meterRegistry);
+% % }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to Prometheus metrics registration
+
+The exposition format includes comprehensive help text and metric type declarations that support both automated monitoring system integration and human-readable metric documentation. This dual-purpose design ensures that monitoring data remains accessible for both operational monitoring and research analysis.
+
+% TODO: Add Figure 5.2: Prometheus Integration Data Flow Diagram
+
+\section{Data Persistence and Analysis Infrastructure}
+
+\subsection{JPA Entity Design for Research Data Collection}
+
+The data persistence architecture implements sophisticated entity design patterns that support comprehensive research data collection while maintaining query performance and data integrity essential for longitudinal analysis. The entity design prioritizes both operational efficiency and analytical capability to support diverse research requirements.
+
+The primary entity design (implemented in \texttt{LlmRequest.java}, lines 1-40) captures comprehensive request metadata including prompt characteristics, response content, processing timing, and integration pattern identification. The entity structure enables detailed analysis of performance variations based on request complexity and system conditions.
+
+% TODO: Add reference to LlmRequest.java entity design (lines 1-40)
+
+The entity relationships implement normalized data design that prevents redundancy while maintaining query efficiency for common analytical operations. The design includes appropriate indexing strategies that support both real-time operational queries and complex analytical aggregations required for research analysis.
+
+The entity lifecycle management includes comprehensive audit capabilities that track data creation, modification, and access patterns. This audit trail supports research reproducibility requirements while providing visibility into data quality and consistency throughout experimental runs.
+
+\subsection{Database Schema for Performance Analytics}
+
+The database schema design implements specialized structures optimized for time-series performance data analysis while maintaining relational integrity and query efficiency. The schema design balances normalization principles with analytical query performance requirements.
+
+The metrics entity design (implemented in \texttt{ModelMetrics.java}, lines 1-35) captures comprehensive performance indicators including latency statistics, throughput measurements, and resource utilization metrics. The entity structure enables sophisticated analytical queries that support statistical analysis and trend identification.
+
+% TODO: Add reference to ModelMetrics.java entity design (lines 1-35)
+
+The schema indexing strategy implements composite indexes that optimize common analytical query patterns while maintaining reasonable storage overhead. The indexing includes temporal indexes that support time-range queries and pattern-based indexes that enable efficient filtering by integration pattern and performance characteristics.
+
+The schema design includes comprehensive constraint definitions that ensure data integrity and prevent invalid data from compromising analytical results. The constraints include range validations, referential integrity rules, and business logic constraints that maintain data quality throughout the data collection process.
+
+\subsection{Historical Data Management Strategies}
+
+The historical data management implementation provides comprehensive data retention and archival capabilities that support long-term research analysis while maintaining system performance and storage efficiency. The management strategy balances data retention requirements with operational performance considerations.
+
+The data retention policy implementation (integrated within the scheduled metrics collection process) includes configurable retention periods and automated cleanup mechanisms that prevent excessive data accumulation. The retention policy considers both storage constraints and analytical requirements to maintain optimal balance between data availability and system performance.
+
+The data archival strategy implements intelligent compression and summarization techniques that preserve essential historical trends while reducing storage requirements for long-term data retention. The archival process includes data integrity validation and recovery mechanisms that ensure historical data reliability.
+
+The historical data access optimization includes specialized query patterns and caching strategies that enable efficient retrieval of historical data for analytical purposes. The optimization includes result caching for common analytical queries and indexed access paths that minimize query execution time for large datasets.
+
+The data management implementation includes comprehensive backup and recovery capabilities that protect research data against system failures while maintaining data consistency and integrity. The backup strategy includes both incremental and full backup capabilities with automated recovery testing to ensure backup reliability.
+
+\subsection{Code Implementation and Technical Specifications}
+
+The entity implementation demonstrates sophisticated JPA design patterns with comprehensive metadata capture:
+
+% \begin{lstlisting}[language=Java, caption=LLM Request Entity Definition]
+% % @Entity
+% % @Table(name = "llm_request")
+% % @Data
+% % @Builder
+% % @NoArgsConstructor
+% % @AllArgsConstructor
+% % public class LlmRequest {
+% %     @Id
+% %     @GeneratedValue(strategy = GenerationType.IDENTITY)
+% %     private Long id;
+% %     
+% %     @Column(columnDefinition = "TEXT")
+% %     private String prompt;
+% %     
+% %     @Column(columnDefinition = "TEXT")
+% %     private String response;
+% %     
+% %     @Column(name = "integration_pattern")
+% %     private String integrationPattern;
+% %     
+% %     @Column(name = "processing_time_ms")
+% %     private Long processingTimeMs;
+% %     
+% %     @Column(name = "token_count")
+% %     private Integer tokenCount;
+% %     
+% %     @Column(name = "timestamp")
+% %     private LocalDateTime timestamp;
+% % }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to LlmRequest.java
+
+The metrics entity implementation provides comprehensive performance data capture with efficient storage:
+
+% \begin{lstlisting}[language=Java, caption=Model Metrics Entity Definition]
+% % @Entity
+% % @Table(name = "model_metrics")
+% % @Data
+% % @Builder
+% % @NoArgsConstructor
+% % @AllArgsConstructor
+% % public class ModelMetrics {
+% %     @Id
+% %     @GeneratedValue(strategy = GenerationType.IDENTITY)
+% %     private Long id;
+% %     
+% %     @Column(name = "integration_pattern")
+% %     private String integrationPattern;
+% %     
+% %     @Column(name = "average_latency_ms")
+% %     private Double averageLatencyMs;
+% %     
+% %     @Column(name = "throughput_requests_per_minute")
+% %     private Integer throughputRequestsPerMinute;
+% %     
+% %     @Column(name = "cpu_usage_percent")
+% %     private Double cpuUsagePercent;
+% %     
+% %     @Column(name = "memory_usage_mb")
+% %     private Double memoryUsageMb;
+% %     
+% %     @Column(name = "timestamp")
+% %     private LocalDateTime timestamp;
+% % }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to ModelMetrics.java
+
+The scheduled metrics collection process demonstrates sophisticated data collection and persistence:
+
+% \begin{lstlisting}[language=Java, caption=Scheduled Metrics Collection]
+% % @Scheduled(fixedRate = 60000) // Every minute
+% % public void collectAndPublishMetrics() {
+% %     log.info("Collecting metrics for all integration patterns");
+% %     
+% %     Arrays.stream(IntegrationPattern.values()).forEach(pattern -> {
+% %         String patternName = pattern.name();
+% %         
+% %         // Calculate performance metrics
+% %         Double avgLatency = calculateAverageLatency(patternName);
+% %         Integer throughput = calculateThroughput(patternName);
+% %         Double cpuUsage = getCpuUsage();
+% %         Double memoryUsage = getMemoryUsage();
+% %         
+% %         // Store in database for historical analysis
+% %         ModelMetrics metrics = ModelMetrics.builder()
+% %                 .integrationPattern(patternName)
+% %                 .averageLatencyMs(avgLatency)
+% %                 .throughputRequestsPerMinute(throughput)
+% %                 .cpuUsagePercent(cpuUsage)
+% %                 .memoryUsageMb(memoryUsage)
+% %                 .timestamp(LocalDateTime.now())
+% %                 .build();
+% %         
+% %         modelMetricsRepository.save(metrics);
+% %         
+% %         // Register with Prometheus for real-time monitoring
+% %         registerPrometheusMetrics(patternName, avgLatency, 
+% %                 throughput, cpuUsage, memoryUsage);
+% %     });
+% % }
+% \end{lstlisting}
+
+% TODO: Add complete code reference to scheduled metrics collection implementation
+
+The historical data management includes sophisticated data quality monitoring that identifies and addresses data anomalies, missing data points, and measurement inconsistencies. The quality monitoring includes automated validation rules and alerting mechanisms that ensure data reliability for research analysis.
+
+% TODO: Add Figure 5.3: Data Persistence Architecture Diagram
+
+The advanced monitoring and observability framework provides comprehensive visibility into LLM integration performance while maintaining the measurement precision essential for rigorous empirical research. The framework balances operational monitoring requirements with research data collection needs, ensuring that both immediate system visibility and long-term analytical capabilities are maintained throughout the experimental process.
+
+\chapter{Scientific Testing and Benchmarking Framework}
+
+This chapter presents the scientific testing and benchmarking framework developed to validate the performance characteristics and behavior of different LLM integration patterns. The framework is designed according to rigorous scientific methodology principles to ensure reproducibility, statistical validity, and meaningful interpretation of results.
+
+\section{Async Overhead Measurement Methodology}
+
+The precise measurement of asynchronous processing overhead presents unique challenges that require specialized methodological approaches. This section describes the high-precision timing methodology implemented to quantify microscopic performance differences between integration patterns.
+
+\subsection{Precision Timing Implementation}
+
+The benchmark framework implements high-resolution timing with nanosecond precision to accurately measure the performance characteristics of different integration patterns:
+
+% \begin{lstlisting}[language=Java, caption=High-Precision Timer Implementation, 
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% % public class PerformanceBenchmark {
+% %     /**
+% %      * Captures high-precision timestamps with nanosecond resolution
+% %      * for microscopic overhead measurement
+% %      */
+% %     private long captureTimestamp() {
+% %         // Use System.nanoTime() for high-resolution relative timing
+% %         // that is unaffected by system clock changes
+% %         return System.nanoTime();
+% %     }
+% %     
+% %     /**
+% %      * Calculates elapsed time in microseconds to provide
+% %      * sufficient precision for overhead analysis
+% %      */
+% %     private double calculateElapsedMicros(long startNanos, long endNanos) {
+% %         return (endNanos - startNanos) / 1000.0;
+% %     }
+% %     
+% %     /**
+% %      * Implements warm-up cycles to stabilize JVM performance
+% %      * before capturing benchmark measurements
+% %      */
+% %     private void performWarmupCycles(int cycles) {
+% %         for (int i = 0; i < cycles; i++) {
+% %             // Execute the test operation but discard results
+% %             // to ensure JIT compilation and cache warming
+% %             benchmarkOperation();
+% %         }
+% %     }
+% % }
+% \end{lstlisting}
+
+The timing implementation accounts for measurement precision limitations and establishes confidence intervals that properly represent the statistical significance of observed differences. The methodology includes JVM warm-up cycles to eliminate non-representative measurements affected by just-in-time compilation and initialization costs.
+
+\subsection{Statistical Analysis Framework}
+
+Performance measurements are subjected to rigorous statistical analysis to ensure validity and significance:
+
+% \begin{lstlisting}[language=Java, caption=Statistical Analysis Implementation,
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% % /**
+% %  * Performs statistical analysis on benchmark results
+% %  * to establish confidence intervals and significance
+% %  */
+% % public class BenchmarkAnalyzer {
+% %     /**
+% %      * Calculates descriptive statistics for a series of measurements
+% %      * @param measurements List of timing measurements in microseconds
+% %      * @return Statistics including mean, median, std deviation, and percentiles
+% %      */
+% %     public Statistics calculateStatistics(List<Double> measurements) {
+% %         double[] data = measurements.stream()
+% %                 .mapToDouble(Double::doubleValue)
+% %                 .toArray();
+% %         
+% %         return Statistics.builder()
+% %                 .mean(calculateMean(data))
+% %                 .median(calculateMedian(data))
+% %                 .standardDeviation(calculateStdDeviation(data))
+% %                 .percentile95th(calculatePercentile(data, 95))
+% %                 .percentile99th(calculatePercentile(data, 99))
+% %                 .build();
+% %     }
+% %     
+% %     /**
+% %      * Determines if the performance difference between two patterns
+% %      * is statistically significant using t-test analysis
+% %      */
+% %     public boolean isStatisticallySignificant(
+% %             List<Double> samplesA, 
+% %             List<Double> samplesB, 
+% %             double confidenceLevel) {
+% %         TTest tTest = new TTest();
+% %         double[] dataA = samplesA.stream().mapToDouble(Double::doubleValue).toArray();
+% %         double[] dataB = samplesB.stream().mapToDouble(Double::doubleValue).toArray();
+% %         
+% %         // Perform two-sample t-test to determine significance
+% %         return tTest.tTest(dataA, dataB, confidenceLevel);
+% %     }
+% % }
+% \end{lstlisting}
+
+The statistical framework calculates comprehensive descriptive statistics including mean, median, standard deviation, and relevant percentiles (95th, 99th) to characterize the performance distribution. Statistical significance testing is implemented using appropriate tests (t-tests for normally distributed data, non-parametric tests otherwise) to validate measured differences between integration patterns.
+
+\subsection{Microsecond-Level Overhead Analysis}
+
+The benchmark framework captures microsecond-level timing data to precisely quantify the processing overhead introduced by asynchronous integration patterns:
+
+% \begin{lstlisting}[language=Java, caption=Overhead Measurement Implementation,
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% % @RestController
+% % @RequestMapping("/api/benchmark")
+% % public class BenchmarkController {
+% %     @Autowired
+% %     private BenchmarkService benchmarkService;
+% %     
+% %     @GetMapping("/overhead/async")
+% %     public BenchmarkResult measureAsyncOverhead() {
+% %         int iterations = 1000;
+% %         double[] syncTimes = new double[iterations];
+% %         double[] asyncTimes = new double[iterations];
+% %         
+% %         for (int i = 0; i < iterations; i++) {
+% %             // Measure synchronous execution time
+% %             long syncStart = System.nanoTime();
+% %             String syncResult = benchmarkService.processSynchronously();
+% %             long syncEnd = System.nanoTime();
+% %             syncTimes[i] = (syncEnd - syncStart) / 1000.0; // Convert to microseconds
+% %             
+% %             // Measure asynchronous execution time
+% %             long asyncStart = System.nanoTime();
+% %             CompletableFuture<String> future = 
+% %                 benchmarkService.processAsynchronously();
+% %             // Include completion handling in the measurement
+% %             String asyncResult = future.join();
+% %             long asyncEnd = System.nanoTime();
+% %             asyncTimes[i] = (asyncEnd - asyncStart) / 1000.0; // Convert to microseconds
+% %         }
+% %         
+% %         // Calculate overhead statistics
+% %         double meanSyncTime = calculateMean(syncTimes);
+% %         double meanAsyncTime = calculateMean(asyncTimes);
+% %         double overheadMicros = meanAsyncTime - meanSyncTime;
+% %         double overheadPercentage = (overheadMicros / meanSyncTime) * 100;
+% %         
+% %         return BenchmarkResult.builder()
+% %                 .syncMeanMicros(meanSyncTime)
+% %                 .asyncMeanMicros(meanAsyncTime)
+% %                 .overheadMicros(overheadMicros)
+% %                 .overheadPercentage(overheadPercentage)
+% %                 .standardDeviation(calculateStdDev(asyncTimes))
+% %                 .confidenceInterval95(calculateConfidenceInterval(asyncTimes))
+% %                 .build();
+% %     }
+% % }
+% \end{lstlisting}
+
+The microsecond-level analysis provides detailed insights into the computational costs of async processing frameworks, thread pool management, and callback handling. The overhead measurement methodology isolates and quantifies specific components of async processing overhead, including task scheduling latency, thread context switching costs, and completion handling overhead.
+
+% TODO: Add Figure 6.1: Overhead Measurement Methodology Diagram
+
+\section{Automated Performance Testing Framework}
+
+To ensure consistent and reproducible benchmarking results, an automated testing framework was implemented using PowerShell scripting for test orchestration and result collection.
+
+\subsection{PowerShell Automation for Consistent Testing}
+
+The benchmark automation scripts ensure consistent test execution across multiple test runs:
+
+% \begin{lstlisting}[language=PowerShell, caption=Benchmark Automation Script, 
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% % # thesis-benchmark.ps1
+% % # Automated benchmark script for LLM integration patterns
+% %
+% % param(
+% %     [int]$iterations = 100,
+% %     [int]$concurrentUsers = 10,
+% %     [string]$outputFile = "benchmark-results.json",
+% %     [switch]$includeWarmup = $true,
+% %     [int]$warmupIterations = 20
+% % )
+% %
+% % Write-Host "Starting LLM Integration Pattern Benchmark"
+% % Write-Host "----------------------------------------"
+% % Write-Host "Configuration: $iterations iterations with $concurrentUsers concurrent users"
+% %
+% % # Run warmup if requested
+% % if ($includeWarmup) {
+% %     Write-Host "Performing $warmupIterations warmup requests..."
+% %     for ($i = 1; $i -le $warmupIterations; $i++) {
+% %         try {
+% %             $response = Invoke-RestMethod -Uri "http://localhost:8080/api/llm/warmup" -Method GET
+% %         } catch {
+% %             Write-Error "Warmup failed: $_"
+% %             exit 1
+% %         }
+% %     }
+% % }
+% %
+% % # Array to store results
+% % $results = @()
+
+% % # Test REST integration pattern
+% % Write-Host "Testing REST integration pattern..."
+% % $restResults = & {
+% %     $patternResults = @()
+% %     
+% %     for ($i = 1; $i -le $iterations; $i++) {
+% %         $start = (Get-Date).Ticks / 10 # Convert to microseconds
+% %         
+% %         try {
+% %             $response = Invoke-RestMethod -Uri "http://localhost:8080/api/llm/rest" `
+% %                 -Method POST -Body @{
+% %                     prompt = "Explain quantum computing in simple terms"
+% %                     temperature = 0.7
+% %                 } -ContentType "application/json"
+% %             
+% %             $end = (Get-Date).Ticks / 10
+% %             $elapsed = $end - $start
+% %             
+% %             $patternResults += [PSCustomObject]@{
+% %                 pattern = "REST"
+% %                 iteration = $i
+% %                 durationMs = $elapsed / 1000 # Convert to milliseconds
+% %                 tokensGenerated = $response.metadata.tokenCount
+% %                 success = $true
+% %             }
+% %             
+% %             Write-Host "  Iteration $i completed in $($elapsed / 1000) ms"
+% %         } catch {
+% %             Write-Error "  Iteration $i failed: $_"
+% %             $patternResults += [PSCustomObject]@{
+% %                 pattern = "REST"
+% %                 iteration = $i
+% %                 durationMs = -1
+% %                 tokensGenerated = 0
+% %                 success = $false
+% %             }
+% %         }
+% %     }
+% %     
+% %     return $patternResults
+% % }
+% %
+% % $results += $restResults
+
+% % # Test MCP integration pattern
+% % # Similar implementation to REST testing...
+% %
+% % # Test Streaming SSE integration pattern
+% % # Similar implementation to REST testing...
+% %
+% % # Calculate and output statistics
+% % $resultsByPattern = $results | Group-Object -Property pattern
+% %
+% % foreach ($patternGroup in $resultsByPattern) {
+% %     $pattern = $patternGroup.Name
+% %     $successfulResults = $patternGroup.Group | Where-Object { $_.success -eq $true }
+% %     
+% %     $avgDuration = ($successfulResults | Measure-Object -Property durationMs -Average).Average
+% %     $minDuration = ($successfulResults | Measure-Object -Property durationMs -Minimum).Minimum
+% %     $maxDuration = ($successfulResults | Measure-Object -Property durationMs -Maximum).Maximum
+% %     
+% %     Write-Host ""
+% %     Write-Host "Results for $pattern pattern:"
+% %     Write-Host "  Average duration: $avgDuration ms"
+% %     Write-Host "  Min duration: $minDuration ms"
+% %     Write-Host "  Max duration: $maxDuration ms"
+% % }
+% %
+% % # Save results to file
+% % $results | ConvertTo-Json | Out-File $outputFile
+% % Write-Host "Results saved to $outputFile"
+% \end{lstlisting}
+
+The automation framework implements proper test isolation, environment setup, and teardown procedures to ensure measurement consistency. The framework supports parameterized testing that enables systematic exploration of performance characteristics across different workload configurations and integration patterns.
+
+\subsection{Load Testing and Concurrent Request Handling}
+
+The framework implements specialized load testing to evaluate performance under concurrent request scenarios:
+
+% \begin{lstlisting}[language=PowerShell, caption=Concurrent Load Testing Implementation,
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% # concurrent-load-test.ps1
+% # Tests scalability of different integration patterns under load
+
+% param(
+%     [int[]]$concurrencyLevels = @(1, 5, 10, 25, 50, 100),
+%     [string]$outputFile = "concurrency-results.json"
+% )
+
+% $results = @()
+
+% foreach ($concurrencyLevel in $concurrencyLevels) {
+%     Write-Host "Testing with $concurrencyLevel concurrent users"
     
-    \item \textbf{Imbalanced Vulnerability Distribution}: Some vulnerabilities (e.g., Integer Overflow) are frequent, while others (e.g., Timestamp Dependency) are rare, making it challenging to train balanced classifiers~\cite{zhang2020scvd}.
+%     # Test each integration pattern at this concurrency level
+%     foreach ($pattern in @("REST", "MCP", "Streaming")) {
+%         $url = "http://localhost:8080/api/llm/$($pattern.ToLower())"
+        
+%         $jobs = @()
+%         $jobResults = @()
+        
+%         # Start concurrent requests
+%         for ($i = 1; $i -le $concurrencyLevel; $i++) {
+%             $jobs += Start-Job -ScriptBlock {
+%                 param($url, $userId)
+                
+%                 $start = (Get-Date).Ticks / 10
+                
+%                 try {
+%                     $response = Invoke-RestMethod -Uri $url -Method POST `
+%                         -Body (@{
+%                             prompt = "Explain quantum computing in simple terms"
+%                             temperature = 0.7
+%                         } | ConvertTo-Json) `
+%                         -ContentType "application/json"
+                    
+%                     $end = (Get-Date).Ticks / 10
+%                     $elapsed = $end - $start
+                    
+%                     return @{
+%                         userId = $userId
+%                         durationMs = $elapsed / 1000
+%                         success = $true
+%                     }
+%                 } catch {
+%                     return @{
+%                         userId = $userId
+%                         durationMs = -1
+%                         success = $false
+%                         error = $_.ToString()
+%                     }
+%                 }
+%             } -ArgumentList $url, $i
+%         }
+        
+%         # Wait for all jobs to complete
+%         $jobs | Wait-Job | ForEach-Object {
+%             $jobResults += Receive-Job -Job $_
+%             Remove-Job -Job $_
+%         }
+        
+%         # Calculate statistics
+%         $successfulResults = $jobResults | Where-Object { $_.success -eq $true }
+%         $avgDuration = ($successfulResults | Measure-Object -Property durationMs -Average).Average
+%         $successRate = ($successfulResults.Count / $concurrencyLevel) * 100
+        
+%         $results += [PSCustomObject]@{
+%             pattern = $pattern
+%             concurrencyLevel = $concurrencyLevel
+%             avgDurationMs = $avgDuration
+%             successRate = $successRate
+%             rawResults = $jobResults
+%         }
+        
+%         Write-Host "  $pattern - Average: $avgDuration ms, Success rate: $successRate%"
+%     }
+% }
+
+% # Save results to file
+% $results | ConvertTo-Json -Depth 10 | Out-File $outputFile
+% Write-Host "Concurrency test results saved to $outputFile"
+% \end{lstlisting}
+% \end{lstlisting}
+
+The load testing framework incorporates metrics for throughput degradation analysis, response time distribution under load, and failure rate assessment. The concurrency testing methodology systematically evaluates performance across increasing load levels to identify performance plateaus and failure thresholds.
+
+\subsection{Endpoint-Specific Test Implementations}
+
+The benchmark controller implements endpoints for specific performance characteristics testing:
+
+% \begin{lstlisting}[language=Java, caption=Benchmark Controller Implementation,
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% @RestController
+% @RequestMapping("/api/benchmark")
+% public class BenchmarkController {
+%     @Autowired
+%     private RestLlmService restService;
     
-    \item \textbf{Small Dataset Sizes}: Even the largest curated datasets (e.g., EtherCorpus, SCVD) cover a limited portion of real-world contracts compared to millions deployed on Ethereum, leading to poor generalization~\cite{tann2020towards}.
-\end{itemize}
-
-\subsection*{Detection Model Challenges}
-
-The models used for vulnerability detection also present various technical challenges:
-
-\begin{itemize}
-    \item \textbf{Overfitting}: Deep learning models such as CNNs and GNNs tend to overfit small training datasets, leading to reduced performance on unseen contracts~\cite{lesimple2020master}.
+%     @Autowired
+%     private McpLlmService mcpService;
     
-    \item \textbf{Poor Generalization}: Many models perform well on test splits but fail to generalize to contracts deployed after their training datasets were collected.
+%     @Autowired
+%     private StreamingLlmService streamingService;
     
-    \item \textbf{Multi-label Detection Complexity}: Contracts often contain multiple vulnerabilities simultaneously, making learning and evaluation harder.
+%     @GetMapping("/patterns/all")
+%     public Map<String, Object> benchmarkAllPatterns(
+%             @RequestParam(defaultValue = "100") int iterations,
+%             @RequestParam(defaultValue = "Explain quantum computing") String prompt,
+%             @RequestParam(defaultValue = "0.7") float temperature) {
+        
+%         Map<String, Object> results = new HashMap<>();
+        
+%         // Benchmark REST pattern
+%         List<Long> restDurations = new ArrayList<>();
+%         for (int i = 0; i < iterations; i++) {
+%             LlmRequest request = new LlmRequest(prompt, temperature);
+%             long start = System.nanoTime();
+%             ResponseEntity<LlmResponse> response = restService.processPrompt(request);
+%             long duration = (System.nanoTime() - start) / 1_000_000; // Convert to ms
+%             restDurations.add(duration);
+%         }
+        
+%         // Benchmark MCP pattern
+%         List<Long> mcpDurations = new ArrayList<>();
+%         for (int i = 0; i < iterations; i++) {
+%             LlmRequest request = new LlmRequest(prompt, temperature);
+%             long start = System.nanoTime();
+%             CompletableFuture<LlmResponse> future = mcpService.processPromptAsync(request);
+%             LlmResponse response = future.join();
+%             long duration = (System.nanoTime() - start) / 1_000_000; // Convert to ms
+%             mcpDurations.add(duration);
+%         }
+        
+%         // Benchmark Streaming pattern
+%         List<Long> streamingDurations = new ArrayList<>();
+%         for (int i = 0; i < iterations; i++) {
+%             LlmRequest request = new LlmRequest(prompt, temperature);
+%             long start = System.nanoTime();
+%             Flux<StreamingToken> tokenStream = streamingService.streamResponse(request);
+%             // Collect all tokens to complete the stream
+%             List<StreamingToken> tokens = tokenStream.collectList().block();
+%             long duration = (System.nanoTime() - start) / 1_000_000; // Convert to ms
+%             streamingDurations.add(duration);
+%         }
+        
+%         // Calculate statistics
+%         results.put("rest", calculateStatistics(restDurations));
+%         results.put("mcp", calculateStatistics(mcpDurations));
+%         results.put("streaming", calculateStatistics(streamingDurations));
+%         results.put("comparison", comparePatterns(restDurations, mcpDurations, streamingDurations));
+        
+%         return results;
+%     }
     
-    \item \textbf{Model Interpretability}: Deep learning models often behave as black boxes, making it difficult to explain why a specific vulnerability was detected or missed.
-\end{itemize}
-
-\subsection*{Scalability Issues}
-
-Several current approaches face challenges in scaling to large datasets or real-world blockchain networks:
-
-\begin{itemize}
-    \item \textbf{Heavy Computational Requirements}: Pretraining Transformers on large corpora (e.g., EtherCorpus) demands significant compute resources~\cite{tann2020towards}.
+%     private Map<String, Object> calculateStatistics(List<Long> durations) {
+%         Map<String, Object> stats = new HashMap<>();
+%         double[] data = durations.stream().mapToDouble(Long::doubleValue).toArray();
+        
+%         stats.put("mean", calculateMean(data));
+%         stats.put("median", calculateMedian(data));
+%         stats.put("min", Arrays.stream(data).min().orElse(0));
+%         stats.put("max", Arrays.stream(data).max().orElse(0));
+%         stats.put("stdDev", calculateStdDeviation(data));
+%         stats.put("p95", calculatePercentile(data, 95));
+%         stats.put("p99", calculatePercentile(data, 99));
+        
+%         return stats;
+%     }
     
-    \item \textbf{Static Analysis Bottleneck}: Static analyzers used for labeling contracts do not scale efficiently to millions of contracts, limiting dataset expansion.
-\end{itemize}
+%     private Map<String, Object> comparePatterns(
+%             List<Long> restDurations, 
+%             List<Long> mcpDurations,
+%             List<Long> streamingDurations) {
+%         Map<String, Object> comparison = new HashMap<>();
+        
+%         double restMean = calculateMean(restDurations.stream()
+%                 .mapToDouble(Long::doubleValue).toArray());
+%         double mcpMean = calculateMean(mcpDurations.stream()
+%                 .mapToDouble(Long::doubleValue).toArray());
+%         double streamingMean = calculateMean(streamingDurations.stream()
+%                 .mapToDouble(Long::doubleValue).toArray());
+        
+%         comparison.put("mcpVsRestImprovement", 
+%                 ((restMean - mcpMean) / restMean) * 100);
+%         comparison.put("streamingVsRestImprovement", 
+%                 ((restMean - streamingMean) / restMean) * 100);
+%         comparison.put("streamingVsMcpImprovement", 
+%                 ((mcpMean - streamingMean) / mcpMean) * 100);
+        
+%         // Add statistical significance results
+%         comparison.put("mcpVsRestSignificant", 
+%                 isStatisticallySignificant(mcpDurations, restDurations, 0.95));
+%         comparison.put("streamingVsRestSignificant", 
+%                 isStatisticallySignificant(streamingDurations, restDurations, 0.95));
+%         comparison.put("streamingVsMcpSignificant", 
+%                 isStatisticallySignificant(streamingDurations, mcpDurations, 0.95));
+        
+%         return comparison;
+%     }
+% }
+% \end{lstlisting}
+% \end{lstlisting}
 
-\subsection*{Limited Labeling Automation}
+% TODO: Add Figure 6.2: Automated Testing Architecture
 
-While static analysis provides an efficient labeling mechanism, it has critical limitations:
+\section{Scientific Validation and Reproducibility}
 
-\begin{itemize}
-    \item \textbf{Outdated Vulnerability Coverage}: Tools like Oyente and Mythril mainly detect vulnerabilities known as of 2018--2019, missing newly discovered exploit patterns.
+The benchmark framework implements comprehensive scientific validation protocols to ensure research reproducibility and validity.
+
+\subsection{Experimental Design and Control Variables}
+
+The framework implements controlled experimental methodology with precise control over all relevant variables:
+
+% \begin{lstlisting}[language=Java, caption=Experiment Configuration Implementation,
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% @Configuration
+% public class ExperimentConfiguration {
+%     /**
+%      * Defines the experimental configuration including control variables,
+%      * measurement parameters, and statistical validation requirements
+%      */
+%     @Bean
+%     public ExperimentParameters experimentParameters() {
+%         return ExperimentParameters.builder()
+%                 // Control variables
+%                 .modelName("gpt-4")
+%                 .modelTemperature(0.7f)
+%                 .maxTokens(1000)
+%                 .testPrompts(List.of(
+%                     "Explain quantum computing in simple terms",
+%                     "Write a haiku about programming",
+%                     "Describe the process of photosynthesis"
+%                 ))
+                
+%                 // Measurement parameters
+%                 .warmupIterations(20)
+%                 .measurementIterations(100)
+%                 .samplingInterval(100) // milliseconds
+                
+%                 // Statistical validation
+%                 .confidenceLevel(0.95)
+%                 .minSampleSize(30)
+%                 .outlierDetectionEnabled(true)
+%                 .outlierDetectionThreshold(2.5) // standard deviations
+                
+%                 .build();
+%     }
     
-    \item \textbf{Lack of Dynamic Behavior Analysis}: Most vulnerabilities that manifest during contract execution (e.g., gas limit attacks) are not captured.
-\end{itemize}
+%     /**
+%      * Configures the experiment environment to ensure consistent
+%      * testing conditions across experimental runs
+%      */
+%     @Bean
+%     public ExperimentEnvironment experimentEnvironment() {
+%         return ExperimentEnvironment.builder()
+%                 .jvmArguments("-Xms2g -Xmx2g -XX:+UseG1GC")
+%                 .disableGcDuringTests(true)
+%                 .isolateCpuCores(true)
+%                 .preferredCpuCores(List.of(0, 1, 2, 3))
+%                 .networkThrottlingEnabled(false)
+%                 .build();
+%     }
+% }
+% \end{lstlisting}
+% \end{lstlisting}
 
-\subsection*{Dataset and Evaluation Inconsistency}
+The experimental design methodology implements proper control and experimental groups, with careful isolation of the variables under investigation. The control variable implementation ensures that all non-target variables remain constant across experimental conditions, isolating the effects of integration pattern differences.
 
-Experimental inconsistencies among studies pose challenges to replicability and fair comparison:
+\subsection{Data Collection and Statistical Protocols}
 
-\begin{itemize}
-    \item \textbf{Different Dataset Versions}: Studies often use slightly different filtered versions of SmartBugs, SCVD, or Etherscan crawls.
+The framework implements rigorous data collection protocols to ensure statistical validity:
+
+% \begin{lstlisting}[language=Java, caption=Data Collection Protocol Implementation,
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% @Component
+% public class BenchmarkDataCollector {
+%     private static final int MIN_SAMPLE_SIZE = 30;
+%     private final CsvWriter csvWriter;
     
-    \item \textbf{Non-standard Evaluation Metrics}: Some studies report accuracy, others F1-score, and very few report macro/micro-averaged metrics, complicating direct comparison.
-\end{itemize}
-
-\subsection*{Security-Specific Challenges}
-
-Security-specific aspects of smart contracts introduce additional complexity:
-
-\begin{itemize}
-    \item \textbf{Adversarial Examples}: Small code perturbations can deceive machine learning models, leading to undetected vulnerabilities.
+%     /**
+%      * Implements the scientific data collection protocol with proper
+%      * sampling methodology and data validation
+%      */
+%     public BenchmarkResults collectBenchmarkData(
+%             String patternName,
+%             Function<LlmRequest, Object> benchmarkFunction,
+%             List<LlmRequest> testCases) {
+        
+%         List<DataPoint> dataPoints = new ArrayList<>();
+        
+%         // Ensure sufficient sample size for statistical validity
+%         int sampleSize = Math.max(MIN_SAMPLE_SIZE, testCases.size());
+        
+%         for (LlmRequest testCase : testCases) {
+%             // Repeated measurements to establish statistical confidence
+%             for (int i = 0; i < sampleSize / testCases.size(); i++) {
+%                 long startTime = System.nanoTime();
+%                 Object result = benchmarkFunction.apply(testCase);
+%                 long endTime = System.nanoTime();
+                
+%                 double durationMs = (endTime - startTime) / 1_000_000.0;
+                
+%                 DataPoint dataPoint = new DataPoint(
+%                         patternName, 
+%                         testCase.getPrompt(),
+%                         durationMs,
+%                         System.currentTimeMillis(),
+%                         measureResourceUsage());
+                
+%                 dataPoints.add(dataPoint);
+                
+%                 // Record raw data for analysis
+%                 csvWriter.writeDataPoint(dataPoint);
+                
+%                 // Implement inter-test delay to prevent thermal throttling
+%                 try {
+%                     Thread.sleep(100);
+%                 } catch (InterruptedException e) {
+%                     Thread.currentThread().interrupt();
+%                 }
+%             }
+%         }
+        
+%         // Perform outlier detection and removal
+%         List<DataPoint> validatedData = detectAndRemoveOutliers(dataPoints);
+        
+%         // Calculate aggregate statistics
+%         BenchmarkStatistics statistics = calculateStatistics(validatedData);
+        
+%         return new BenchmarkResults(patternName, validatedData, statistics);
+%     }
     
-    \item \textbf{Semantic Equivalence}: Two contracts may differ syntactically but be semantically identical, which is difficult for syntax-based models to recognize.
+%     /**
+%      * Implements outlier detection using modified Z-score method
+%      * to identify and remove statistical anomalies
+%      */
+%     private List<DataPoint> detectAndRemoveOutliers(List<DataPoint> dataPoints) {
+%         double[] durations = dataPoints.stream()
+%                 .mapToDouble(DataPoint::getDurationMs)
+%                 .toArray();
+        
+%         double median = calculateMedian(durations);
+%         double mad = calculateMedianAbsoluteDeviation(durations, median);
+        
+%         // Using modified Z-score with threshold of 3.5 (robust statistical practice)
+%         final double OUTLIER_THRESHOLD = 3.5;
+        
+%         return dataPoints.stream()
+%                 .filter(point -> {
+%                     double modifiedZScore = 0.6745 * 
+%                         Math.abs(point.getDurationMs() - median) / mad;
+%                     return modifiedZScore <= OUTLIER_THRESHOLD;
+%                 })
+%                 .collect(Collectors.toList());
+%     }
+% }
+% \end{lstlisting}
+% \end{lstlisting}
+
+The data collection protocol implements outlier detection and handling procedures based on established statistical methods. The statistical protocol includes proper sample size determination to ensure adequate statistical power while managing experimental resource constraints.
+
+\subsection{Benchmarking Protocol Implementation}
+
+The framework implements a comprehensive benchmarking protocol that ensures scientific reproducibility:
+
+% \begin{lstlisting}[language=Java, caption=Scientific Benchmarking Protocol,
+%     breaklines=true, breakatwhitespace=true, columns=flexible]
+% /**
+%  * Implements the scientific benchmarking protocol ensuring
+%  * reproducibility and methodological rigor
+%  */
+% @Service
+% public class BenchmarkingService {
+%     private final RestLlmService restService;
+%     private final McpLlmService mcpService;
+%     private final StreamingLlmService streamingService;
+%     private final BenchmarkDataCollector dataCollector;
+%     private final ExperimentParameters params;
     
-    \item \textbf{Proxy and Upgradeable Contracts}: Many contracts on Ethereum use proxy patterns for upgradability, but most detection models assume monolithic contracts.
-\end{itemize}
-
-\subsection*{Summary of Challenges}
-
-Table~\ref{tab:challenges_summary} summarizes the main categories of challenges and their impacts on smart contract vulnerability detection.
-
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-
-\begin{tabular}{|p{4.5cm}|p{7cm}|}
-\hline
-\textbf{Challenge Category} & \textbf{Impact} \\
-\hline
-Noisy/Imbalanced Datasets & Reduced model accuracy, bias towards common vulnerabilities \\
-\hline
-Overfitting and Generalization Issues & Poor performance on real-world, unseen contracts \\
-\hline
-Scalability Bottlenecks & Infeasibility of analyzing blockchain-scale datasets \\
-\hline
-Labeling Limitations & Missing novel vulnerabilities, incomplete training signals \\
-\hline
-Dataset/Evaluation Inconsistency & Difficulty in comparing and reproducing research results \\
-\hline
-Security-Specific Complexity & Increased attack surface; failure to handle proxy patterns, semantic variations \\
-\hline
-\end{tabular}
-\caption{Summary of Challenges and Their Impacts}
-\label{tab:challenges_summary}
-\end{table}
-
-Figure~\ref{fig:challenges_vulnerability_detection} illustrates the primary challenges encountered in smart contract vulnerability detection workflows and their cascading impacts. Issues such as noisy and imbalanced data often lead to overfitting, which consequently results in poor generalization to unseen contracts. Scalability limitations and security-specific complexities further contribute to unreliable detection outcomes. Evaluation inconsistencies across datasets and tools also hinder reproducibility and fair benchmarking of models.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.85\textwidth]{Assets/challenges.png}
-    \caption{Main challenges and their impact pathways in smart contract vulnerability detection.}
-    \label{fig:challenges_vulnerability_detection}
-\end{figure}
-\subsection*{Conclusion}
-
-Although significant progress has been made in smart contract vulnerability detection, the limitations outlined in this section highlight critical areas that demand further innovation. Improving dataset quality, building explainable models, enhancing scalability, and addressing adversarial robustness will be key priorities for advancing secure and reliable smart contract analysis in future research.
-
-\section{Evaluation Benchmarks and Metrics}
-Rigorous evaluation is essential to assess the effectiveness, robustness, and generalizability of smart contract vulnerability detection models. This section presents the benchmark datasets used for evaluation, discusses the key metrics adopted across major studies, and highlights common challenges encountered in comparative analysis.
-
-\subsection*{Importance of Evaluation in Smart Contract Vulnerability Detection}
-
-Accurate evaluation ensures that models are not merely memorizing training data but are capable of detecting vulnerabilities in unseen contracts. Given the security-critical nature of smart contracts, high precision, recall, and robustness are vital for practical deployment.
-
-Without careful benchmarking, models risk overfitting, underestimating rare vulnerabilities, or offering misleading performance guarantees.
-
-\subsection*{Benchmark Datasets Used}
-
-Several public datasets have been utilized across studies to train and evaluate vulnerability detection models:
-
-\begin{itemize}
-    \item \textbf{SmartBugs Dataset}~\cite{durieux2020empirical}: A manually curated corpus containing real-world smart contracts labeled using multiple static analyzers.
+%     /**
+%      * Executes the complete scientific benchmarking protocol
+%      * for all integration patterns
+%      */
+%     public Map<String, BenchmarkResults> executeScientificBenchmark() {
+%         Map<String, BenchmarkResults> results = new HashMap<>();
+        
+%         // Prepare test cases based on experimental parameters
+%         List<LlmRequest> testCases = params.getTestPrompts().stream()
+%                 .map(prompt -> new LlmRequest(prompt, params.getModelTemperature()))
+%                 .collect(Collectors.toList());
+        
+%         // System stabilization period (JVM warm-up, GC settling)
+%         performSystemStabilization();
+        
+%         // Execute benchmarks for each pattern using the scientific protocol
+%         results.put("REST", dataCollector.collectBenchmarkData(
+%                 "REST", 
+%                 request -> restService.processPrompt(request),
+%                 testCases));
+        
+%         results.put("MCP", dataCollector.collectBenchmarkData(
+%                 "MCP", 
+%                 request -> mcpService.processPromptAsync(request).join(),
+%                 testCases));
+        
+%         results.put("Streaming", dataCollector.collectBenchmarkData(
+%                 "Streaming", 
+%                 request -> streamingService.streamResponse(request).collectList().block(),
+%                 testCases));
+        
+%         // Validate results for statistical significance
+%         validateStatisticalSignificance(results);
+        
+%         // Generate comprehensive benchmark report
+%         generateBenchmarkReport(results);
+        
+%         return results;
+%     }
     
-    \item \textbf{SCVD Dataset}~\cite{zhang2020scvd}: A multi-label annotated dataset with over 20,000 contracts, each labeled with multiple vulnerabilities where applicable.
+%     /**
+%      * Performs system stabilization to ensure consistent
+%      * measurement conditions
+%      */
+%     private void performSystemStabilization() {
+%         // Execute JVM warm-up cycles
+%         for (int i = 0; i < params.getWarmupIterations(); i++) {
+%             // Execute operations that exercise JIT compilation paths
+%             // to ensure stable performance during measurement
+%             LlmRequest warmupRequest = new LlmRequest(
+%                     "This is a warm-up request", 
+%                     params.getModelTemperature());
+                    
+%             restService.processPrompt(warmupRequest);
+%             mcpService.processPromptAsync(warmupRequest).join();
+%             streamingService.streamResponse(warmupRequest).collectList().block();
+%         }
+        
+%         // Request garbage collection between test runs
+%         System.gc();
+        
+%         // Allow system stabilization
+%         try {
+%             Thread.sleep(2000);
+%         } catch (InterruptedException e) {
+%             Thread.currentThread().interrupt();
+%         }
+%     }
     
-    \item \textbf{EtherCorpus}~\cite{tann2020towards}: A large corpus (over 160,000 contracts) used mainly for pretraining; fine-tuning and evaluation were conducted on smaller labeled subsets.
-    
-    \item \textbf{SAFEVM Dataset}~\cite{albert2019safevm}: A dataset focusing on bytecode-level vulnerabilities, leveraging formal verification approaches for evaluation.
-\end{itemize}
+%     /**
+%      * Validates that results show statistical significance
+%      * according to scientific standards
+%      */
+%     private void validateStatisticalSignificance(
+%             Map<String, BenchmarkResults> results) {
+%         // Apply statistical hypothesis testing between patterns
+%         BenchmarkResults restResults = results.get("REST");
+%         BenchmarkResults mcpResults = results.get("MCP");
+%         BenchmarkResults streamingResults = results.get("Streaming");
+        
+%         boolean mcpVsRestSignificant = performSignificanceTest(
+%                 mcpResults.getDataPoints(),
+%                 restResults.getDataPoints(),
+%                 params.getConfidenceLevel());
+        
+%         boolean streamingVsRestSignificant = performSignificanceTest(
+%                 streamingResults.getDataPoints(),
+%                 restResults.getDataPoints(),
+%                 params.getConfidenceLevel());
+        
+%         boolean streamingVsMcpSignificant = performSignificanceTest(
+%                 streamingResults.getDataPoints(),
+%                 mcpResults.getDataPoints(),
+%                 params.getConfidenceLevel());
+        
+%         // Record significance findings
+%         results.get("MCP").getStatistics()
+%                 .setSignificantImprovement(mcpVsRestSignificant);
+%         results.get("Streaming").getStatistics()
+%                 .setSignificantImprovement(streamingVsRestSignificant);
+%     }
+% }
+% \end{lstlisting}
+% \end{lstlisting}
 
-Train/test splits typically ranged from 70/30 to 80/20, although cross-validation was less commonly applied in this domain.
+The benchmarking protocol systematically validates the statistical significance of observed performance differences. The protocol implementation emphasizes scientific reproducibility through comprehensive documentation of experimental conditions, methodology, and raw results.
 
-\subsection*{Evaluation Metrics}
+% TODO: Add Figure 6.3: Scientific Validation Protocol Diagram
 
-Different studies adopted various evaluation metrics to measure model performance, depending on whether the task was single-label or multi-label classification:
-
-\begin{itemize}
-    \item \textbf{Accuracy}: The proportion of correctly predicted samples over all samples. While widely reported, it can be misleading for imbalanced datasets.
-    
-    \item \textbf{Precision}: The proportion of correctly predicted positive samples out of all predicted positives. Crucial for minimizing false alarms in vulnerability detection.
-    
-    \item \textbf{Recall (Sensitivity)}: The proportion of correctly predicted positives out of all actual positives. Critical for ensuring vulnerabilities are not missed.
-    
-    \item \textbf{F1-Score}: The harmonic mean of precision and recall. Provides a single measure balancing both aspects.
-    
-    \item \textbf{Macro-Averaged Metrics}: Averaging metrics equally across all classes, treating each class equally regardless of frequency.
-    
-    \item \textbf{Micro-Averaged Metrics}: Aggregating the contributions of all classes to compute the average metric, weighting frequent classes more heavily.
-    
-    \item \textbf{ROC-AUC (Receiver Operating Characteristic – Area Under Curve)}: Rarely used but can measure separability for binary classification problems.
-\end{itemize}
-
-\subsection*{Metric Usage Across Studies}
-
-Table~\ref{tab:metrics_comparison} summarizes the metrics reported by key studies.
-
-\begin{table}[H]
-\centering
-\small
-\renewcommand{\arraystretch}{1.3}
-\caption{Evaluation Metrics Used Across Key Studies}
-\label{tab:metrics_comparison}
-\begin{tabular}{|p{4.5cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
-\hline
-\textbf{Study} & \textbf{Accuracy} & \textbf{Precision/Recall} & \textbf{F1-Score} & \textbf{Macro/Micro Averaging} \\
-\hline
-Feng et al.~\cite{feng2024interpretable} & \checkmark & \checkmark & \checkmark & - \\
-\hline
-Lesimple~\cite{lesimple2020master} & \checkmark & \checkmark & \checkmark & \checkmark \\
-\hline
-Zhang et al.~\cite{zhang2020scvd} & \checkmark & \checkmark & \checkmark & \checkmark \\
-\hline
-Tann et al.~\cite{tann2020towards} & \checkmark & - & - & - \\
-\hline
-Albert et al.~\cite{albert2019safevm} & - & \checkmark & - & - \\
-\hline
-Durieux et al.~\cite{durieux2020empirical} & - & - & - & - (Benchmarking tools only) \\
-\hline
-\end{tabular}
-\end{table}
-
-As shown in Table~\ref{tab:metrics_comparison}, more recent studies such as Lesimple~\cite{lesimple2020master} and Zhang et al.~\cite{zhang2020scvd} adopted comprehensive evaluation using macro-averaged precision, recall, and F1-scores, especially suitable for multi-label classification tasks.\\
-\\As illustrated in Figure~\ref{fig:performance_comparison}, models evaluated on the \textit{Feng et al.} and \textit{Lesimple} datasets consistently achieved higher F1-scores and accuracy compared to those tested on SAFEVM or SmartBugs, highlighting variability in model robustness across datasets.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{Assets/metrics.png}
-    \caption{Performance comparison of different vulnerability detection methods across benchmark datasets based on F1-Score, Accuracy, Precision, and Recall.}
-    \label{fig:performance_comparison}
-\end{figure}
-\subsection*{Challenges in Fair Evaluation}
-
-Several challenges complicate fair and reproducible evaluation across studies:
-
-\begin{itemize}
-    \item \textbf{Dataset Variability}: Different studies sometimes use differently filtered datasets, making direct comparison difficult.
-    
-    \item \textbf{Non-Uniform Metrics}: Some report only accuracy (problematic for imbalanced data), while others properly report F1-scores.
-    
-    \item \textbf{Different Vulnerability Taxonomies}: Varying definitions of what constitutes a vulnerability can lead to inconsistent labeling.
-    
-    \item \textbf{Training-Test Data Leakage}: Improper dataset splits may accidentally leak information from training to testing sets, inflating reported results.
-\end{itemize}
-
-\subsection*{Discussion}
-
-Evaluation practices in smart contract vulnerability detection have improved over time, shifting from simplistic metrics like accuracy to more robust metrics such as macro-averaged F1-score. However, inconsistencies in datasets, metrics, and reporting practices remain a critical challenge. The community would benefit from the adoption of standardized datasets, clear vulnerability taxonomies, and unified evaluation protocols for future benchmarking.
-
-\section*{Conclusion}
-This chapter has provided a comprehensive overview of the existing literature and methodologies for smart contract vulnerability detection using artificial intelligence. It covered commonly used datasets, data preprocessing techniques, detection approaches, learning paradigms, and evaluation metrics. The review highlights the growing importance of machine and deep learning in analyzing smart contracts, while also exposing the challenges such as data imbalance, interpretability, and the need for standardized evaluation. These insights form a solid foundation for developing and justifying the methodology proposed in the next chapter.
+The scientific testing and benchmarking framework provides the methodological foundation for empirical evaluation of LLM integration patterns. The framework combines high-precision measurement techniques with rigorous statistical methods to ensure valid, reproducible performance comparisons across integration patterns.
