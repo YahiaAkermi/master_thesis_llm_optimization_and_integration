@@ -123,7 +123,11 @@ The selection of the technical stack for this research was driven by rigorous ev
 
 The decision to utilize Spring Boot 3.5.0 represents a strategic choice that balances cutting-edge capabilities with enterprise stability requirements. Java 21's Long Term Support (LTS) designation ensures reproducibility over extended research timelines, while its enhanced virtual thread support and performance optimizations provide the foundation for accurate async pattern evaluation. Spring Boot's mature ecosystem offers comprehensive observability integration, dependency injection capabilities, and production-ready features essential for meaningful enterprise architecture research.
 
-% TODO: Add reference to application.yaml configuration (lines 25-35)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626180923.png}
+    \caption{built-in actuator capabilities}
+\end{figure}
 The framework's built-in actuator capabilities provide standardized health checks, metrics exposition, and operational monitoring without introducing measurement artifacts that could compromise experimental validity. This integration ensures that the observability infrastructure itself does not become a confounding variable in performance measurements.
 
 \subsection{LLM Integration Layer: de.kherud.llama 4.1.0}
@@ -136,27 +140,43 @@ The library's support for GGUF (Georgi Gerganov Universal Format) models enables
 
 The monitoring stack selection prioritizes industry-standard tools that reflect real-world enterprise monitoring practices. Micrometer's vendor-neutral facade pattern enables metrics collection without coupling the research implementation to specific monitoring backends, ensuring broader applicability of findings.
 
-% TODO: Add reference to pom.xml configuration (lines 38-42)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626181131.png}
+    \caption{Micrometer's vendor-neutral facade pattern dependency}
+\end{figure}
 Prometheus integration provides time-series data collection capabilities essential for longitudinal performance analysis and statistical validation. The pull-based metrics model ensures that monitoring overhead remains consistent across all integration patterns, preventing measurement bias that could arise from push-based systems with variable network timing.
 
 \subsection{Data Persistence: H2 Database with JPA}
 
 The embedded H2 database selection serves multiple research objectives. First, it eliminates external database dependencies that could introduce variable latency in performance measurements. Second, its file-based persistence mode ensures data durability for longitudinal analysis while maintaining reproducibility across research environments.
 
-% TODO: Add reference to application.yaml configuration (lines 5-7)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626181235.png}
+    \caption{H2 database file-based persistence mode}
+\end{figure}
 The Java Persistence API (JPA) abstraction enables sophisticated data modeling for research analytics while maintaining database vendor neutrality. This design choice supports future research extensions that might require different database backends without compromising the core measurement infrastructure.
 
 \subsection{Build and Dependency Management: Maven}
 
 Maven's declarative dependency management provides reproducible build environments essential for scientific research. The centralized dependency version management ensures consistent library versions across research environments, eliminating a potential source of experimental variability.
 
-% TODO: Add reference to pom.xml configuration (lines 30-32)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626181416.png}
+    \caption{maven dependency management}
+\end{figure}
 
 \section{Microservice Architecture Design}
 
 The microservice architecture design follows Domain-Driven Design (DDD) principles while incorporating specific adaptations required for empirical LLM integration research. The architecture prioritizes clear separation of concerns, enabling precise measurement of pattern-specific characteristics while maintaining implementation consistency across integration approaches.
 
-% TODO: Add Figure 2.1: High-Level System Architecture
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.96\textwidth]{Assets/Pasted image 20250627104108.png}
+    \caption{High-level system architecture}
+\end{figure}
 
 \subsection{Layered Architecture Pattern Implementation}
 
@@ -172,18 +192,29 @@ The service layer architecture employs a hybrid approach where a central \texttt
 
 The architecture implements sophisticated resource management patterns essential for accurate performance measurement. The \texttt{LlmService} initialization pattern ensures deterministic model loading timing, while the cleanup mechanisms provide proper resource deallocation that prevents memory leaks from affecting longitudinal measurements.
 
-% TODO: Add reference to lines 45-65 and 140-150
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Assets/Pasted image 20250627104420.png}
+    \caption{Model initialization}
+\end{figure}
 The model initialization follows the Spring Framework's \texttt{@PostConstruct} pattern, ensuring that model loading overhead is excluded from request processing measurements. This design choice enables accurate measurement of per-request processing times without the confounding effects of one-time initialization costs.
 
 \subsection{Async Processing Architecture}
 
 The asynchronous processing implementation leverages Spring's async configuration capabilities to provide controlled thread pool management. The custom thread pool configuration ensures predictable resource allocation while enabling precise measurement of async processing overhead.
 
-% TODO: Add reference to AsyncConfig.java (lines 15-40)
-% TODO: Add reference to McpLlmService (lines 25-45)
-The \texttt{CompletableFuture} implementation pattern provides non-blocking request handling while maintaining comprehensive timing measurement capabilities. This architecture enables the isolation and quantification of async wrapper overhead, supporting the research objective of empirical pattern comparison.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Assets/Pasted image 20250627104619.png}
+    \caption{The asynchronous processing implementation}
+\end{figure}
 
-% TODO: Add Figure 2.2: Service Layer Architecture Diagram
+The \texttt{CompletableFuture} implementation pattern provides non-blocking request handling while maintaining comprehensive timing measurement capabilities. This architecture enables the isolation and quantification of async wrapper overhead, supporting the research objective of empirical pattern comparison.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250627104741.png}
+    \caption{The Completable implementation pattern}
+\end{figure}
 
 \section{Design Patterns and Architectural Decisions}
 
@@ -249,10 +280,13 @@ The LLM integration layer represents the critical foundation upon which all empi
 
 \subsection{Deterministic Model Loading Strategy}
 
-The model initialization process follows a carefully orchestrated sequence designed to eliminate timing variability from subsequent measurements. The primary initialization logic (implemented in \texttt{LlmService.java}, lines 42-68) employs Spring Framework's \texttt{@PostConstruct} annotation to ensure model loading occurs during application startup rather than on first request processing.
+The model initialization process follows a carefully orchestrated sequence designed to eliminate timing variability from subsequent measurements. The primary initialization logic employs Spring Framework's \texttt{@PostConstruct} annotation to ensure model loading occurs during application startup rather than on first request processing.
 
-% TODO: Add code reference to LlmService.java initialization sequence (lines 42-68)
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Assets/Pasted image 20250627120229.png}
+    \caption{Model Parameter Optimization}
+\end{figure}
 This architectural decision addresses a fundamental challenge in LLM performance measurement: the significant overhead associated with model loading operations. By isolating initialization costs from operational measurements, the implementation ensures that comparative analysis between integration patterns reflects genuine architectural differences rather than one-time setup variations.
 
 The initialization sequence implements comprehensive error handling and logging mechanisms that provide detailed diagnostics for troubleshooting while maintaining scientific measurement integrity. The logging implementation captures model loading timing, memory allocation patterns, and configuration validation results, creating an audit trail that supports research reproducibility.
@@ -261,7 +295,6 @@ The initialization sequence implements comprehensive error handling and logging 
 
 The model parameter configuration strategy balances computational efficiency with measurement accuracy requirements. The parameter selection process (configured in \texttt{application.yaml}, lines 38-45) establishes consistent baseline settings across all integration patterns while enabling fine-tuning for specific research scenarios.
 
-% TODO: Add reference to application.yaml configuration (lines 38-45)
 
 The context size configuration of 2048 tokens represents a deliberate compromise between realistic enterprise workloads and computational reproducibility. This setting ensures that response generation times remain within measurable ranges while supporting prompt complexity levels representative of real-world applications.
 
@@ -271,12 +304,14 @@ Thread allocation configuration follows a systematic approach that considers bot
 
 The implementation incorporates comprehensive validation mechanisms that verify model readiness and operational parameters before accepting inference requests. The validation process (lines 60-68 in \texttt{LlmService.java}) performs test inference operations that confirm model functionality while providing baseline performance metrics.
 
-% TODO: Add code reference to validation process (lines 60-68)
 
 This validation approach serves dual purposes: ensuring system reliability and establishing baseline performance characteristics that inform subsequent comparative analysis. The validation metrics are automatically captured and stored, providing reference points for evaluating the consistency of experimental measurements.
 
-% TODO: Add Figure 3.1: Model Initialization Sequence Diagram
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.999\textwidth]{Assets/Pasted image 20250627120923.png}
+    \caption{Model Initialization Sequence Diagram}
+\end{figure}
 \section{GGUF Model Integration with de.kherud.llama}
 
 The integration with the de.kherud.llama library represents a sophisticated implementation that bridges Java application requirements with native C++ model execution capabilities. This integration strategy eliminates the network latency and serialization overhead that would be introduced by external API-based solutions while maintaining the flexibility required for empirical research.
@@ -303,7 +338,11 @@ Model file management follows enterprise-grade practices that ensure secure stor
 
 The inference parameter management system provides comprehensive control over model behavior while maintaining consistency across experimental runs. The parameter configuration system (lines 78-95 in \texttt{LlmService.java}) creates \texttt{InferenceParameters} objects that specify generation settings for each request.
 
-% TODO: Add code reference to InferenceParameters configuration (lines 78-95)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Assets/Pasted image 20250627121117.png}
+    \caption{Inference Parameter Configuration}
+\end{figure}
 
 Temperature and top-p settings are configured to provide deterministic response generation that supports reproducible research while maintaining response quality. The default temperature setting of 0.7 balances response creativity with consistency, while the top-p value of 0.95 ensures diverse vocabulary selection without compromising coherence.
 
@@ -346,6 +385,12 @@ The cleanup sequence includes model deallocation, thread pool termination, and n
 Resource monitoring during shutdown provides validation that cleanup operations complete successfully. This monitoring supports debugging of resource management issues while ensuring that experimental environments remain consistent across multiple test runs.
 
 \subsection{Resource Monitoring and Alerting Integration}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250627121756.png}
+    \caption{monitoring system captures CPU utilization, memory consumption, and thread pool metrics}
+\end{figure}
 
 The resource monitoring system (implemented in \texttt{MetricsService.java}, lines 85-120) provides real-time visibility into resource utilization patterns across all integration patterns. The monitoring system captures CPU utilization, memory consumption, and thread pool metrics that inform performance analysis and system optimization.
 
@@ -543,11 +588,20 @@ The architectural rationale for the REST implementation centers on providing a b
 
 The controller implementation (RestLlmController.java, lines 15-35) follows standard Spring MVC patterns while incorporating sophisticated timing measurement capabilities. The design ensures that HTTP protocol overhead is consistently measured across all requests, providing a stable baseline for comparative analysis.
 
-% TODO: Add code reference to RestLlmController.java implementation (lines 15-35)
+The \texttt{CompletableFuture} implementation pattern provides non-blocking request handling while maintaining comprehensive timing measurement capabilities. This architecture enables the isolation and quantification of async wrapper overhead, supporting the research objective of empirical pattern comparison.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250627123249.png}
+    \caption{Controller class of REST APIs}
+\end{figure}
 
 The service layer design (RestLlmService.java, lines 20-40) implements direct delegation to the core LLM service while maintaining comprehensive logging and metrics collection. This approach ensures that REST-specific overhead is minimized while preserving measurement accuracy.
 
-% TODO: Add code reference to RestLlmService.java implementation (lines 20-40)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250627123328.png}
+    \caption{Service class}
+\end{figure}
 
 \subsection{Synchronous Processing Architecture}
 
@@ -565,30 +619,11 @@ Error handling within the synchronous architecture provides comprehensive except
 
 \subsection{Code Implementation and Technical Specifications}
 
+
+
 The REST controller implementation demonstrates enterprise-grade patterns while maintaining research measurement requirements. The core controller structure implements standard Spring MVC patterns with enhanced timing measurement capabilities:
 
-\begin{lstlisting}[language=Java, caption=REST Controller Implementation Pattern]
-% @RestController
-% @RequestMapping("/api/llm/rest")
-% @Slf4j
-% public class RestLlmController {
-%     private static final String INTEGRATION_PATTERN = "REST";
-%     
-%     @Autowired
-%     private RestLlmService restLlmService;
-%     
-%     @PostMapping("/complete")
-%     public ResponseEntity<CompletionResponse> complete(
-%         @RequestBody CompletionRequest request) {
-%         long startTime = System.currentTimeMillis();
-%         CompletionResponse response = 
-%             restLlmService.generateCompletion(request);
-%         long totalTime = System.currentTimeMillis() - startTime;
-%         log.info("REST completion generated in {}ms", totalTime);
-%         return ResponseEntity.ok(response);
-%     }
-% }
-\end{lstlisting}
+
 
 % TODO: Add complete code reference to RestLlmController.java
 
@@ -602,7 +637,11 @@ The data transfer object design ensures consistent request and response formatti
 
 HTTP status code management follows RESTful best practices while providing comprehensive error reporting capabilities. The implementation returns appropriate status codes for different error conditions while maintaining detailed error information for debugging and research analysis.
 
-% TODO: Add Figure 4.1: REST API Processing Flow Diagram
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250627124718.png}
+    \caption{REST API Processing Flow Diagram}
+\end{figure}
 
 \section{Model Context Protocol (MCP) Integration Pattern}
 
@@ -614,11 +653,20 @@ The architectural foundation leverages Spring Framework's async processing capab
 
 The controller implementation (implemented in \texttt{McpLlmController.java}, lines 20-45) demonstrates enterprise-grade async processing patterns while maintaining comprehensive timing measurement capabilities. The implementation provides non-blocking request handling that enables concurrent processing of multiple LLM requests without thread pool exhaustion.
 
-% TODO: Add code reference to McpLlmController.java implementation (lines 20-45)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628113049.png}
+    \caption{McpLlmController.java implementation}
+\end{figure}
+
 
 The service layer architecture (implemented in \texttt{McpLlmService.java}, lines 25-60) implements sophisticated async delegation patterns that maintain measurement precision while providing scalable processing capabilities. The design ensures that async processing benefits are realized without compromising measurement accuracy.
 
-% TODO: Add code reference to McpLlmService.java implementation (lines 25-60)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628113113.png}
+    \caption{McpLlmService.java implementation}
+\end{figure}
 
 \subsection{CompletableFuture Architecture and Thread Management}
 
@@ -650,41 +698,7 @@ The overhead analysis methodology includes comparative measurement against synch
 
 The MCP service implementation demonstrates sophisticated async processing patterns while maintaining precise measurement capabilities. The core service implementation showcases enterprise-grade async handling with comprehensive timing instrumentation:
 
-% \begin{lstlisting}[language=Java, caption=MCP Service Implementation Pattern]
-% % @Service
-% % @Slf4j
-% % public class McpLlmService {
-% %     private static final String INTEGRATION_PATTERN = "MCP";
-% %     
-% %     @Autowired
-% %     private LlmService llmService;
-% %     
-% %     @Async("mcpThreadPool")
-% %     public CompletableFuture<CompletionResponse> generateCompletionAsync(
-% %             CompletionRequest request) {
-% %         long asyncStartTime = System.nanoTime();
-% %         
-% %         return CompletableFuture.supplyAsync(() -> {
-% %             long coreProcessingStart = System.currentTimeMillis();
-% %             CompletionResponse response = 
-% %                 llmService.generateCompletion(request, INTEGRATION_PATTERN);
-% %             
-% %             long asyncOverheadNanos = System.nanoTime() - asyncStartTime - 
-% %                 (response.getProcessingTimeMs() * 1_000_000);
-% %             double asyncOverheadMs = asyncOverheadNanos / 1_000_000.0;
-% %             
-% %             log.info("MCP Performance Breakdown - Async Overhead: {}ms, " + 
-% %                     "Core Processing: {}ms", 
-% %                     String.format("%.3f", asyncOverheadMs), 
-% %                     response.getProcessingTimeMs());
-% %             
-% %             return response;
-% %         });
-% %     }
-% }
-% \end{lstlisting}
 
-% TODO: Add complete code reference to McpLlmService.java
 
 The controller implementation provides non-blocking request handling capabilities while maintaining measurement precision. The implementation leverages Spring's async result handling capabilities to provide efficient HTTP response processing:
 
@@ -716,35 +730,12 @@ The controller implementation provides non-blocking request handling capabilitie
 
 The thread pool configuration provides deterministic resource allocation while enabling precise measurement of async processing characteristics. The configuration balances processing efficiency with measurement precision requirements:
 
-% \begin{lstlisting}[language=Java, caption=Async Configuration for MCP]
-% % @Configuration
-% % @EnableAsync
-% % public class AsyncConfig implements AsyncConfigurer {
-% %     
-% %     @Bean(name = "mcpThreadPool")
-% %     public Executor threadPoolTaskExecutor() {
-% %         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-% %         executor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
-% %         executor.setMaxPoolSize(Runtime.getRuntime().availableProcessors() * 2);
-% %         executor.setQueueCapacity(500);
-% %         executor.setThreadNamePrefix("mcp-async-");
-% %         executor.initialize();
-% %         return executor;
-% %     }
-% %     
-% %     @Override
-% %     public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
-% %         return (ex, method, params) -> {
-% %             log.error("Uncaught async error in MCP processing", ex);
-% %             // Additional error handling and measurement recording
-% %         };
-% %     }
-% }
-% \end{lstlisting}
 
-% TODO: Add complete code reference to AsyncConfig.java
-
-% TODO: Add Figure 4.2: MCP Async Processing Architecture Diagram
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628114207.png}
+    \caption{MCP Async Processing Architecture Diagram}
+\end{figure}
 
 \section{Server-Sent Events (SSE) Streaming Pattern}
 
@@ -756,7 +747,11 @@ The architectural design prioritizes low-latency token delivery while maintainin
 
 The controller implementation (implemented in \texttt{StreamingLlmController.java}, lines 20-40) demonstrates industry-standard SSE implementation patterns while incorporating sophisticated timeout management and error handling capabilities. The design ensures connection stability while providing responsive token delivery.
 
-% TODO: Add code reference to StreamingLlmController.java implementation (lines 20-40)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628114247.png}
+    \caption{StreamingLlmController.java implementation}
+\end{figure}
 
 The streaming architecture maintains persistent connections throughout the generation process while providing comprehensive monitoring of connection health and performance characteristics. The implementation includes detailed metrics collection that captures both streaming performance and connection management overhead.
 
@@ -766,7 +761,12 @@ The token-level processing implementation provides sophisticated streaming capab
 
 The token processing pipeline (implemented in \texttt{StreamingLlmService.java}, lines 40-80) provides atomic token delivery with error handling and flow control capabilities. The implementation ensures that token delivery failures do not compromise the overall streaming process while maintaining measurement accuracy.
 
-% TODO: Add code reference to token processing pipeline (lines 40-80)
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628114318.png}
+    \caption{token processing pipeline }
+\end{figure}
+
 
 The delivery mechanism implements backpressure handling that prevents client connection overflow while maintaining streaming performance. The implementation includes adaptive flow control that adjusts delivery rate based on client connection characteristics and processing capacity.
 
@@ -784,97 +784,21 @@ The connection management implementation provides sophisticated timeout handling
 
 The streaming service implementation demonstrates sophisticated real-time processing with comprehensive error handling. The core implementation provides token-level streaming with detailed monitoring capabilities:
 
-% \begin{lstlisting}[language=Java, caption=Streaming Service Implementation]
-% % @Service
-% % @Slf4j
-% % public class StreamingLlmService {
-% %     private static final String INTEGRATION_PATTERN = "SSE";
-% %     
-% %     @Autowired
-% %     private LlmService llmService;
-% %     
-% %     public void generateCompletionStreaming(CompletionRequest request, 
-% %             SseEmitter emitter) {
-% %         CompletableFuture.runAsync(() -> {
-% %             long startTime = System.currentTimeMillis();
-% %             StringBuilder fullResponse = new StringBuilder();
-% %             AtomicBoolean isCancelled = new AtomicBoolean(false);
-% %             
-% %             emitter.onCompletion(() -> 
-% %                 log.info("Streaming completion finished"));
-% %             
-% %             emitter.onTimeout(() -> {
-% %                 log.warn("Streaming completion timed out");
-% %                 isCancelled.set(true);
-% %             });
-% %             
-% %             try {
-% %                 llmService.generateCompletionStreaming(
-% %                     request, 
-% %                     INTEGRATION_PATTERN,
-% %                     token -> {
-% %                         if (!isCancelled.get()) {
-% %                             try {
-% %                                 emitter.send(SseEmitter.event()
-% %                                     .data(token)
-% %                                     .name("token"));
-% %                                 fullResponse.append(token);
-% %                             } catch (IOException e) {
-% %                                 log.error("Error sending streaming token: {}", 
-% %                                     e.getMessage());
-% %                                 isCancelled.set(true);
-% %                             }
-% %                         }
-% %                     }
-% %                 );
-% %                 
-% %                 if (!isCancelled.get()) {
-% %                     emitter.send(SseEmitter.event()
-% %                         .data("DONE")
-% %                         .name("complete"));
-% %                     emitter.complete();
-% %                 }
-% %             } catch (Exception e) {
-% %                 emitter.completeWithError(e);
-% %             }
-% %         });
-% %     }
-% % }
-% \end{lstlisting}
-
-% TODO: Add complete code reference to StreamingLlmService.java
 
 The controller implementation provides the HTTP endpoint for establishing streaming connections while maintaining comprehensive error handling:
 
-% \begin{lstlisting}[language=Java, caption=Streaming Controller Implementation]
-% % @RestController
-% % @RequestMapping("/api/llm/streaming")
-% % @Slf4j
-% % public class StreamingLlmController {
-% %     private static final long SSE_TIMEOUT = 60000L; // 60 seconds
-% %     
-% %     @Autowired
-% %     private StreamingLlmService streamingLlmService;
-% %     
-% %     @PostMapping(value = "/complete", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-% %     public SseEmitter completeStreaming(@RequestBody CompletionRequest request) {
-% %         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
-% %         
-% %         log.info("Starting SSE streaming completion");
-% %         streamingLlmService.generateCompletionStreaming(request, emitter);
-% %         
-% %         return emitter;
-% %     }
-% }
-% \end{lstlisting}
 
-% TODO: Add complete code reference to StreamingLlmController.java
 
 The streaming implementation provides sophisticated error handling and recovery mechanisms that ensure connection stability while maintaining measurement accuracy. The error handling includes network failure detection, client disconnection handling, and graceful session termination capabilities.
 
 The performance monitoring integration captures detailed streaming metrics including token delivery latency, connection duration, and error rates. This comprehensive monitoring enables detailed analysis of streaming performance characteristics and identification of optimization opportunities.
 
-% TODO: Add Figure 4.3: SSE Streaming Communication Flow Diagram
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628114944.png}
+    \caption{SSE Streaming Communication Flow Diagram}
+\end{figure}
+
 
 The integration pattern implementations collectively provide comprehensive coverage of LLM integration approaches while maintaining consistent measurement infrastructure that enables rigorous comparative analysis. Each pattern demonstrates production-ready implementation quality while supporting the empirical research objectives through sophisticated measurement and monitoring capabilities.
 
@@ -922,44 +846,7 @@ Memory monitoring capabilities utilize \texttt{MemoryMXBean} functionality to ca
 
 The metrics service implementation demonstrates enterprise-grade monitoring capabilities with comprehensive system resource tracking:
 
-% \begin{lstlisting}[language=Java, caption=Metrics Service Implementation]
-% % @Service
-% % @Slf4j
-% % public class MetricsService {
-% %     private final MeterRegistry meterRegistry;
-% %     private final OperatingSystemMXBean osBean;
-% %     private final MemoryMXBean memoryBean;
-% %     
-% %     @Autowired
-% %     public MetricsService(MeterRegistry meterRegistry) {
-% %         this.meterRegistry = meterRegistry;
-% %         this.osBean = ManagementFactory.getPlatformMXBean(
-% %             OperatingSystemMXBean.class);
-% %         this.memoryBean = ManagementFactory.getMemoryMXBean();
-% %         initializeMetrics();
-% %     }
-% %     
-% %     private void initializeMetrics() {
-% %         Gauge.builder("system.cpu.usage", this, MetricsService::getCpuUsage)
-% %             .description("CPU usage percentage")
-% %             .register(meterRegistry);
-% %         
-% %         Gauge.builder("jvm.memory.heap.used", this, MetricsService::getMemoryUsage)
-% %             .description("JVM heap memory usage in MB")
-% %             .register(meterRegistry);
-% %     }
-% %     
-% %     private double getCpuUsage() {
-% %         double cpuLoad = osBean.getCpuLoad();
-% %         return cpuLoad >= 0 ? cpuLoad * 100.0 : 0.0;
-% %     }
-% %     
-% %     private double getMemoryUsage() {
-% %         MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
-% %         return heapUsage.getUsed() / (1024.0 * 1024.0); // Convert to MB
-% %     }
-% }
-% \end{lstlisting}
+
 
 % TODO: Add complete code reference to MetricsService.java
 
@@ -1011,44 +898,24 @@ The format optimization includes efficient serialization that minimizes expositi
 
 \subsection{Code Implementation and Technical Specifications}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628121106.png}
+    \caption{Prometheus configuration file}
+\end{figure}
+
 The Prometheus metrics registration implementation demonstrates comprehensive performance monitoring capabilities with detailed tagging for dimensional analysis:
 
-% \begin{lstlisting}[language=Java, caption=Prometheus Metrics Registration]
-% % private void registerPrometheusMetrics(String pattern, Double latency, 
-% %                                       Integer throughput, Double cpu, 
-% %                                       Double memory) {
-% %     // Average latency per integration pattern
-% %     Gauge.builder("llm_average_latency_ms", this, 
-% %             ms -> latency != null ? latency : 0.0)
-% %         .description("Average LLM response latency in milliseconds")
-% %         .tag("integration_pattern", pattern)
-% %         .register(meterRegistry);
-% %         
-% %     // Throughput per integration pattern  
-% %     Gauge.builder("llm_throughput_requests_per_minute", this, 
-% %             ms -> throughput != null ? throughput.doubleValue() : 0.0)
-% %         .description("LLM requests processed per minute")
-% %         .tag("integration_pattern", pattern)
-% %         .register(meterRegistry);
-% %         
-% %     // System resource metrics
-% %     Gauge.builder("llm_cpu_usage_percent", this, 
-% %             ms -> cpu != null ? cpu : 0.0)
-% %         .description("CPU usage percentage during LLM processing")
-% %         .register(meterRegistry);
-% %         
-% %     Gauge.builder("llm_memory_usage_mb", this, 
-% %             ms -> memory != null ? memory : 0.0)
-% %         .description("Memory usage in MB during LLM processing")
-% % %         .register(meterRegistry);
-% % }
-% \end{lstlisting}
 
-% TODO: Add complete code reference to Prometheus metrics registration
 
 The exposition format includes comprehensive help text and metric type declarations that support both automated monitoring system integration and human-readable metric documentation. This dual-purpose design ensures that monitoring data remains accessible for both operational monitoring and research analysis.
 
-% TODO: Add Figure 5.2: Prometheus Integration Data Flow Diagram
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Assets/Pasted image 20250628122434.png}
+    \caption{Prometheus Integration Data Flow Diagram}
+\end{figure}
+
 
 \section{Data Persistence and Analysis Infrastructure}
 
@@ -1058,11 +925,16 @@ The data persistence architecture implements sophisticated entity design pattern
 
 The primary entity design (implemented in \texttt{LlmRequest.java}, lines 1-40) captures comprehensive request metadata including prompt characteristics, response content, processing timing, and integration pattern identification. The entity structure enables detailed analysis of performance variations based on request complexity and system conditions.
 
-% TODO: Add reference to LlmRequest.java entity design (lines 1-40)
 
 The entity relationships implement normalized data design that prevents redundancy while maintaining query efficiency for common analytical operations. The design includes appropriate indexing strategies that support both real-time operational queries and complex analytical aggregations required for research analysis.
 
 The entity lifecycle management includes comprehensive audit capabilities that track data creation, modification, and access patterns. This audit trail supports research reproducibility requirements while providing visibility into data quality and consistency throughout experimental runs.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628122814.png}
+    \caption{LlmRequest entity}
+\end{figure}
 
 \subsection{Database Schema for Performance Analytics}
 
@@ -1070,11 +942,16 @@ The database schema design implements specialized structures optimized for time-
 
 The metrics entity design (implemented in \texttt{ModelMetrics.java}, lines 1-35) captures comprehensive performance indicators including latency statistics, throughput measurements, and resource utilization metrics. The entity structure enables sophisticated analytical queries that support statistical analysis and trend identification.
 
-% TODO: Add reference to ModelMetrics.java entity design (lines 1-35)
 
 The schema indexing strategy implements composite indexes that optimize common analytical query patterns while maintaining reasonable storage overhead. The indexing includes temporal indexes that support time-range queries and pattern-based indexes that enable efficient filtering by integration pattern and performance characteristics.
 
 The schema design includes comprehensive constraint definitions that ensure data integrity and prevent invalid data from compromising analytical results. The constraints include range validations, referential integrity rules, and business logic constraints that maintain data quality throughout the data collection process.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628122839.png}
+    \caption{ModelMetrics entity}
+\end{figure}
 
 \subsection{Historical Data Management Strategies}
 
@@ -1202,7 +1079,11 @@ The scheduled metrics collection process demonstrates sophisticated data collect
 The historical data management includes sophisticated data quality monitoring that identifies and addresses data anomalies, missing data points, and measurement inconsistencies. The quality monitoring includes automated validation rules and alerting mechanisms that ensure data reliability for research analysis.
 
 % TODO: Add Figure 5.3: Data Persistence Architecture Diagram
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628123038.png}
+    \caption{metrics collection frequency}
+\end{figure}
 The advanced monitoring and observability framework provides comprehensive visibility into LLM integration performance while maintaining the measurement precision essential for rigorous empirical research. The framework balances operational monitoring requirements with research data collection needs, ensuring that both immediate system visibility and long-term analytical capabilities are maintained throughout the experimental process.
 
 \chapter{Scientific Testing and Benchmarking Framework}
@@ -1212,7 +1093,11 @@ This chapter presents the scientific testing and benchmarking framework develope
 \section{Async Overhead Measurement Methodology}
 
 The precise measurement of asynchronous processing overhead presents unique challenges that require specialized methodological approaches. This section describes the high-precision timing methodology implemented to quantify microscopic performance differences between integration patterns.
-
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628175558.png}
+    \caption{Async overhead measurement methodology}
+\end{figure}
 \subsection{Precision Timing Implementation}
 
 The benchmark framework implements high-resolution timing with nanosecond precision to accurately measure the performance characteristics of different integration patterns:
