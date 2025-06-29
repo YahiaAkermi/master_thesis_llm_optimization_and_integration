@@ -1088,771 +1088,164 @@ The advanced monitoring and observability framework provides comprehensive visib
 
 \chapter{Scientific Testing and Benchmarking Framework}
 
-This chapter presents the scientific testing and benchmarking framework developed to validate the performance characteristics and behavior of different LLM integration patterns. The framework is designed according to rigorous scientific methodology principles to ensure reproducibility, statistical validity, and meaningful interpretation of results.
+\section{Overview}
 
-\section{Async Overhead Measurement Methodology}
+The research implements a comprehensive scientific testing and benchmarking framework designed to evaluate and compare the performance characteristics of three distinct LLM integration patterns: REST, Model Context Protocol (MCP), and Streaming protocols. The framework employs a multi-layered approach combining controlled experimentation, real-time monitoring, and statistical analysis to ensure reproducible and statistically significant results.
 
-The precise measurement of asynchronous processing overhead presents unique challenges that require specialized methodological approaches. This section describes the high-precision timing methodology implemented to quantify microscopic performance differences between integration patterns.
+\section{Framework Architecture}
+
+\subsection{Data Collection and Persistence Layer}
+
+The framework utilizes a dual-entity data model for comprehensive metrics collection:
+
+\begin{itemize}
+    \item \textbf{LlmRequest Entity}: Captures individual request-level metrics including processing time, token count, integration pattern, and temporal information with microsecond precision
+    \item \textbf{ModelMetrics Entity}: Aggregates system-level performance indicators including latency statistics, throughput measurements, CPU utilization, and memory consumption patterns
+\end{itemize}
+
+
+\subsection{Real-Time Metrics Collection System}
+
+The framework implements an automated metrics collection service (\texttt{MetricsService}) that operates on a fixed 60-second interval, providing:
+
+\begin{itemize}
+    \item \textbf{Temporal Windowing}: Analyzes requests within sliding one-minute windows for consistent comparative analysis
+    \item \textbf{Pattern-Based Grouping}: Segregates performance data by integration pattern (REST, MCP, STREAMING) for independent evaluation
+    \item \textbf{Statistical Aggregation}: Computes comprehensive descriptive statistics including mean, variance, and distribution characteristics
+\end{itemize}
+
+
+\subsection{Benchmarking Controller}
+
+A dedicated benchmarking endpoint (\texttt{BenchmarkController}) provides specialized testing capabilities:
+
+\begin{itemize}
+    \item \textbf{Async Overhead Measurement}: Quantifies the pure computational overhead introduced by asynchronous processing patterns through controlled micro-benchmarks
+    \item \textbf{Iterative Testing}: Supports configurable iteration counts (default: 100-1000 iterations) for statistical significance
+    \item \textbf{Precision Timing}: Utilizes nanosecond-precision timing (\texttt{System.nanoTime()}) for accurate overhead quantification
+\end{itemize}
+
+
+
+\subsection{Multi-Protocol Testing Scripts}
+
+The framework includes three distinct testing methodologies:
+
+\subsubsection{Sequential Testing (test-simple.ps1)}
+\begin{itemize}
+    \item Executes controlled sequential requests across all three integration patterns
+    \item Provides baseline performance measurements under minimal system load
+    \item Ensures consistent testing conditions for comparative analysis
+\end{itemize}
+
+\subsubsection{Load Testing (test-load.ps1)}
+\begin{itemize}
+    \item Implements concurrent request execution using PowerShell job parallelization
+    \item Simulates realistic enterprise load conditions with configurable request volumes
+    \item Tests system behavior under concurrent access patterns
+\end{itemize}
+
+\subsubsection{Comprehensive Thesis Benchmarking (thesis-benchmark.ps1)}
+\begin{itemize}
+    \item Integrates async overhead measurements with practical performance testing
+    \item Calculates theoretical performance improvements by isolating infrastructure overhead
+    \item Provides statistical analysis including percentage improvements and overhead impact assessments
+\end{itemize}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628175558.png}
-    \caption{Async overhead measurement methodology}
+    \includegraphics[width=\textwidth]{Assets/Pasted image 20250629105034.png}
+    \caption{showing multi-protocol testing script workflow}
 \end{figure}
-\subsection{Precision Timing Implementation}
 
-The benchmark framework implements high-resolution timing with nanosecond precision to accurately measure the performance characteristics of different integration patterns:
 
-% \begin{lstlisting}[language=Java, caption=High-Precision Timer Implementation, 
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% % public class PerformanceBenchmark {
-% %     /**
-% %      * Captures high-precision timestamps with nanosecond resolution
-% %      * for microscopic overhead measurement
-% %      */
-% %     private long captureTimestamp() {
-% %         // Use System.nanoTime() for high-resolution relative timing
-% %         // that is unaffected by system clock changes
-% %         return System.nanoTime();
-% %     }
-% %     
-% %     /**
-% %      * Calculates elapsed time in microseconds to provide
-% %      * sufficient precision for overhead analysis
-% %      */
-% %     private double calculateElapsedMicros(long startNanos, long endNanos) {
-% %         return (endNanos - startNanos) / 1000.0;
-% %     }
-% %     
-% %     /**
-% %      * Implements warm-up cycles to stabilize JVM performance
-% %      * before capturing benchmark measurements
-% %      */
-% %     private void performWarmupCycles(int cycles) {
-% %         for (int i = 0; i < cycles; i++) {
-% %             // Execute the test operation but discard results
-% %             // to ensure JIT compilation and cache warming
-% %             benchmarkOperation();
-% %         }
-% %     }
-% % }
-% \end{lstlisting}
+\subsection{Observability and Monitoring Infrastructure}
 
-The timing implementation accounts for measurement precision limitations and establishes confidence intervals that properly represent the statistical significance of observed differences. The methodology includes JVM warm-up cycles to eliminate non-representative measurements affected by just-in-time compilation and initialization costs.
+\subsubsection{Prometheus Integration}
+\begin{itemize}
+    \item \textbf{Custom Metrics Exposure}: Real-time Prometheus gauges for latency, throughput, CPU, and memory metrics
+    \item \textbf{Pattern-Specific Monitoring}: Dedicated metrics streams for each integration pattern
+    \item \textbf{5-Second Scrape Intervals}: High-frequency data collection for temporal analysis
+\end{itemize}
 
-\subsection{Statistical Analysis Framework}
+\subsubsection{Spring Boot Actuator}
+\begin{itemize}
+    \item Exposes comprehensive application metrics through standardized endpoints
+    \item Provides JVM-level performance indicators and health monitoring
+    \item Enables integration with enterprise monitoring ecosystems
+\end{itemize}
 
-Performance measurements are subjected to rigorous statistical analysis to ensure validity and significance:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Assets/showing observability infrastructure overview.png}
+    \caption{observability infrastructure overview}
+\end{figure}
 
-% \begin{lstlisting}[language=Java, caption=Statistical Analysis Implementation,
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% % /**
-% %  * Performs statistical analysis on benchmark results
-% %  * to establish confidence intervals and significance
-% %  */
-% % public class BenchmarkAnalyzer {
-% %     /**
-% %      * Calculates descriptive statistics for a series of measurements
-% %      * @param measurements List of timing measurements in microseconds
-% %      * @return Statistics including mean, median, std deviation, and percentiles
-% %      */
-% %     public Statistics calculateStatistics(List<Double> measurements) {
-% %         double[] data = measurements.stream()
-% %                 .mapToDouble(Double::doubleValue)
-% %                 .toArray();
-% %         
-% %         return Statistics.builder()
-% %                 .mean(calculateMean(data))
-% %                 .median(calculateMedian(data))
-% %                 .standardDeviation(calculateStdDeviation(data))
-% %                 .percentile95th(calculatePercentile(data, 95))
-% %                 .percentile99th(calculatePercentile(data, 99))
-% %                 .build();
-% %     }
-% %     
-% %     /**
-% %      * Determines if the performance difference between two patterns
-% %      * is statistically significant using t-test analysis
-% %      */
-% %     public boolean isStatisticallySignificant(
-% %             List<Double> samplesA, 
-% %             List<Double> samplesB, 
-% %             double confidenceLevel) {
-% %         TTest tTest = new TTest();
-% %         double[] dataA = samplesA.stream().mapToDouble(Double::doubleValue).toArray();
-% %         double[] dataB = samplesB.stream().mapToDouble(Double::doubleValue).toArray();
-% %         
-% %         // Perform two-sample t-test to determine significance
-% %         return tTest.tTest(dataA, dataB, confidenceLevel);
-% %     }
-% % }
-% \end{lstlisting}
 
-The statistical framework calculates comprehensive descriptive statistics including mean, median, standard deviation, and relevant percentiles (95th, 99th) to characterize the performance distribution. Statistical significance testing is implemented using appropriate tests (t-tests for normally distributed data, non-parametric tests otherwise) to validate measured differences between integration patterns.
+\section{Scientific Rigor and Methodology}
 
-\subsection{Microsecond-Level Overhead Analysis}
+\subsection{Controlled Variable Isolation}
 
-The benchmark framework captures microsecond-level timing data to precisely quantify the processing overhead introduced by asynchronous integration patterns:
+The framework ensures scientific validity through:
+\begin{itemize}
+    \item \textbf{Identical Hardware Environment}: All tests execute on the same computational infrastructure
+    \item \textbf{Consistent Model Parameters}: Uniform LLM configuration (Phi-2.Q4\_K\_M.gguf, context size: 2048, temperature: 0.7)
+    \item \textbf{Standardized Request Patterns}: Identical prompt structures across all integration patterns
+\end{itemize}
 
-% \begin{lstlisting}[language=Java, caption=Overhead Measurement Implementation,
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% % @RestController
-% % @RequestMapping("/api/benchmark")
-% % public class BenchmarkController {
-% %     @Autowired
-% %     private BenchmarkService benchmarkService;
-% %     
-% %     @GetMapping("/overhead/async")
-% %     public BenchmarkResult measureAsyncOverhead() {
-% %         int iterations = 1000;
-% %         double[] syncTimes = new double[iterations];
-% %         double[] asyncTimes = new double[iterations];
-% %         
-% %         for (int i = 0; i < iterations; i++) {
-% %             // Measure synchronous execution time
-% %             long syncStart = System.nanoTime();
-% %             String syncResult = benchmarkService.processSynchronously();
-% %             long syncEnd = System.nanoTime();
-% %             syncTimes[i] = (syncEnd - syncStart) / 1000.0; // Convert to microseconds
-% %             
-% %             // Measure asynchronous execution time
-% %             long asyncStart = System.nanoTime();
-% %             CompletableFuture<String> future = 
-% %                 benchmarkService.processAsynchronously();
-% %             // Include completion handling in the measurement
-% %             String asyncResult = future.join();
-% %             long asyncEnd = System.nanoTime();
-% %             asyncTimes[i] = (asyncEnd - asyncStart) / 1000.0; // Convert to microseconds
-% %         }
-% %         
-% %         // Calculate overhead statistics
-% %         double meanSyncTime = calculateMean(syncTimes);
-% %         double meanAsyncTime = calculateMean(asyncTimes);
-% %         double overheadMicros = meanAsyncTime - meanSyncTime;
-% %         double overheadPercentage = (overheadMicros / meanSyncTime) * 100;
-% %         
-% %         return BenchmarkResult.builder()
-% %                 .syncMeanMicros(meanSyncTime)
-% %                 .asyncMeanMicros(meanAsyncTime)
-% %                 .overheadMicros(overheadMicros)
-% %                 .overheadPercentage(overheadPercentage)
-% %                 .standardDeviation(calculateStdDev(asyncTimes))
-% %                 .confidenceInterval95(calculateConfidenceInterval(asyncTimes))
-% %                 .build();
-% %     }
-% % }
-% \end{lstlisting}
+\subsection{Statistical Significance Measures}
 
-The microsecond-level analysis provides detailed insights into the computational costs of async processing frameworks, thread pool management, and callback handling. The overhead measurement methodology isolates and quantifies specific components of async processing overhead, including task scheduling latency, thread context switching costs, and completion handling overhead.
+\begin{itemize}
+    \item \textbf{Multiple Iteration Testing}: Default minimum of 100 iterations for micro-benchmarks
+    \item \textbf{Confidence Interval Calculation}: Statistical analysis of variance and distribution characteristics
+    \item \textbf{Overhead Compensation}: Mathematical isolation of pure protocol performance from infrastructure overhead
+\end{itemize}
 
-% TODO: Add Figure 6.1: Overhead Measurement Methodology Diagram
+\subsection{Temporal Analysis Capabilities}
 
-\section{Automated Performance Testing Framework}
+\begin{itemize}
+    \item \textbf{High-Resolution Timing}: Nanosecond precision for latency measurements
+    \item \textbf{Time-Series Data Collection}: Continuous monitoring with timestamp correlation
+    \item \textbf{Trend Analysis}: Historical performance pattern identification
+\end{itemize}
 
-To ensure consistent and reproducible benchmarking results, an automated testing framework was implemented using PowerShell scripting for test orchestration and result collection.
+\subsection{Reproducibility Assurance}
 
-\subsection{PowerShell Automation for Consistent Testing}
+\begin{itemize}
+    \item \textbf{Automated Test Execution}: Scripted testing eliminates human variability
+    \item \textbf{Configuration Management}: Externalized parameters through \texttt{application.yaml}
+    \item \textbf{Data Persistence}: Complete test result preservation for post-hoc analysis
+\end{itemize}
 
-The benchmark automation scripts ensure consistent test execution across multiple test runs:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Assets/Figure showing scientific methodology workflow.png}
+    \caption{scientific testing methodology workflow}
+\end{figure}
 
-% \begin{lstlisting}[language=PowerShell, caption=Benchmark Automation Script, 
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% % # thesis-benchmark.ps1
-% % # Automated benchmark script for LLM integration patterns
-% %
-% % param(
-% %     [int]$iterations = 100,
-% %     [int]$concurrentUsers = 10,
-% %     [string]$outputFile = "benchmark-results.json",
-% %     [switch]$includeWarmup = $true,
-% %     [int]$warmupIterations = 20
-% % )
-% %
-% % Write-Host "Starting LLM Integration Pattern Benchmark"
-% % Write-Host "----------------------------------------"
-% % Write-Host "Configuration: $iterations iterations with $concurrentUsers concurrent users"
-% %
-% % # Run warmup if requested
-% % if ($includeWarmup) {
-% %     Write-Host "Performing $warmupIterations warmup requests..."
-% %     for ($i = 1; $i -le $warmupIterations; $i++) {
-% %         try {
-% %             $response = Invoke-RestMethod -Uri "http://localhost:8080/api/llm/warmup" -Method GET
-% %         } catch {
-% %             Write-Error "Warmup failed: $_"
-% %             exit 1
-% %         }
-% %     }
-% % }
-% %
-% % # Array to store results
-% % $results = @()
 
-% % # Test REST integration pattern
-% % Write-Host "Testing REST integration pattern..."
-% % $restResults = & {
-% %     $patternResults = @()
-% %     
-% %     for ($i = 1; $i -le $iterations; $i++) {
-% %         $start = (Get-Date).Ticks / 10 # Convert to microseconds
-% %         
-% %         try {
-% %             $response = Invoke-RestMethod -Uri "http://localhost:8080/api/llm/rest" `
-% %                 -Method POST -Body @{
-% %                     prompt = "Explain quantum computing in simple terms"
-% %                     temperature = 0.7
-% %                 } -ContentType "application/json"
-% %             
-% %             $end = (Get-Date).Ticks / 10
-% %             $elapsed = $end - $start
-% %             
-% %             $patternResults += [PSCustomObject]@{
-% %                 pattern = "REST"
-% %                 iteration = $i
-% %                 durationMs = $elapsed / 1000 # Convert to milliseconds
-% %                 tokensGenerated = $response.metadata.tokenCount
-% %                 success = $true
-% %             }
-% %             
-% %             Write-Host "  Iteration $i completed in $($elapsed / 1000) ms"
-% %         } catch {
-% %             Write-Error "  Iteration $i failed: $_"
-% %             $patternResults += [PSCustomObject]@{
-% %                 pattern = "REST"
-% %                 iteration = $i
-% %                 durationMs = -1
-% %                 tokensGenerated = 0
-% %                 success = $false
-% %             }
-% %         }
-% %     }
-% %     
-% %     return $patternResults
-% % }
-% %
-% % $results += $restResults
+\section{Performance Metrics and KPIs}
 
-% % # Test MCP integration pattern
-% % # Similar implementation to REST testing...
-% %
-% % # Test Streaming SSE integration pattern
-% % # Similar implementation to REST testing...
-% %
-% % # Calculate and output statistics
-% % $resultsByPattern = $results | Group-Object -Property pattern
-% %
-% % foreach ($patternGroup in $resultsByPattern) {
-% %     $pattern = $patternGroup.Name
-% %     $successfulResults = $patternGroup.Group | Where-Object { $_.success -eq $true }
-% %     
-% %     $avgDuration = ($successfulResults | Measure-Object -Property durationMs -Average).Average
-% %     $minDuration = ($successfulResults | Measure-Object -Property durationMs -Minimum).Minimum
-% %     $maxDuration = ($successfulResults | Measure-Object -Property durationMs -Maximum).Maximum
-% %     
-% %     Write-Host ""
-% %     Write-Host "Results for $pattern pattern:"
-% %     Write-Host "  Average duration: $avgDuration ms"
-% %     Write-Host "  Min duration: $minDuration ms"
-% %     Write-Host "  Max duration: $maxDuration ms"
-% % }
-% %
-% % # Save results to file
-% % $results | ConvertTo-Json | Out-File $outputFile
-% % Write-Host "Results saved to $outputFile"
-% \end{lstlisting}
+The framework captures and analyzes multiple performance dimensions:
 
-The automation framework implements proper test isolation, environment setup, and teardown procedures to ensure measurement consistency. The framework supports parameterized testing that enables systematic exploration of performance characteristics across different workload configurations and integration patterns.
+\begin{enumerate}
+    \item \textbf{Latency Metrics}: Average, median, and percentile response times
+    \item \textbf{Throughput Measurements}: Requests per minute by integration pattern
+    \item \textbf{Resource Utilization}: CPU and memory consumption patterns
+    \item \textbf{Overhead Quantification}: Pure async processing overhead in microseconds
+    \item \textbf{Efficiency Ratios}: Performance improvement percentages and relative comparisons
+\end{enumerate}
 
-\subsection{Load Testing and Concurrent Request Handling}
 
-The framework implements specialized load testing to evaluate performance under concurrent request scenarios:
+\section{Data Analysis and Reporting}
 
-% \begin{lstlisting}[language=PowerShell, caption=Concurrent Load Testing Implementation,
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% # concurrent-load-test.ps1
-% # Tests scalability of different integration patterns under load
+The framework provides comprehensive analytical outputs:
+\begin{itemize}
+    \item \textbf{Real-time Dashboards}: Prometheus integration for live monitoring
+    \item \textbf{Statistical Reports}: Automated calculation of performance improvements and overhead impact
+    \item \textbf{Comparative Analysis}: Side-by-side protocol performance evaluation
+    \item \textbf{Theoretical Performance Modeling}: Isolation of pure protocol efficiency from implementation overhead
+\end{itemize}
 
-% param(
-%     [int[]]$concurrencyLevels = @(1, 5, 10, 25, 50, 100),
-%     [string]$outputFile = "concurrency-results.json"
-% )
 
-% $results = @()
-
-% foreach ($concurrencyLevel in $concurrencyLevels) {
-%     Write-Host "Testing with $concurrencyLevel concurrent users"
-    
-%     # Test each integration pattern at this concurrency level
-%     foreach ($pattern in @("REST", "MCP", "Streaming")) {
-%         $url = "http://localhost:8080/api/llm/$($pattern.ToLower())"
-        
-%         $jobs = @()
-%         $jobResults = @()
-        
-%         # Start concurrent requests
-%         for ($i = 1; $i -le $concurrencyLevel; $i++) {
-%             $jobs += Start-Job -ScriptBlock {
-%                 param($url, $userId)
-                
-%                 $start = (Get-Date).Ticks / 10
-                
-%                 try {
-%                     $response = Invoke-RestMethod -Uri $url -Method POST `
-%                         -Body (@{
-%                             prompt = "Explain quantum computing in simple terms"
-%                             temperature = 0.7
-%                         } | ConvertTo-Json) `
-%                         -ContentType "application/json"
-                    
-%                     $end = (Get-Date).Ticks / 10
-%                     $elapsed = $end - $start
-                    
-%                     return @{
-%                         userId = $userId
-%                         durationMs = $elapsed / 1000
-%                         success = $true
-%                     }
-%                 } catch {
-%                     return @{
-%                         userId = $userId
-%                         durationMs = -1
-%                         success = $false
-%                         error = $_.ToString()
-%                     }
-%                 }
-%             } -ArgumentList $url, $i
-%         }
-        
-%         # Wait for all jobs to complete
-%         $jobs | Wait-Job | ForEach-Object {
-%             $jobResults += Receive-Job -Job $_
-%             Remove-Job -Job $_
-%         }
-        
-%         # Calculate statistics
-%         $successfulResults = $jobResults | Where-Object { $_.success -eq $true }
-%         $avgDuration = ($successfulResults | Measure-Object -Property durationMs -Average).Average
-%         $successRate = ($successfulResults.Count / $concurrencyLevel) * 100
-        
-%         $results += [PSCustomObject]@{
-%             pattern = $pattern
-%             concurrencyLevel = $concurrencyLevel
-%             avgDurationMs = $avgDuration
-%             successRate = $successRate
-%             rawResults = $jobResults
-%         }
-        
-%         Write-Host "  $pattern - Average: $avgDuration ms, Success rate: $successRate%"
-%     }
-% }
-
-% # Save results to file
-% $results | ConvertTo-Json -Depth 10 | Out-File $outputFile
-% Write-Host "Concurrency test results saved to $outputFile"
-% \end{lstlisting}
-% \end{lstlisting}
-
-The load testing framework incorporates metrics for throughput degradation analysis, response time distribution under load, and failure rate assessment. The concurrency testing methodology systematically evaluates performance across increasing load levels to identify performance plateaus and failure thresholds.
-
-\subsection{Endpoint-Specific Test Implementations}
-
-The benchmark controller implements endpoints for specific performance characteristics testing:
-
-% \begin{lstlisting}[language=Java, caption=Benchmark Controller Implementation,
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% @RestController
-% @RequestMapping("/api/benchmark")
-% public class BenchmarkController {
-%     @Autowired
-%     private RestLlmService restService;
-    
-%     @Autowired
-%     private McpLlmService mcpService;
-    
-%     @Autowired
-%     private StreamingLlmService streamingService;
-    
-%     @GetMapping("/patterns/all")
-%     public Map<String, Object> benchmarkAllPatterns(
-%             @RequestParam(defaultValue = "100") int iterations,
-%             @RequestParam(defaultValue = "Explain quantum computing") String prompt,
-%             @RequestParam(defaultValue = "0.7") float temperature) {
-        
-%         Map<String, Object> results = new HashMap<>();
-        
-%         // Benchmark REST pattern
-%         List<Long> restDurations = new ArrayList<>();
-%         for (int i = 0; i < iterations; i++) {
-%             LlmRequest request = new LlmRequest(prompt, temperature);
-%             long start = System.nanoTime();
-%             ResponseEntity<LlmResponse> response = restService.processPrompt(request);
-%             long duration = (System.nanoTime() - start) / 1_000_000; // Convert to ms
-%             restDurations.add(duration);
-%         }
-        
-%         // Benchmark MCP pattern
-%         List<Long> mcpDurations = new ArrayList<>();
-%         for (int i = 0; i < iterations; i++) {
-%             LlmRequest request = new LlmRequest(prompt, temperature);
-%             long start = System.nanoTime();
-%             CompletableFuture<LlmResponse> future = mcpService.processPromptAsync(request);
-%             LlmResponse response = future.join();
-%             long duration = (System.nanoTime() - start) / 1_000_000; // Convert to ms
-%             mcpDurations.add(duration);
-%         }
-        
-%         // Benchmark Streaming pattern
-%         List<Long> streamingDurations = new ArrayList<>();
-%         for (int i = 0; i < iterations; i++) {
-%             LlmRequest request = new LlmRequest(prompt, temperature);
-%             long start = System.nanoTime();
-%             Flux<StreamingToken> tokenStream = streamingService.streamResponse(request);
-%             // Collect all tokens to complete the stream
-%             List<StreamingToken> tokens = tokenStream.collectList().block();
-%             long duration = (System.nanoTime() - start) / 1_000_000; // Convert to ms
-%             streamingDurations.add(duration);
-%         }
-        
-%         // Calculate statistics
-%         results.put("rest", calculateStatistics(restDurations));
-%         results.put("mcp", calculateStatistics(mcpDurations));
-%         results.put("streaming", calculateStatistics(streamingDurations));
-%         results.put("comparison", comparePatterns(restDurations, mcpDurations, streamingDurations));
-        
-%         return results;
-%     }
-    
-%     private Map<String, Object> calculateStatistics(List<Long> durations) {
-%         Map<String, Object> stats = new HashMap<>();
-%         double[] data = durations.stream().mapToDouble(Long::doubleValue).toArray();
-        
-%         stats.put("mean", calculateMean(data));
-%         stats.put("median", calculateMedian(data));
-%         stats.put("min", Arrays.stream(data).min().orElse(0));
-%         stats.put("max", Arrays.stream(data).max().orElse(0));
-%         stats.put("stdDev", calculateStdDeviation(data));
-%         stats.put("p95", calculatePercentile(data, 95));
-%         stats.put("p99", calculatePercentile(data, 99));
-        
-%         return stats;
-%     }
-    
-%     private Map<String, Object> comparePatterns(
-%             List<Long> restDurations, 
-%             List<Long> mcpDurations,
-%             List<Long> streamingDurations) {
-%         Map<String, Object> comparison = new HashMap<>();
-        
-%         double restMean = calculateMean(restDurations.stream()
-%                 .mapToDouble(Long::doubleValue).toArray());
-%         double mcpMean = calculateMean(mcpDurations.stream()
-%                 .mapToDouble(Long::doubleValue).toArray());
-%         double streamingMean = calculateMean(streamingDurations.stream()
-%                 .mapToDouble(Long::doubleValue).toArray());
-        
-%         comparison.put("mcpVsRestImprovement", 
-%                 ((restMean - mcpMean) / restMean) * 100);
-%         comparison.put("streamingVsRestImprovement", 
-%                 ((restMean - streamingMean) / restMean) * 100);
-%         comparison.put("streamingVsMcpImprovement", 
-%                 ((mcpMean - streamingMean) / mcpMean) * 100);
-        
-%         // Add statistical significance results
-%         comparison.put("mcpVsRestSignificant", 
-%                 isStatisticallySignificant(mcpDurations, restDurations, 0.95));
-%         comparison.put("streamingVsRestSignificant", 
-%                 isStatisticallySignificant(streamingDurations, restDurations, 0.95));
-%         comparison.put("streamingVsMcpSignificant", 
-%                 isStatisticallySignificant(streamingDurations, mcpDurations, 0.95));
-        
-%         return comparison;
-%     }
-% }
-% \end{lstlisting}
-% \end{lstlisting}
-
-% TODO: Add Figure 6.2: Automated Testing Architecture
-
-\section{Scientific Validation and Reproducibility}
-
-The benchmark framework implements comprehensive scientific validation protocols to ensure research reproducibility and validity.
-
-\subsection{Experimental Design and Control Variables}
-
-The framework implements controlled experimental methodology with precise control over all relevant variables:
-
-% \begin{lstlisting}[language=Java, caption=Experiment Configuration Implementation,
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% @Configuration
-% public class ExperimentConfiguration {
-%     /**
-%      * Defines the experimental configuration including control variables,
-%      * measurement parameters, and statistical validation requirements
-%      */
-%     @Bean
-%     public ExperimentParameters experimentParameters() {
-%         return ExperimentParameters.builder()
-%                 // Control variables
-%                 .modelName("gpt-4")
-%                 .modelTemperature(0.7f)
-%                 .maxTokens(1000)
-%                 .testPrompts(List.of(
-%                     "Explain quantum computing in simple terms",
-%                     "Write a haiku about programming",
-%                     "Describe the process of photosynthesis"
-%                 ))
-                
-%                 // Measurement parameters
-%                 .warmupIterations(20)
-%                 .measurementIterations(100)
-%                 .samplingInterval(100) // milliseconds
-                
-%                 // Statistical validation
-%                 .confidenceLevel(0.95)
-%                 .minSampleSize(30)
-%                 .outlierDetectionEnabled(true)
-%                 .outlierDetectionThreshold(2.5) // standard deviations
-                
-%                 .build();
-%     }
-    
-%     /**
-%      * Configures the experiment environment to ensure consistent
-%      * testing conditions across experimental runs
-%      */
-%     @Bean
-%     public ExperimentEnvironment experimentEnvironment() {
-%         return ExperimentEnvironment.builder()
-%                 .jvmArguments("-Xms2g -Xmx2g -XX:+UseG1GC")
-%                 .disableGcDuringTests(true)
-%                 .isolateCpuCores(true)
-%                 .preferredCpuCores(List.of(0, 1, 2, 3))
-%                 .networkThrottlingEnabled(false)
-%                 .build();
-%     }
-% }
-% \end{lstlisting}
-% \end{lstlisting}
-
-The experimental design methodology implements proper control and experimental groups, with careful isolation of the variables under investigation. The control variable implementation ensures that all non-target variables remain constant across experimental conditions, isolating the effects of integration pattern differences.
-
-\subsection{Data Collection and Statistical Protocols}
-
-The framework implements rigorous data collection protocols to ensure statistical validity:
-
-% \begin{lstlisting}[language=Java, caption=Data Collection Protocol Implementation,
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% @Component
-% public class BenchmarkDataCollector {
-%     private static final int MIN_SAMPLE_SIZE = 30;
-%     private final CsvWriter csvWriter;
-    
-%     /**
-%      * Implements the scientific data collection protocol with proper
-%      * sampling methodology and data validation
-%      */
-%     public BenchmarkResults collectBenchmarkData(
-%             String patternName,
-%             Function<LlmRequest, Object> benchmarkFunction,
-%             List<LlmRequest> testCases) {
-        
-%         List<DataPoint> dataPoints = new ArrayList<>();
-        
-%         // Ensure sufficient sample size for statistical validity
-%         int sampleSize = Math.max(MIN_SAMPLE_SIZE, testCases.size());
-        
-%         for (LlmRequest testCase : testCases) {
-%             // Repeated measurements to establish statistical confidence
-%             for (int i = 0; i < sampleSize / testCases.size(); i++) {
-%                 long startTime = System.nanoTime();
-%                 Object result = benchmarkFunction.apply(testCase);
-%                 long endTime = System.nanoTime();
-                
-%                 double durationMs = (endTime - startTime) / 1_000_000.0;
-                
-%                 DataPoint dataPoint = new DataPoint(
-%                         patternName, 
-%                         testCase.getPrompt(),
-%                         durationMs,
-%                         System.currentTimeMillis(),
-%                         measureResourceUsage());
-                
-%                 dataPoints.add(dataPoint);
-                
-%                 // Record raw data for analysis
-%                 csvWriter.writeDataPoint(dataPoint);
-                
-%                 // Implement inter-test delay to prevent thermal throttling
-%                 try {
-%                     Thread.sleep(100);
-%                 } catch (InterruptedException e) {
-%                     Thread.currentThread().interrupt();
-%                 }
-%             }
-%         }
-        
-%         // Perform outlier detection and removal
-%         List<DataPoint> validatedData = detectAndRemoveOutliers(dataPoints);
-        
-%         // Calculate aggregate statistics
-%         BenchmarkStatistics statistics = calculateStatistics(validatedData);
-        
-%         return new BenchmarkResults(patternName, validatedData, statistics);
-%     }
-    
-%     /**
-%      * Implements outlier detection using modified Z-score method
-%      * to identify and remove statistical anomalies
-%      */
-%     private List<DataPoint> detectAndRemoveOutliers(List<DataPoint> dataPoints) {
-%         double[] durations = dataPoints.stream()
-%                 .mapToDouble(DataPoint::getDurationMs)
-%                 .toArray();
-        
-%         double median = calculateMedian(durations);
-%         double mad = calculateMedianAbsoluteDeviation(durations, median);
-        
-%         // Using modified Z-score with threshold of 3.5 (robust statistical practice)
-%         final double OUTLIER_THRESHOLD = 3.5;
-        
-%         return dataPoints.stream()
-%                 .filter(point -> {
-%                     double modifiedZScore = 0.6745 * 
-%                         Math.abs(point.getDurationMs() - median) / mad;
-%                     return modifiedZScore <= OUTLIER_THRESHOLD;
-%                 })
-%                 .collect(Collectors.toList());
-%     }
-% }
-% \end{lstlisting}
-% \end{lstlisting}
-
-The data collection protocol implements outlier detection and handling procedures based on established statistical methods. The statistical protocol includes proper sample size determination to ensure adequate statistical power while managing experimental resource constraints.
-
-\subsection{Benchmarking Protocol Implementation}
-
-The framework implements a comprehensive benchmarking protocol that ensures scientific reproducibility:
-
-% \begin{lstlisting}[language=Java, caption=Scientific Benchmarking Protocol,
-%     breaklines=true, breakatwhitespace=true, columns=flexible]
-% /**
-%  * Implements the scientific benchmarking protocol ensuring
-%  * reproducibility and methodological rigor
-%  */
-% @Service
-% public class BenchmarkingService {
-%     private final RestLlmService restService;
-%     private final McpLlmService mcpService;
-%     private final StreamingLlmService streamingService;
-%     private final BenchmarkDataCollector dataCollector;
-%     private final ExperimentParameters params;
-    
-%     /**
-%      * Executes the complete scientific benchmarking protocol
-%      * for all integration patterns
-%      */
-%     public Map<String, BenchmarkResults> executeScientificBenchmark() {
-%         Map<String, BenchmarkResults> results = new HashMap<>();
-        
-%         // Prepare test cases based on experimental parameters
-%         List<LlmRequest> testCases = params.getTestPrompts().stream()
-%                 .map(prompt -> new LlmRequest(prompt, params.getModelTemperature()))
-%                 .collect(Collectors.toList());
-        
-%         // System stabilization period (JVM warm-up, GC settling)
-%         performSystemStabilization();
-        
-%         // Execute benchmarks for each pattern using the scientific protocol
-%         results.put("REST", dataCollector.collectBenchmarkData(
-%                 "REST", 
-%                 request -> restService.processPrompt(request),
-%                 testCases));
-        
-%         results.put("MCP", dataCollector.collectBenchmarkData(
-%                 "MCP", 
-%                 request -> mcpService.processPromptAsync(request).join(),
-%                 testCases));
-        
-%         results.put("Streaming", dataCollector.collectBenchmarkData(
-%                 "Streaming", 
-%                 request -> streamingService.streamResponse(request).collectList().block(),
-%                 testCases));
-        
-%         // Validate results for statistical significance
-%         validateStatisticalSignificance(results);
-        
-%         // Generate comprehensive benchmark report
-%         generateBenchmarkReport(results);
-        
-%         return results;
-%     }
-    
-%     /**
-%      * Performs system stabilization to ensure consistent
-%      * measurement conditions
-%      */
-%     private void performSystemStabilization() {
-%         // Execute JVM warm-up cycles
-%         for (int i = 0; i < params.getWarmupIterations(); i++) {
-%             // Execute operations that exercise JIT compilation paths
-%             // to ensure stable performance during measurement
-%             LlmRequest warmupRequest = new LlmRequest(
-%                     "This is a warm-up request", 
-%                     params.getModelTemperature());
-                    
-%             restService.processPrompt(warmupRequest);
-%             mcpService.processPromptAsync(warmupRequest).join();
-%             streamingService.streamResponse(warmupRequest).collectList().block();
-%         }
-        
-%         // Request garbage collection between test runs
-%         System.gc();
-        
-%         // Allow system stabilization
-%         try {
-%             Thread.sleep(2000);
-%         } catch (InterruptedException e) {
-%             Thread.currentThread().interrupt();
-%         }
-%     }
-    
-%     /**
-%      * Validates that results show statistical significance
-%      * according to scientific standards
-%      */
-%     private void validateStatisticalSignificance(
-%             Map<String, BenchmarkResults> results) {
-%         // Apply statistical hypothesis testing between patterns
-%         BenchmarkResults restResults = results.get("REST");
-%         BenchmarkResults mcpResults = results.get("MCP");
-%         BenchmarkResults streamingResults = results.get("Streaming");
-        
-%         boolean mcpVsRestSignificant = performSignificanceTest(
-%                 mcpResults.getDataPoints(),
-%                 restResults.getDataPoints(),
-%                 params.getConfidenceLevel());
-        
-%         boolean streamingVsRestSignificant = performSignificanceTest(
-%                 streamingResults.getDataPoints(),
-%                 restResults.getDataPoints(),
-%                 params.getConfidenceLevel());
-        
-%         boolean streamingVsMcpSignificant = performSignificanceTest(
-%                 streamingResults.getDataPoints(),
-%                 mcpResults.getDataPoints(),
-%                 params.getConfidenceLevel());
-        
-%         // Record significance findings
-%         results.get("MCP").getStatistics()
-%                 .setSignificantImprovement(mcpVsRestSignificant);
-%         results.get("Streaming").getStatistics()
-%                 .setSignificantImprovement(streamingVsRestSignificant);
-%     }
-% }
-% \end{lstlisting}
-% \end{lstlisting}
-
-The benchmarking protocol systematically validates the statistical significance of observed performance differences. The protocol implementation emphasizes scientific reproducibility through comprehensive documentation of experimental conditions, methodology, and raw results.
-
-% TODO: Add Figure 6.3: Scientific Validation Protocol Diagram
-
-The scientific testing and benchmarking framework provides the methodological foundation for empirical evaluation of LLM integration patterns. The framework combines high-precision measurement techniques with rigorous statistical methods to ensure valid, reproducible performance comparisons across integration patterns.
+This scientific framework ensures that the comparative study produces statistically valid, reproducible results suitable for academic publication and enterprise decision-making, while maintaining the rigor expected in master's thesis research. The comprehensive approach to experimental design, data collection, and statistical analysis provides the methodological foundation necessary for credible empirical evaluation of LLM integration pattern performance characteristics.
