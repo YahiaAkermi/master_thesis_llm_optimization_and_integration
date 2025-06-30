@@ -1,5 +1,26 @@
 % Conclusion
 \part{Conclusion}
 
-\chapter{Chapter Title}
-\lipsum[1] \\
+\chapter{Conclusion}
+
+\section{Performance Characteristics and Protocol Selection in AI System Architecture}
+
+This research investigated the comparative performance characteristics of Model Context Protocol (MCP) versus traditional REST APIs in Large Language Model integration scenarios. Through systematic empirical analysis, this study reveals nuanced performance trade-offs that challenge simplistic protocol selection assumptions and provide evidence-based guidance for AI system architecture decisions.
+
+\section{Key Findings}
+
+The experimental results demonstrate use-case dependent protocol performance rather than universal superiority of either approach. In traditional request-response scenarios, MCP achieves a substantial 23.61\% performance improvement over REST (4,468ms vs 5,849ms), validating the theoretical advantages of specialized protocols for AI workloads. However, streaming scenarios reveal the opposite pattern, with REST demonstrating 8.94\% superior performance (5,728ms vs 6,241ms), highlighting the critical importance of implementation maturity and protocol-specific optimization.
+
+The asynchronous wrapper overhead analysis confirms that infrastructure concerns are negligible in LLM contexts, with only 0.087ms overhead representing less than 0.002\% of total processing time. This finding validates that protocol selection should focus on architectural benefits rather than micro-optimizations.
+
+\section{Theoretical and Practical Implications}
+
+These findings contribute to the emerging understanding of protocol-dependent efficiency in AI systems. The performance inversion between traditional and streaming scenarios demonstrates that protocol advantages are not inherently transferable across use cases. MCP's superior performance in request-response patterns reflects its design optimization for stateful, context-aware interactions, while REST's streaming advantage indicates the maturity benefits of established HTTP/SSE implementations.
+
+For practitioners, this research provides actionable decision criteria: deploy MCP for traditional AI workflows requiring context management and session persistence, while leveraging REST for streaming applications until MCP streaming implementations achieve comparable optimization. The 23.61\% traditional performance improvement justifies MCP adoption costs in enterprise AI systems, while the streaming performance gap suggests continued REST usage for real-time applications.
+
+\section{Future Research Directions}
+
+This work establishes a foundation for protocol-aware AI system design. Future investigations should examine MCP performance optimization strategies, long-term consistency benefits in production environments, and the impact of persistent connections on resource utilization at scale. The demonstrated protocol-dependent performance patterns warrant further study across diverse AI workloads and deployment scenarios.
+
+The evidence presented supports a nuanced approach to AI system architecture where protocol selection aligns with specific use case requirements rather than categorical preferences. This research contributes to the evolving best practices for AI infrastructure design in an era of increasing model complexity and performance demands.
