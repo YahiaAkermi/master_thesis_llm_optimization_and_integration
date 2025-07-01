@@ -20,12 +20,12 @@ The fundamental capabilities of modern LLMs include:
 
 The enterprise adoption of LLMs has been driven by their ability to automate complex language-based tasks that previously required human expertise. Organizations across sectors including finance, healthcare, legal services, and technology have integrated LLMs into their workflows to enhance productivity, reduce operational costs, and improve service quality. However, this integration presents unique challenges related to computational efficiency, latency requirements, security considerations, and system interoperability.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Assets/learning_paradigms.png}
-    \caption{Learning paradigms in LLMs: supervised, unsupervised, and reinforcement learning approaches that contribute to model capabilities.}
-    \label{fig:learning_paradigms}
-\end{figure}
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{Assets/learning_paradigms.png}
+%     \caption{Learning paradigms in LLMs: supervised, unsupervised, and reinforcement learning approaches that contribute to model capabilities.}
+%     \label{fig:learning_paradigms}
+% \end{figure}
 
 \subsection{Evolution of Language Models}
 
@@ -63,7 +63,7 @@ where $d_k$ is the dimension of the key vectors. This scaled dot-product attenti
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/attention_long_distance_dependencies.png}
-    \caption{Attention visualization showing long-distance dependencies in encoder self-attention (layer 5 of 6) from the Transformer paper.}
+    \caption{Attention visualization showing long-distance dependencies in encoder self-attention (layer 5 of 6) from the Transformer paper \cite{AttentionIsAllYouNeed}.}
     \label{fig:attention_long_distance}
 \end{figure}
 
@@ -72,7 +72,7 @@ Multi-head attention extends this concept by applying multiple attention functio
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/attention_anaphora_resolution.png}
-    \caption{Two attention heads demonstrating anaphora resolution capabilities from the Transformer paper.}
+    \caption{Two attention heads demonstrating anaphora resolution capabilities from the Transformer paper \cite{AttentionIsAllYouNeed}.}
     \label{fig:attention_anaphora}
 \end{figure}
 
@@ -133,7 +133,7 @@ The computational complexity of self-attention is $O(n^2 \cdot d)$, where $n$ is
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/transformer.png}
-    \caption{The Transformer architecture highlighting the encoder-decoder structure with multi-head self-attention and feed-forward layers. The parallel processing capability of attention mechanisms enables efficient training and inference.}
+    \caption{The Transformer architecture highlighting the encoder-decoder structure with multi-head self-attention and feed-forward layers. The parallel processing capability of attention mechanisms enables efficient training and inference. \cite{EncoderDecoderStructure}}
     \label{fig:transformer_architecture}
 \end{figure}
 
@@ -267,7 +267,7 @@ These emergent abilities suggest that scale alone can lead to qualitatively new 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/ai_fields.png}
-    \caption{Applications of GPT-3 across various AI fields, demonstrating the model's versatility in handling diverse tasks without task-specific training.}
+    \caption{Applications of GPT-3 across various AI fields, demonstrating the model's versatility in handling diverse tasks without task-specific training.\cite{aiKeyConcepts}}
     \label{fig:ai_fields}
 \end{figure}
 
@@ -339,7 +339,7 @@ The DiXtill distillation process follows a structured approach that combines tra
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/dixtill_explanation_agreement.png}
-    \caption{Explanation agreement evaluation demonstrating DiXtill's superior alignment between teacher and student explanations.}
+    \caption{Explanation agreement evaluation demonstrating DiXtill's superior alignment between teacher and student explanations.\cite{XaiDrivenKnowledge}}
     \label{fig:dixtill_explanation_agreement}
 \end{figure}
 
@@ -360,7 +360,7 @@ Experimental results from DiXtill demonstrate significant improvements in both c
 \begin{table}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/dixtill_compression_table.png}
-    \caption{Compression ratio and inference speedup comparison between DiXtill and other techniques.}
+    \caption{Compression ratio and inference speedup comparison between DiXtill and other techniques.\cite{XaiDrivenKnowledge}}
     \label{tab:dixtill_compression}
 \end{table}
 
@@ -374,14 +374,14 @@ Experimental results from DiXtill demonstrate significant improvements in both c
 \begin{table}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/dixtill_performance_table.png}
-    \caption{Performance comparison showing DiXtill maintains accuracy while achieving significant compression.}
+    \caption{Performance comparison showing DiXtill maintains accuracy while achieving significant compression.\cite{XaiDrivenKnowledge}}
     \label{tab:dixtill_performance}
 \end{table}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/imbalanced_dataset.png}
-    \caption{Model distillation process showing the knowledge transfer from a large teacher model to a compact student model while maintaining performance and interpretability.}
+    \caption{Model distillation process showing the knowledge transfer from a large teacher model to a compact student model while maintaining performance and interpretability.\cite{Khalfe2024}}
     \label{fig:model_distillation}
 \end{figure}
 
@@ -517,7 +517,7 @@ Streaming protocols enable real-time, continuous data exchange between clients a
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/sc_execution_flow.jpg}
-    \caption{Execution flow in streaming protocols for real-time LLM applications, showing the incremental response generation and client-server communication patterns.}
+    \caption{Execution flow in streaming protocols for real-time LLM applications, showing the incremental response generation and client-server communication patterns.\cite{Jhisha2025}}
     \label{fig:streaming_protocols}
 \end{figure}
 % this i got it from https://www.keyvalue.systems/blog/powering-ai-chatbots-with-real-time-streaming-a-developers-guide/
@@ -563,7 +563,7 @@ Different protocols have varying impacts on computational and network resources.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/protocol_performance_comparison.png}
-    \caption{Performance comparison across different protocols showing latency, throughput, and resource utilization characteristics under various load conditions.}
+    \caption{Performance comparison across different protocols showing latency, throughput, and resource utilization characteristics under various load conditions.\cite{claudePerformanceComparison}}
     \label{fig:protocol_performance_comparison}
 \end{figure}
 % i got this from claude 4 based on the previous table
@@ -597,7 +597,7 @@ The computational cost of LLM inference presents significant challenges for ente
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/resource_management_architecture.jpg}
-    \caption{Enterprise resource management architecture for LLM deployment, showing distributed computing, memory optimization, and auto-scaling components.}
+    \caption{Enterprise resource management architecture for LLM deployment, showing distributed computing, memory optimization, and auto-scaling components.\cite{AnatomyOfTgi}}
     \label{fig:resource_management_architecture}
 \end{figure}
 % i got this from https://www.deepchecks.com/glossary/llm-deployment/

@@ -126,13 +126,13 @@ The decision to utilize Spring Boot 3.5.0 represents a strategic choice that bal
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626180923.png}
-    \caption{built-in actuator capabilities}
+    \caption{built-in actuator capabilities. \cite{SpringBootActuator}}
 \end{figure}
 The framework's built-in actuator capabilities provide standardized health checks, metrics exposition, and operational monitoring without introducing measurement artifacts that could compromise experimental validity. This integration ensures that the observability infrastructure itself does not become a confounding variable in performance measurements.
 
 \subsection{LLM Integration Layer: de.kherud.llama 4.1.0}
 
-The selection of the de.kherud.llama library over alternatives such as LangChain4j or direct Python integration stems from several critical research requirements. First, the library provides direct Java Native Interface (JNI) bindings to the underlying llama.cpp implementation, eliminating the network latency and serialization overhead that would be introduced by Python-based solutions or external API calls. This architectural decision ensures that measured performance characteristics reflect the integration patterns themselves rather than external dependencies.
+The selection of the de.kherud.llama library \cite{LlamaJavaBinding} over alternatives such as LangChain4j or direct Python integration stems from several critical research requirements. First, the library provides direct Java Native Interface (JNI) bindings to the underlying llama.cpp implementation, eliminating the network latency and serialization overhead that would be introduced by Python-based solutions or external API calls. This architectural decision ensures that measured performance characteristics reflect the integration patterns themselves rather than external dependencies.
 
 The library's support for GGUF (Georgi Gerganov Universal Format) models enables the use of quantized models that balance computational efficiency with response quality. The specific choice of Microsoft Phi-2 Q4\_K\_M quantization provides a representative enterprise model size while maintaining reasonable computational requirements for reproducible research environments.
 
@@ -143,7 +143,7 @@ The monitoring stack selection prioritizes industry-standard tools that reflect 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626181131.png}
-    \caption{Micrometer's vendor-neutral facade pattern dependency}
+    \caption{Micrometer's vendor-neutral facade pattern dependency. \cite{Micrometer}}
 \end{figure}
 Prometheus integration provides time-series data collection capabilities essential for longitudinal performance analysis and statistical validation. The pull-based metrics model ensures that monitoring overhead remains consistent across all integration patterns, preventing measurement bias that could arise from push-based systems with variable network timing.
 
@@ -154,7 +154,7 @@ The embedded H2 database selection serves multiple research objectives. First, i
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626181235.png}
-    \caption{H2 database file-based persistence mode}
+    \caption{H2 database file-based persistence mode. \cite{SpringBootJPA}}
 \end{figure}
 The Java Persistence API (JPA) abstraction enables sophisticated data modeling for research analytics while maintaining database vendor neutrality. This design choice supports future research extensions that might require different database backends without compromising the core measurement infrastructure.
 
@@ -165,7 +165,7 @@ Maven's declarative dependency management provides reproducible build environmen
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\textwidth]{Assets/Pasted image 20250626181416.png}
-    \caption{maven dependency management}
+    \caption{maven dependency management. \cite{SpringBoot,SpringAI}}
 \end{figure}
 
 \section{Microservice Architecture Design}
@@ -285,7 +285,7 @@ The model initialization process follows a carefully orchestrated sequence desig
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Assets/Pasted image 20250627120229.png}
-    \caption{Model Parameter Optimization}
+    \caption{Model Parameter Optimization. \cite{PhiModel}}
 \end{figure}
 This architectural decision addresses a fundamental challenge in LLM performance measurement: the significant overhead associated with model loading operations. By isolating initialization costs from operational measurements, the implementation ensures that comparative analysis between integration patterns reflects genuine architectural differences rather than one-time setup variations.
 
@@ -901,7 +901,7 @@ The format optimization includes efficient serialization that minimizes expositi
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.99\textwidth]{Assets/Pasted image 20250628121106.png}
-    \caption{Prometheus configuration file}
+    \caption{Prometheus configuration file.\cite{Prometheus}}
 \end{figure}
 
 The Prometheus metrics registration implementation demonstrates comprehensive performance monitoring capabilities with detailed tagging for dimensional analysis:
@@ -1235,7 +1235,7 @@ The framework ensures scientific validity through:
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{Assets/Figure showing scientific methodology workflow.png}
-    \caption{scientific testing methodology workflow}
+    \caption{scientific testing methodology workflow . software used \cite{EraserIO}}
 \end{figure}
 
 
